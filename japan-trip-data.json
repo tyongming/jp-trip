@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exportDate": "2026-03-22T19:30:18.335Z",
+  "exportDate": "2026-03-22T19:33:36.289Z",
   "days": [
     {
       "id": 0,
@@ -49,7 +49,9 @@
           "currency": "MYR",
           "notes": "Apr 11-17 · 新宿区域为最佳选择 (Day 1-7 base)\n⬜ 预订酒店 (推荐: 新宿站步行10分内)\n⬜ 确认入住/退房时间\n⬜ 保存确认邮件截图\n💡 Day 1凌晨01:05到达，酒店可能无法入住 → 已安排DiCE网咖过夜",
           "la": 34.373617,
-          "lo": 132.533869
+          "lo": 132.533869,
+          "img": "https://places.googleapis.com/v1/places/ChIJAQCskQSiWjURdNwf2oy5c9U/photos/AU_ZVEFq0cYDIqgUs_mKLaVaSnS8Y3e7vT1vraOPGK4dYOMGWxzD2BMA0yb75sJ48n-tlUIMFtk8LaTTCy2_B49sl5HjuKpzuoLSDTl8SyaztsF6JijCgQJODvhKt5lOUIDmw7BwcGmO1ogYNPFJ58cDEscb1QVtF_dE8hmjP_PSkdPPpqqZDZb-BjkIKsmqCMttsT9Bu0hS4wLUbiQx6BbkA4p5vI3sRXe0W7oGb60IX9BFBtVTzUTc_y4crZ43rGccpzSHlvSauJjUOs_r8EGsqmBeNdGrGGyC7Ziy_WhN9epwtgJBU1lInz5oFbFZqx7WKZBboigfIoxsYwgQquAYV-rV7H6TF7GOG3q0TWHVJ9aMwWykNMh8NZ8J2h2Rj2SIjUqoNW-icXk1WxFWzNZ5z0kt4-QTHVS_vJRxQH8Y5x-CX8c/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
+          "addr": "7-15 Nishihiratsukachō, Naka Ward, Hiroshima, 730-0024, Japan"
         },
         {
           "id": "0_car",
@@ -72,8 +74,8 @@
           "cost": "",
           "currency": "MYR",
           "notes": "⬜ 护照有效期 > 6个月 (至少到 Oct 2026)\n⬜ 马来西亚护照免签90天 ✅\n⬜ 护照复印件 (电子版+纸质)\n⬜ 2寸白底证件照备用",
-          "img": "",
-          "addr": "",
+          "img": "https://places.googleapis.com/v1/places/ChIJ2SeRlsAABDQRwIwx74LPT6I/photos/AU_ZVEEz61c2OtQtzJzolhsRNzoFULNjrR3u0FLQskNUtvtd_d7B5jRoQzL8K1ZlJ0Sh61W5jwTK396ODJ-srAbvL-7zHOoWuVunLLfVCa35pO0uORDFnS_Y0Nbu63v9DONNuNQU1h0zBSrGGG6fiY7ffWHsYaZOuHjcluolo7jQuVYkZWyivl1tKClIRalpBQooP0CcO8HXIzB9PP_rgDnCBsYR8erjDceAJyFLCwu-5NL2OYoTd_mwru_yF8MrS_M0DhN3uhCAHrNkMuVgA2W33nA5B_jVEbM0AtU7yj6kJZCr6w/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
+          "addr": "Hong Kong, Wan Chai, Harbour Rd, 28號灣景中心大廈3層304舖位",
           "la": 36.591907,
           "lo": 140.372803
         },
@@ -138,8 +140,8 @@
           "cost": "",
           "currency": "MYR",
           "notes": "天气: 15-18°C · Day 6可能下雨\n⬜ 分层穿搭 (薄外套+卫衣+T恤)\n⬜ 轻便雨衣/折叠伞\n⬜ 舒适走路鞋 (每天1万步+)\n⬜ 充电宝 + Type-C线\n⬜ 日本插头 = A型 (和马来西亚不同，需转换器!)\n⬜ 小背包 (日间用)\n⬜ 护照夹/证件袋",
-          "img": "",
-          "addr": "",
+          "img": "https://places.googleapis.com/v1/places/ChIJvWa_-2gHA2ARH5KmVPZNBTY/photos/AU_ZVEFYyHG3jqEc3Vcf0LJXmDTCKB1tTJ3Rm9JjaTsU13o2LqBOCn8JOPNLXnnCmKN4qqaGccTn7PskUeWHw2Q4_fG77-xnYdNjBOa3hbunpWzaDNsfR-lWtDEcU3V-LPfKnEYPqUcudEaHIj7lTGQx9knpcTW-Q5pmhwDLyLwQfq5WnBJuvEpfe2BmjtkTXJ9_LcNCTzgDpXvwpibI4xToesnqlPG7l9ltTXinUpi-qVUtnYGrfNCDbbSvIYqtZohOeoCG7LEnSkgk7U8phRoWXuy-_NaphuEmhhGD9aKE5WjT0Q/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
+          "addr": "3-chōme-465 Iwatanishi, Gifu, 501-3156, Japan",
           "la": 35.407638,
           "lo": 136.743926
         },
