@@ -256,6 +256,7 @@ function App(){
   },[]);
   const cities=[];let prev="";days.forEach(d=>{const l=d.location.split("→")[0].split("/")[0].trim();if(l!==prev){cities.push({name:l,start:d.id});prev=l;}});
   const tA=days.reduce((s,d)=>s+d.activities.length,0);
+  const dateRange=useMemo(()=>{if(!days.length)return"";const months={Jan:"1月",Feb:"2月",Mar:"3月",Apr:"4月",May:"5月",Jun:"6月",Jul:"7月",Aug:"8月",Sep:"9月",Oct:"10月",Nov:"11月",Dec:"12月"};const first=days[0].date,last=days[days.length-1].date;const[fm,fd]=first.split(" ");const[lm,ld]=last.split(" ");if(fm===lm)return`2026年${months[fm]}${fd}–${ld}日`;return`2026年${months[fm]}${fd}日–${months[lm]}${ld}日`;},[days]);
   const allMk=useMemo(()=>{const m=[];HOTELS.forEach(h=>m.push({name:h.name,la:h.la,lo:h.lo,isH:true,cat:"hotel"}));days.forEach(d=>d.activities.filter(a=>a.la&&a.lo).forEach(a=>m.push({name:a.name,la:a.la,lo:a.lo,cat:a.category})));const s=new Set();return m.filter(p=>{if(s.has(p.name))return false;s.add(p.name);return true;});},[days]);
 
   const hSave=form=>{setDays(p=>p.map(d=>{if(d.id!==editD)return d;const ex=d.activities.find(a=>a.id===form.id);if(ex)return{...d,activities:d.activities.map(a=>a.id===form.id?form:a)};return{...d,activities:[...d.activities,{...form,id:`${d.id}_${Date.now()}`}]};}));};
@@ -332,7 +333,7 @@ function App(){
       <div style={{textAlign:"center",marginBottom:20,paddingTop:4}}>
         <div style={{fontSize:11,letterSpacing:6,color:"#c46b98",opacity:0.7,marginBottom:6,fontWeight:700}}>旅の計画 · 互动行程规划</div>
         <h1 style={{fontSize:"clamp(22px, 5vw, 32px)",fontWeight:800,color:"#1a1a2e",margin:"0 0 6px",lineHeight:1.2}}>日本春季樱花自驾之旅</h1>
-        <div style={{fontSize:14,color:"#6b7280"}}>2026年4月5–11日 · {tA}个体验 · 🌸樱花 🍜美食 🎮二次元 📸摄影 🌊海边</div>
+        <div style={{fontSize:14,color:"#6b7280"}}>{dateRange} · {tA}个体验 · 🌸樱花 🍜美食 🎮二次元 📸摄影 🌊海边</div>
         <div style={S.routeBadge}>JB <span style={{color:"#c46b98"}}>✈</span> 大阪 <span style={{color:"#c46b98"}}>🚗</span> 富士山 <span style={{color:"#c46b98"}}>🚗</span> 东京 <span style={{color:"#c46b98"}}>✈</span> JB</div>
       </div>
       <div style={{display:"flex",alignItems:"center",justifyContent:"center",flexWrap:"wrap",padding:"8px 0",marginBottom:8}}>
