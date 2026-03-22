@@ -49,6 +49,94 @@ const gmDir=(la,lo,name)=>name?`https://www.google.com/maps/dir/?api=1&destinati
 
 const INIT_DAYS=[];
 
+// ═══ GITHUB VERSION HISTORY — auto-save + restore ═══
+const GITHUB_REPO='tyongming/jp-trip';
+const GITHUB_FILE='japan-trip-data.json';
+const GITHUB_PAT=window.GITHUB_PAT||'';
+
+async function githubSave(days,origin){
+  if(!GITHUB_PAT)return{ok:false,reason:'no_pat'};
+  try{
+    const content=btoa(unescape(encodeURIComponent(JSON.stringify({version:1,exportDate:new Date().toISOString(),days,origin},null,2))));
+    // Get current file SHA (needed for update)
+    let sha='';
+    try{
+      const r=await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE}`,{headers:{'Authorization':`token ${GITHUB_PAT}`,'Accept':'application/vnd.github.v3+json'}});
+      if(r.ok){const d=await r.json();sha=d.sha;}
+    }catch(e){}
+    const body={message:`Auto-save: ${days.reduce((s,d)=>s+d.activities.length,0)} activities, ${days.length} days`,content,branch:'master'};
+    if(sha)body.sha=sha;
+    const r=await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE}`,{method:'PUT',headers:{'Authorization':`token ${GITHUB_PAT}`,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},body:JSON.stringify(body)});
+    return{ok:r.ok,status:r.status};
+  }catch(e){return{ok:false,reason:e.message};}
+}
+
+async function githubLoadVersions(){
+  if(!GITHUB_PAT)return[];
+  try{
+    const r=await fetch(`https://api.github.com/repos/${GITHUB_REPO}/commits?path=${GITHUB_FILE}&per_page=30`,{headers:{'Authorization':`token ${GITHUB_PAT}`,'Accept':'application/vnd.github.v3+json'}});
+    if(!r.ok)return[];
+    return await r.json();
+  }catch(e){return[];}
+}
+
+async function githubLoadVersion(sha){
+  if(!GITHUB_PAT)return null;
+  try{
+    const r=await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE}?ref=${sha}`,{headers:{'Authorization':`token ${GITHUB_PAT}`,'Accept':'application/vnd.github.v3+json'}});
+    if(!r.ok)return null;
+    const d=await r.json();
+    return JSON.parse(decodeURIComponent(escape(atob(d.content))));
+  }catch(e){return null;}
+}
+
+function timeAgo(dateStr){
+  const s=Math.floor((Date.now()-new Date(dateStr).getTime())/1000);
+  if(s<60)return`${s}秒前`;if(s<3600)return`${Math.floor(s/60)}分钟前`;
+  if(s<86400)return`${Math.floor(s/3600)}小时前`;if(s<604800)return`${Math.floor(s/86400)}天前`;
+  return new Date(dateStr).toLocaleDateString('zh-CN',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+}
+
+function VersionHistoryModal({onClose,onRestore}){
+  const[versions,setVersions]=useState([]);const[loading,setLoading]=useState(true);const[restoring,setRestoring]=useState(null);
+  useEffect(()=>{githubLoadVersions().then(v=>{setVersions(v);setLoading(false);});},[]);
+  const restore=async(sha)=>{
+    setRestoring(sha);
+    const data=await githubLoadVersion(sha);
+    if(data&&data.days){onRestore(data);onClose();}
+    else{alert('❌ 无法加载该版本');setRestoring(null);}
+  };
+  return(<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.5)",backdropFilter:"blur(4px)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000,padding:16}}>
+    <div style={{background:"#fff",borderRadius:20,maxWidth:500,width:"100%",maxHeight:"80vh",overflow:"auto",boxShadow:"0 24px 80px rgba(0,0,0,0.2)",padding:"24px"}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+        <h3 style={{fontSize:18,fontWeight:800,margin:0}}>📜 版本历史</h3>
+        <button onClick={onClose} style={{background:"none",border:"none",fontSize:18,cursor:"pointer",color:"#9ca3af"}}>✕</button>
+      </div>
+      {!GITHUB_PAT&&<div style={{padding:20,textAlign:"center",color:"#9ca3af",fontSize:14}}>⚠️ 未配置 GitHub PAT。请在 config.js 中设置 window.GITHUB_PAT</div>}
+      {GITHUB_PAT&&loading&&<div style={{padding:20,textAlign:"center",color:"#9ca3af"}}>加载中...</div>}
+      {GITHUB_PAT&&!loading&&versions.length===0&&<div style={{padding:20,textAlign:"center",color:"#9ca3af",fontSize:14}}>暂无版本历史。修改行程后将自动保存到 GitHub。</div>}
+      {GITHUB_PAT&&!loading&&versions.map((v,i)=>{
+        const msg=v.commit?.message||'';
+        const actMatch=msg.match(/(\d+)\s*activities/);
+        const dayMatch=msg.match(/(\d+)\s*days/);
+        return(<div key={v.sha} style={{padding:"12px 14px",borderRadius:10,border:"1px solid #f0ede8",marginBottom:8,background:i===0?"#f0faf0":"#fff"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+            <div>
+              <div style={{fontSize:13,fontWeight:700,color:"#1a1a2e"}}>{i===0?"🟢 最新版本":timeAgo(v.commit?.author?.date)}</div>
+              <div style={{fontSize:11,color:"#9ca3af",marginTop:2}}>
+                {actMatch?`${actMatch[1]} 个体验`:''}{dayMatch?` · ${dayMatch[1]} 天`:''}
+                {' · '}{new Date(v.commit?.author?.date).toLocaleString('zh-CN',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}
+              </div>
+            </div>
+            {i>0&&<button onClick={()=>restore(v.sha)} disabled={restoring===v.sha} style={{padding:"6px 14px",borderRadius:8,border:"1px solid #e8e4de",background:restoring===v.sha?"#f5f3f0":"#fff",cursor:"pointer",fontSize:12,fontWeight:600,color:"#c46b98",fontFamily:"inherit"}}>{restoring===v.sha?"恢复中...":"恢复"}</button>}
+          </div>
+          <div style={{fontSize:10,color:"#b0b0b0",marginTop:4,fontFamily:"monospace"}}>{v.sha?.substring(0,7)}</div>
+        </div>);
+      })}
+    </div>
+  </div>);
+}
+
 // ═══ GOOGLE PLACES PHOTOS API — paste your key below ═══
 const GOOGLE_PLACES_KEY = window.GOOGLE_PLACES_KEY || ''; // loaded from config.js (gitignored)
 
@@ -833,7 +921,7 @@ function detectOrigin(days){
 
 function App(){
   const[days,setDays]=useState(INIT_DAYS);const[exp,setExp]=useState({1:true});const[viewE,setViewE]=useState(null);const[dayM,setDayM]=useState(null);const[editA,setEditA]=useState(null);const[editD,setEditD]=useState(null);const[notes,setNotes]=useState(false);
-  const[copied,setCopied]=useState(false);const[saveStatus,setSaveStatus]=useState("");const[showPasteModal,setShowPasteModal]=useState(false);const[pasteText,setPasteText]=useState("");const[showMobile,setShowMobile]=useState(false);const[fullMap,setFullMap]=useState(false);
+  const[copied,setCopied]=useState(false);const[saveStatus,setSaveStatus]=useState("");const[showPasteModal,setShowPasteModal]=useState(false);const[pasteText,setPasteText]=useState("");const[showMobile,setShowMobile]=useState(false);const[fullMap,setFullMap]=useState(false);const[showVersions,setShowVersions]=useState(false);const[ghSaveStatus,setGhSaveStatus]=useState("");
   const[origin,setOrigin]=useState(null);
   const[geocoding,setGeocoding]=useState(false);const[geocodeProgress,setGeocodeProgress]=useState("");
   const fileRef=useRef(null);
@@ -960,7 +1048,7 @@ function App(){
     }
   },[days,origin]);
 
-  // Auto-save to localStorage (debounced)
+  // Auto-save to localStorage (debounced 2s)
   useEffect(()=>{
     const timer=setTimeout(()=>{
       try{
@@ -968,6 +1056,18 @@ function App(){
         setSaveStatus("saved");
       }catch(e){/* storage may not be available */}
     },2000);
+    return()=>clearTimeout(timer);
+  },[days,origin]);
+
+  // Auto-save to GitHub (debounced 30s)
+  useEffect(()=>{
+    if(!GITHUB_PAT||days.length===0)return;
+    const timer=setTimeout(async()=>{
+      setGhSaveStatus("saving");
+      const r=await githubSave(days,origin);
+      setGhSaveStatus(r.ok?"saved":"error");
+      if(r.ok)setTimeout(()=>setGhSaveStatus(""),5000);
+    },30000);
     return()=>clearTimeout(timer);
   },[days,origin]);
 
@@ -1022,6 +1122,8 @@ function App(){
         <button onClick={()=>fileRef.current?.click()} style={S.toolBtn}>📤 导入JSON</button>
         <button onClick={handleCopy} style={{...S.toolBtn,background:copied?"#ecf5ec":"#fff"}}>{copied?"✅ 已复制!":"📋 复制JSON"}</button>
         <button onClick={()=>setShowPasteModal(true)} style={S.toolBtn}>📋 粘贴导入</button>
+        {GITHUB_PAT&&<button onClick={()=>setShowVersions(true)} style={S.toolBtn}>📜 版本历史</button>}
+        {GITHUB_PAT&&<button onClick={async()=>{setGhSaveStatus("saving");const r=await githubSave(days,origin);setGhSaveStatus(r.ok?"saved":"error");if(r.ok)setTimeout(()=>setGhSaveStatus(""),5000);}} style={{...S.toolBtn,background:ghSaveStatus==="saved"?"#ecf5ec":ghSaveStatus==="error"?"#fef2f2":"#fff"}}>{ghSaveStatus==="saving"?"☁️ 保存中...":ghSaveStatus==="saved"?"☁️ 已保存到GitHub":ghSaveStatus==="error"?"⚠️ 保存失败":"☁️ 保存到GitHub"}</button>}
         {geocoding&&<span style={{fontSize:12,color:"#c46b98",alignSelf:"center",fontWeight:600}}>{geocodeProgress}</span>}
         {!geocoding&&saveStatus==="saved"&&<span style={{fontSize:12,color:"#2d7a3a",alignSelf:"center"}}>💾 已自动保存</span>}
         <input ref={fileRef} type="file" accept=".json" style={{display:"none"}} onChange={handleImport}/>
@@ -1086,6 +1188,7 @@ function App(){
     {viewE&&<ExperienceDetail act={viewE} onClose={()=>setViewE(null)} onEdit={hEditExp}/>}
     {dayM&&<DayDetailModal days={days} initialDayId={dayM} onClose={()=>setDayM(null)} onViewExp={act=>{setDayM(null);setViewE(act);}}/>}
     {editA&&<EditModal activity={editA} onSave={hSave} onDelete={hDel} onClose={()=>{setEditA(null);setEditD(null);}}/>}
+    {showVersions&&<VersionHistoryModal onClose={()=>setShowVersions(false)} onRestore={(data)=>{setDays(data.days);if(data.origin)setOrigin(data.origin);}}/>}
   </div>);
 }
 
