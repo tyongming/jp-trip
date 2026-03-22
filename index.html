@@ -38,6 +38,13 @@ const HOTELS=[
 ];
 
 const INIT_DAYS=[
+  {id:0,date:"Pre-Trip",dow:"",location:"准备",theme:"出发前准备 · 机票酒店签证租车",weather:"",isPreTrip:true,activities:[
+    {id:"0a",type:"note",name:"机票预订",category:"flight",time:"Daytime",cost:"",currency:"MYR",notes:"确认往返航班"},
+    {id:"0b",type:"note",name:"酒店预订",category:"hotel",time:"Daytime",cost:"",currency:"MYR",notes:"大阪2晚 + 东京4晚"},
+    {id:"0c",type:"note",name:"租车预订",category:"transport",time:"Daytime",cost:"",currency:"MYR",notes:"Toyota/Nippon/Times，需国际驾照(IDP)"},
+    {id:"0d",type:"note",name:"签证 & 护照检查",category:"sightseeing",time:"Daytime",cost:"",currency:"MYR",notes:"马来西亚护照免签90天，护照有效期6个月以上"},
+    {id:"0e",type:"note",name:"eSIM / WiFi 安排",category:"sightseeing",time:"Daytime",cost:"",currency:"MYR",notes:"出发前激活数据流量"},
+  ]},
   {id:1,date:"Apr 5",dow:"Sat",location:"Osaka",theme:"到达大阪 · 造幣局夜桜 · 道顿堀宵夜",weather:"18°C 🌸",hotelIdx:0,activities:[
     {id:"1a",type:"note",name:"抵达关西国际机场 (KIX)，前往大阪市区酒店办理入住",category:"flight",time:"Afternoon",cost:"",currency:"MYR"},
     {id:"1b",type:"poi",name:"大阪造幣局 桜の通り抜け",category:"sightseeing",time:"Evening",rating:4.5,reviews:12000,img:"https://cdn.dev.beautifuldestinations.app/images/01KM5WNA74XNAYTQC8FM5VE0FZ.jpeg",la:34.6917,lo:135.5217,addr:"1-79 Temma, Kita-ku, Osaka (4/5-4/11开放！完美时间！)",notes:"300+樱花树，125品种，含稀有八重桜。需提前预约！"},
@@ -213,10 +220,12 @@ function ActivityCard({act,onClick}){const c=gc(act.category);const tl=act.type=
 
 function DaySection({day,expanded,onToggle,onClickAct,onOpenDay,onAdd}){
   const dc=day.activities.reduce((s,a)=>s+pJ(a.cost,a.currency),0);
-  return(<div style={S.daySection}>
-    <div style={S.dayHeader} onClick={onToggle}><div style={S.dayNum}>{String(day.id).padStart(2,"0")}</div><div style={{flex:1}}><div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}><span style={{fontSize:15,fontWeight:700,color:"#fff"}}>{day.dow}, {day.date}</span><span style={S.locBadge}>{day.location}</span><span style={{fontSize:12,color:"rgba(255,255,255,0.45)"}}>{day.weather}</span></div><div style={{fontSize:12,color:"rgba(255,255,255,0.5)",marginTop:2}}>{day.theme} · {day.activities.length} exp{dc>0?` · ~${fJ(dc)}`:""}
-    </div></div><button onClick={e=>{e.stopPropagation();onOpenDay(day.id);}} style={S.mapBtn} title="日视图+地图">🗺️</button><div style={{fontSize:18,color:"rgba(255,255,255,0.4)",transform:expanded?"rotate(180deg)":"",transition:"transform 0.2s"}}>▾</div></div>
-    {expanded&&<div style={{padding:"8px 14px 14px"}}>{day.activities.map(a=><ActivityCard key={a.id} act={a} onClick={()=>onClickAct(a,day.id)}/>)}<button onClick={()=>onAdd(day.id)} style={S.addBtn}><span style={{fontSize:18}}>+</span> 添加体验</button></div>}
+  const isPre=day.isPreTrip;
+  const headerBg=isPre?"linear-gradient(135deg, #2d7a3a, #1a5c2a)":S.dayHeader.background;
+  return(<div style={{...S.daySection,...(isPre?{border:"2px dashed #2d7a3a",background:"#f0f7f0"}:{})}}>
+    <div style={{...S.dayHeader,background:headerBg}} onClick={onToggle}><div style={S.dayNum}>{isPre?"📋":String(day.id).padStart(2,"0")}</div><div style={{flex:1}}><div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}><span style={{fontSize:15,fontWeight:700,color:"#fff"}}>{isPre?"出发前准备":day.dow+", "+day.date}</span><span style={S.locBadge}>{day.location}</span>{day.weather&&<span style={{fontSize:12,color:"rgba(255,255,255,0.45)"}}>{day.weather}</span>}</div><div style={{fontSize:12,color:"rgba(255,255,255,0.5)",marginTop:2}}>{day.theme} · {day.activities.length} items{dc>0?` · ~${fJ(dc)}`:""}
+    </div></div>{!isPre&&<button onClick={e=>{e.stopPropagation();onOpenDay(day.id);}} style={S.mapBtn} title="日视图+地图">🗺️</button>}<div style={{fontSize:18,color:"rgba(255,255,255,0.4)",transform:expanded?"rotate(180deg)":"",transition:"transform 0.2s"}}>▾</div></div>
+    {expanded&&<div style={{padding:"8px 14px 14px"}}>{day.activities.map(a=><ActivityCard key={a.id} act={a} onClick={()=>onClickAct(a,day.id)}/>)}<button onClick={()=>onAdd(day.id)} style={S.addBtn}><span style={{fontSize:18}}>+</span> {isPre?"添加准备项":"添加体验"}</button></div>}
   </div>);
 }
 
@@ -254,9 +263,10 @@ function App(){
       }
     })();
   },[]);
-  const cities=[];let prev="";days.forEach(d=>{const l=d.location.split("→")[0].split("/")[0].trim();if(l!==prev){cities.push({name:l,start:d.id});prev=l;}});
-  const tA=days.reduce((s,d)=>s+d.activities.length,0);
-  const dateRange=useMemo(()=>{if(!days.length)return"";const months={Jan:"1月",Feb:"2月",Mar:"3月",Apr:"4月",May:"5月",Jun:"6月",Jul:"7月",Aug:"8月",Sep:"9月",Oct:"10月",Nov:"11月",Dec:"12月"};const first=days[0].date,last=days[days.length-1].date;const[fm,fd]=first.split(" ");const[lm,ld]=last.split(" ");if(fm===lm)return`2026年${months[fm]}${fd}–${ld}日`;return`2026年${months[fm]}${fd}日–${months[lm]}${ld}日`;},[days]);
+  const tripDays=days.filter(d=>!d.isPreTrip);
+  const cities=[];let prev="";tripDays.forEach(d=>{const l=d.location.split("→")[0].split("/")[0].trim();if(l!==prev){cities.push({name:l,start:d.id});prev=l;}});
+  const tA=tripDays.reduce((s,d)=>s+d.activities.length,0);
+  const dateRange=useMemo(()=>{const td=days.filter(d=>!d.isPreTrip);if(!td.length)return"";const months={Jan:"1月",Feb:"2月",Mar:"3月",Apr:"4月",May:"5月",Jun:"6月",Jul:"7月",Aug:"8月",Sep:"9月",Oct:"10月",Nov:"11月",Dec:"12月"};const first=td[0].date,last=td[td.length-1].date;const[fm,fd]=first.split(" ");const[lm,ld]=last.split(" ");if(fm===lm)return`2026年${months[fm]}${fd}–${ld}日`;return`2026年${months[fm]}${fd}日–${months[lm]}${ld}日`;},[days]);
   const allMk=useMemo(()=>{const m=[];HOTELS.forEach(h=>m.push({name:h.name,la:h.la,lo:h.lo,isH:true,cat:"hotel"}));days.forEach(d=>d.activities.filter(a=>a.la&&a.lo).forEach(a=>m.push({name:a.name,la:a.la,lo:a.lo,cat:a.category})));const s=new Set();return m.filter(p=>{if(s.has(p.name))return false;s.add(p.name);return true;});},[days]);
 
   const hSave=form=>{setDays(p=>p.map(d=>{if(d.id!==editD)return d;const ex=d.activities.find(a=>a.id===form.id);if(ex)return{...d,activities:d.activities.map(a=>a.id===form.id?form:a)};return{...d,activities:[...d.activities,{...form,id:`${d.id}_${Date.now()}`}]};}));};
@@ -341,9 +351,11 @@ function App(){
       </div>
       <PinMap markers={allMk} height={240}/><MapLinks markers={allMk.slice(0,12)}/>
       <div style={{display:"grid",gridTemplateColumns:"repeat(4, 1fr)",gap:8,margin:"12px 0 16px"}}>
-        {[["天数","7天"],["体验",tA],["城市",cities.length],["住宿","2处"]].map(([l,v])=>(<div key={l} style={S.sumItem}><span style={S.sumLabel}>{l}</span><span style={S.sumValue}>{v}</span></div>))}
+        {[["天数",tripDays.length+"天"],["体验",tA],["城市",cities.length],["住宿","2处"]].map(([l,v])=>(<div key={l} style={S.sumItem}><span style={S.sumLabel}>{l}</span><span style={S.sumValue}>{v}</span></div>))}
       </div>
-      {days.map(day=>(<DaySection key={day.id} day={day} expanded={!!exp[day.id]} onToggle={()=>setExp(p=>({...p,[day.id]:!p[day.id]}))} onClickAct={(a)=>hClick(a,day.id)} onOpenDay={id=>setDayM(id)} onAdd={did=>{setEditA({id:"new_"+Date.now(),type:"poi",name:"",category:"sightseeing",time:"Morning",cost:"",currency:"¥",notes:""});setEditD(did);}}/>))}
+      {days.filter(d=>d.isPreTrip).map(day=>(<DaySection key={day.id} day={day} expanded={!!exp[day.id]} onToggle={()=>setExp(p=>({...p,[day.id]:!p[day.id]}))} onClickAct={(a)=>hClick(a,day.id)} onOpenDay={id=>setDayM(id)} onAdd={did=>{setEditA({id:"new_"+Date.now(),type:"note",name:"",category:"sightseeing",time:"Daytime",cost:"",currency:"MYR",notes:""});setEditD(did);}}/>))}
+      {tripDays.map(day=>(<DaySection key={day.id} day={day} expanded={!!exp[day.id]} onToggle={()=>setExp(p=>({...p,[day.id]:!p[day.id]}))} onClickAct={(a)=>hClick(a,day.id)} onOpenDay={id=>setDayM(id)} onAdd={did=>{setEditA({id:"new_"+Date.now(),type:"poi",name:"",category:"sightseeing",time:"Morning",cost:"",currency:"¥",notes:""});setEditD(did);}}/>))}
+      <button onClick={()=>{const DOWS=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];const MONS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];const MDAYS=[31,28,31,30,31,30,31,31,30,31,30,31];const last=tripDays[tripDays.length-1];let nid=(last?.id||0)+1;let ndate="",ndow="";if(last?.date){const[m,d]=last.date.split(" ");const mi=MONS.indexOf(m);const di=parseInt(d)+1;if(di>MDAYS[mi]){ndate=MONS[(mi+1)%12]+" 1";}else{ndate=m+" "+di;}const base=new Date(2026,mi,parseInt(d)+1);ndow=DOWS[base.getDay()];}else{ndate="";ndow="";}const nd={id:nid,date:ndate,dow:ndow,location:"",theme:"",weather:"",activities:[]};setDays(p=>[...p,nd]);setExp(prev=>({...prev,[nid]:true}));}} style={{...S.pillBtn,background:"linear-gradient(135deg,#c46b98,#e8a0bf)",color:"#fff",border:"none",fontSize:14,padding:"10px 24px",margin:"8px auto",display:"block"}}>+ 添加新天</button>
       <div style={{display:"flex",gap:8,justifyContent:"center",margin:"12px 0 20px"}}><button style={S.pillBtn} onClick={()=>{const a={};days.forEach(d=>a[d.id]=true);setExp(a);}}>全部展开</button><button style={S.pillBtn} onClick={()=>setExp({})}>全部折叠</button></div>
       {/* Save/Load Toolbar */}
       <div style={{display:"flex",flexWrap:"wrap",gap:8,justifyContent:"center",padding:"14px 0",margin:"0 0 16px",borderTop:"1px solid #e8e4de",borderBottom:"1px solid #e8e4de"}}>
