@@ -1087,28 +1087,38 @@ function App(){
     return()=>clearTimeout(timer);
   },[days,origin]);
 
-  // Auto-load from localStorage on mount (with auto-geocoding)
+  // Auto-load: localStorage first, fallback to GitHub latest version
   useEffect(()=>{
     (async()=>{
+      let data=null;
+      // 1. Try localStorage
       try{
         const raw=localStorage.getItem("trip-planner-data");
-        if(raw){
-          const data=JSON.parse(raw);
-          if(data.days){
-            setDays(data.days);
-            if(data.origin)setOrigin(data.origin);
-            // Auto-geocode any missing coordinates
-            const result=await geocodeMissing(data.days);
-            if(result.updated){
-              setDays(result.days);
-              // Then enrich with Google Places photos
-              enrichActivities(result.days, setDays);
-            } else {
-              enrichActivities(data.days, setDays);
-            }
+        if(raw){const parsed=JSON.parse(raw);if(parsed.days&&parsed.days.length>0)data=parsed;}
+      }catch(e){}
+      // 2. If no local data, fetch latest from GitHub data branch
+      if(!data&&GITHUB_PAT){
+        try{
+          const r=await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE}?ref=${GITHUB_BRANCH}`,{headers:{'Authorization':`token ${GITHUB_PAT}`,'Accept':'application/vnd.github.v3+json'}});
+          if(r.ok){
+            const d=await r.json();
+            const parsed=JSON.parse(decodeURIComponent(escape(atob(d.content))));
+            if(parsed.days&&parsed.days.length>0){data=parsed;setSaveStatus("cloud");}
           }
+        }catch(e){}
+      }
+      // 3. Load data if found
+      if(data&&data.days){
+        setDays(data.days);
+        if(data.origin)setOrigin(data.origin);
+        const result=await geocodeMissing(data.days);
+        if(result.updated){
+          setDays(result.days);
+          enrichActivities(result.days, setDays);
+        } else {
+          enrichActivities(data.days, setDays);
         }
-      }catch(e){/* Key doesn't exist yet, use defaults */}
+      }
     })();
   },[]);
 
