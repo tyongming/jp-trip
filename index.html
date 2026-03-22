@@ -6,10 +6,20 @@
 <title>日本春季樱花自驾之旅 · Trip Planner</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css" rel="stylesheet"/>
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#faf8f4;-webkit-font-smoothing:antialiased}
 select,input,textarea,button{font-family:inherit}
+.mapboxgl-popup-content{padding:0!important;border-radius:12px!important;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,0.15)!important;font-family:'DM Sans',sans-serif}
+.mapboxgl-popup-close-button{font-size:18px;padding:4px 8px;color:#999;z-index:1}
+.mapboxgl-popup-tip{border-top-color:#fff}
+.mapbox-marker{transition:transform 0.15s ease}
+.mapbox-marker:hover{transform:scale(1.15)}
+.mapbox-marker-highlight{transform:scale(1.25);filter:drop-shadow(0 0 6px rgba(196,107,152,0.6))}
+@keyframes marker-pulse{0%,100%{box-shadow:0 0 0 0 rgba(196,107,152,0.4)}50%{box-shadow:0 0 0 8px rgba(196,107,152,0)}}
+.mapbox-marker-highlight>div{animation:marker-pulse 1.5s ease infinite}
 </style>
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
@@ -17,8 +27,13 @@ select,input,textarea,button{font-family:inherit}
 </head>
 <body>
 <div id="root"></div>
+<script src="config.js"></script>
 <script type="text/babel">
-const { useState, useMemo, useRef, useEffect } = React;
+const { useState, useMemo, useRef, useEffect, useCallback } = React;
+
+// ═══ MAPBOX TOKEN — loaded from config.js (gitignored) ═══
+const MAPBOX_TOKEN = window.MAPBOX_TOKEN || '';
+mapboxgl.accessToken = MAPBOX_TOKEN;
 
 const CATS={flight:{l:"Flight",e:"✈️",c:"#1a73a7",bg:"#e8f4fd"},transport:{l:"Transport",e:"🚗",c:"#2d7a3a",bg:"#ecf5ec"},hotel:{l:"Hotel",e:"🏨",c:"#8a6d3b",bg:"#f5f0e8"},sightseeing:{l:"Sightseeing",e:"🎌",c:"#c46b98",bg:"#f5dce8"},food:{l:"Food",e:"🍜",c:"#c27019",bg:"#fef3e2"},shopping:{l:"Shopping",e:"🛍️",c:"#6b48a8",bg:"#f0ecf8"},anime:{l:"Anime",e:"🎮",c:"#e03e6b",bg:"#fde8ee"},photo:{l:"Photo Spot",e:"📸",c:"#0891b2",bg:"#e0f7fa"},nightlife:{l:"Nightlife",e:"🌙",c:"#7c3aed",bg:"#ede9fe"}};
 const TIMES=["Early Morning","Morning","Midday","Afternoon","Evening","Night","Late Night","Daytime"];
@@ -32,99 +47,561 @@ const Stars=({r})=>r?<span style={{color:"#f59e0b",fontSize:12,letterSpacing:1}}
 const gmUrl=(la,lo)=>`https://www.google.com/maps/search/?api=1&query=${la},${lo}`;
 const gmDir=(la,lo)=>`https://www.google.com/maps/dir/?api=1&destination=${la},${lo}`;
 
-const HOTELS=[
-  {name:"Osaka Hotel (TBD)",rating:null,addr:"Near Namba/Dotonbori, Osaka",checkIn:"Apr 5",checkOut:"Apr 7",nights:2,price:"~MYR 200/night",la:34.6687,lo:135.5013},
-  {name:"Shinjuku Hotel (TBD)",rating:null,addr:"Shinjuku, Tokyo",checkIn:"Apr 7",checkOut:"Apr 11",nights:4,price:"~MYR 250/night",la:35.6938,lo:139.7034},
-];
+const INIT_DAYS=[];
 
-const INIT_DAYS=[
-  {id:0,date:"Pre-Trip",dow:"",location:"准备",theme:"出发前准备 · 机票酒店签证租车",weather:"",isPreTrip:true,activities:[
-    {id:"0a",type:"note",name:"机票预订",category:"flight",time:"Daytime",cost:"",currency:"MYR",notes:"确认往返航班"},
-    {id:"0b",type:"note",name:"酒店预订",category:"hotel",time:"Daytime",cost:"",currency:"MYR",notes:"大阪2晚 + 东京4晚"},
-    {id:"0c",type:"note",name:"租车预订",category:"transport",time:"Daytime",cost:"",currency:"MYR",notes:"Toyota/Nippon/Times，需国际驾照(IDP)"},
-    {id:"0d",type:"note",name:"签证 & 护照检查",category:"sightseeing",time:"Daytime",cost:"",currency:"MYR",notes:"马来西亚护照免签90天，护照有效期6个月以上"},
-    {id:"0e",type:"note",name:"eSIM / WiFi 安排",category:"sightseeing",time:"Daytime",cost:"",currency:"MYR",notes:"出发前激活数据流量"},
-  ]},
-  {id:1,date:"Apr 5",dow:"Sat",location:"Osaka",theme:"到达大阪 · 造幣局夜桜 · 道顿堀宵夜",weather:"18°C 🌸",hotelIdx:0,activities:[
-    {id:"1a",type:"note",name:"抵达关西国际机场 (KIX)，前往大阪市区酒店办理入住",category:"flight",time:"Afternoon",cost:"",currency:"MYR"},
-    {id:"1b",type:"poi",name:"大阪造幣局 桜の通り抜け",category:"sightseeing",time:"Evening",rating:4.5,reviews:12000,img:"https://cdn.dev.beautifuldestinations.app/images/01KM5WNA74XNAYTQC8FM5VE0FZ.jpeg",la:34.6917,lo:135.5217,addr:"1-79 Temma, Kita-ku, Osaka (4/5-4/11开放！完美时间！)",notes:"300+樱花树，125品种，含稀有八重桜。需提前预约！"},
-    {id:"1c",type:"restaurant",name:"道顿堀 · 宵夜探索",category:"nightlife",time:"Night",rating:4.4,reviews:79528,img:"https://cdn.dev.beautifuldestinations.app/images/01K9FF720N2FG3FVM4596BRJVK.jpeg",la:34.6687,lo:135.5013,addr:"Dotonbori, Chuo Ward, Osaka",notes:"章鱼烧、大阪烧、串カツ — 霓虹灯运河的经典体验"},
-    {id:"1d",type:"poi",name:"法善寺横丁",category:"photo",time:"Late Night",rating:4.3,reviews:4078,img:"https://cdn.dev.beautifuldestinations.app/images/01KCKC1810P4AZT1RDQBC0HXBX.jpeg",la:34.6679,lo:135.5025,addr:"1-2-16 Namba, Chuo Ward, Osaka",notes:"石板小巷，苔藓佛像，大阪最有氛围的夜拍地点"},
-  ]},
-  {id:2,date:"Apr 6",dow:"Sun",location:"Osaka",theme:"大阪城🌸 · 黒门市场美食 · 日本桥Den Den Town二次元",weather:"19°C ☀️",hotelIdx:0,activities:[
-    {id:"2a",type:"poi",name:"大阪城公園 · 西の丸庭園",category:"sightseeing",time:"Morning",rating:4.4,reviews:48775,img:"https://cdn.dev.beautifuldestinations.app/images/01KFZQCM48CPEVNM8YYTRX5WX1.jpeg",la:34.6865,lo:135.5262,addr:"1-1 Osakajo, Chuo Ward, Osaka",notes:"日本最佳赏樱地之一。西の丸庭園入场¥200，天守阁¥600。"},
-    {id:"2b",type:"poi",name:"毛馬桜之宮公園",category:"photo",time:"Morning",rating:4.1,reviews:2443,img:"https://cdn.dev.beautifuldestinations.app/images/01KM5WNA74XNAYTQC8FM5VE0FZ.jpeg",la:34.7052,lo:135.5188,addr:"Sakuranomiya, Miyakojima, Osaka",notes:"4,800+棵樱花树沿大川河畔，大阪最热闹的花見场所"},
-    {id:"2c",type:"restaurant",name:"黒門市場",category:"food",time:"Midday",rating:4.3,reviews:15000,img:"https://cdn.dev.beautifuldestinations.app/images/01KD1EFWX9GAK2BJS3WE9XJ96X.jpeg",la:34.6627,lo:135.5068,addr:"Nipponbashi, Chuo Ward, Osaka",notes:"大阪的厨房 — 新鲜刺身、烤海鲜、玉子烧、水果"},
-    {id:"2d",type:"poi",name:"日本桥 Den Den Town",category:"anime",time:"Afternoon",rating:4.2,reviews:5000,la:34.6594,lo:135.5055,addr:"Nipponbashi, Naniwa Ward, Osaka",notes:"大阪版秋叶原！动漫手办、复古游戏、女仆咖啡馆、まんだらけ"},
-    {id:"2e",type:"restaurant",name:"新世界 · 串カツだるま",category:"food",time:"Evening",rating:4.1,reviews:1955,img:"https://cdn.dev.beautifuldestinations.app/images/01KD1EFWX9GAK2BJS3WE9XJ96X.jpeg",la:34.6516,lo:135.5062,addr:"Shinsekai, Naniwa Ward, Osaka",notes:"通天閣塔下的复古街区，必吃串カツ（炸串）"},
-    {id:"2f",type:"restaurant",name:"道顿堀宵夜 Round 2",category:"nightlife",time:"Late Night",rating:4.4,reviews:79528,img:"https://cdn.dev.beautifuldestinations.app/images/01K9FF720N2FG3FVM4596BRJVK.jpeg",la:34.6687,lo:135.5013,addr:"Dotonbori, Osaka",notes:"深夜拉面、烤肉、居酒屋 — 大阪不夜城"},
-  ]},
-  {id:3,date:"Apr 7",dow:"Mon",location:"大阪 → 富士山 → 东京",theme:"自驾公路旅行 · Lawson打卡 · 忠靈塔 · 抵达东京",weather:"17°C 🌤️",hotelIdx:1,activities:[
-    {id:"3a",type:"note",name:"退房。前往租车店提车 — 自驾旅程开始！",category:"transport",time:"Early Morning",cost:"",currency:"¥",notes:"提前预订Toyota/Nippon/Times。需要国际驾照(IDP)。日本靠左行驶！"},
-    {id:"3b",type:"note",name:"大阪 → 富士山 (高速公路 ~5-6小时)",category:"transport",time:"Morning",cost:"",currency:"¥",notes:"途经名神/东名高速。SA休息站美食很棒！记得拿ETC卡"},
-    {id:"3c",type:"poi",name:"Lawson 富士河口湖町役場前店",category:"photo",time:"Afternoon",rating:4.6,reviews:8000,img:"https://cdn.dev.beautifuldestinations.app/images/dfe765ab-d945-4cdc-92e2-ddf2ea19c5e6.jpg",la:35.5063,lo:138.7594,addr:"1395-1 Funatsu, Fujikawaguchiko, Yamanashi",notes:"全球最Famous的Lawson！富士山+Lawson的经典组合。推荐去Town Hall前的店（人少，角度更好）。早起拍最佳！"},
-    {id:"3d",type:"poi",name:"新倉山浅間公園 · 忠靈塔",category:"photo",time:"Afternoon",rating:4.7,reviews:5364,img:"https://cdn.dev.beautifuldestinations.app/images/01KD20J175SAW7QR4YJT1BBBEY.jpeg",la:35.5013,lo:138.8014,addr:"Fujiyoshida, Yamanashi",notes:"THE 经典日本照：五重塔+樱花+富士山。约400步台阶，值得！"},
-    {id:"3e",type:"poi",name:"大石公園 · 河口湖北岸",category:"sightseeing",time:"Afternoon",rating:4.4,reviews:20460,img:"https://cdn.dev.beautifuldestinations.app/images/dfe765ab-d945-4cdc-92e2-ddf2ea19c5e6.jpg",la:35.5229,lo:138.7458,addr:"Kawaguchiko, Yamanashi",notes:"湖畔望富士山，薰衣草和樱花季绝美风景"},
-    {id:"3f",type:"note",name:"富士山 → 东京新宿 (~2小时) · 还车 · 入住酒店",category:"transport",time:"Evening",cost:"",currency:"¥",notes:"中央高速到新宿。还车后步行可达酒店"},
-    {id:"3g",type:"restaurant",name:"思い出横丁 (Memory Lane)",category:"nightlife",time:"Night",rating:4.3,reviews:8000,la:35.6944,lo:139.6985,addr:"Nishi-Shinjuku 1, Shinjuku, Tokyo",notes:"新宿站旁的狭窄烤鸡肉串小巷，昭和怀旧氛围"},
-  ]},
-  {id:4,date:"Apr 8",dow:"Tue",location:"东京",theme:"二次元朝圣日 · 秋叶原 · 中野Broadway · 池袋",weather:"16°C 🌤️",hotelIdx:1,activities:[
-    {id:"4a",type:"poi",name:"秋叶原 Electric Town",category:"anime",time:"Morning",rating:4.5,reviews:50000,img:"https://cdn.dev.beautifuldestinations.app/images/01KD6CAF0SJECYDE18QF4626CW.jpeg",la:35.7023,lo:139.7745,addr:"Akihabara, Chiyoda City, Tokyo",notes:"Radio Kaikan、AmiAmi、Kotobukiya、Mandarake — 手办、漫画、复古游戏天堂"},
-    {id:"4b",type:"poi",name:"秋叶原 女仆咖啡馆体验",category:"anime",time:"Midday",la:35.6987,lo:139.7713,addr:"Akihabara, Tokyo",notes:"@home cafe 或 MaiDreamin — 必须体验一次的日本独特文化！"},
-    {id:"4c",type:"poi",name:"中野Broadway",category:"anime",time:"Afternoon",rating:4.3,reviews:12000,la:35.7071,lo:139.6655,addr:"5-52-15 Nakano, Nakano City, Tokyo",notes:"比秋叶原更硬核的二次元圣地。まんだらけ迷宫般的分店群，绝版漫画、复古玩具"},
-    {id:"4d",type:"poi",name:"池袋 Animate旗舰店 + 乙女路",category:"anime",time:"Evening",la:35.7295,lo:139.7109,addr:"Sunshine 60 Street, Toshima City, Tokyo",notes:"世界最大的Animate旗舰店。乙女路 — BL/女性向圣地。KIDDY LAND"},
-    {id:"4e",type:"restaurant",name:"一蘭拉面 新宿歌舞伎町店",category:"food",time:"Night",rating:4.4,reviews:4071,img:"https://cdn.dev.beautifuldestinations.app/images/01KD0PDWX1VZPBYM3M9Z8TX121.jpeg",la:35.6944,lo:139.7016,addr:"Kabukichō, Shinjuku, Tokyo",notes:"个人隔间拉面体验，浓郁豚骨汤底"},
-    {id:"4f",type:"poi",name:"歌舞伎町タワー + ゴジラロード",category:"nightlife",time:"Late Night",la:35.6946,lo:139.7018,addr:"Kabukichō, Shinjuku, Tokyo",notes:"新宿不夜城。哥斯拉头像、霓虹灯街拍圣地"},
-  ]},
-  {id:5,date:"Apr 9",dow:"Wed",location:"东京",theme:"海边台场 · 独角兽高达 · 涩谷Sky · 夜景摄影",weather:"17°C ☀️",hotelIdx:1,activities:[
-    {id:"5a",type:"poi",name:"台场 DiverCity · 独角兽高达 RX-0",category:"anime",time:"Morning",rating:4.5,reviews:30000,la:35.6252,lo:139.7754,addr:"DiverCity Tokyo Plaza, Odaiba",notes:"1:1实物大独角兽高达像！定时变形演出。Gundam Base Tokyo在楼内"},
-    {id:"5b",type:"poi",name:"台场海滨公園 · 自由女神 · 彩虹大桥",category:"photo",time:"Morning",rating:4.4,reviews:20000,la:35.6290,lo:139.7734,addr:"Odaiba Marine Park, Minato City, Tokyo",notes:"海边散步+东京湾全景。彩虹大桥+东京塔的经典构图"},
-    {id:"5c",type:"poi",name:"teamLab Borderless (麻布台Hills)",category:"sightseeing",time:"Afternoon",rating:4.7,reviews:25000,la:35.6580,lo:139.7432,addr:"Azabudai Hills Garden Plaza B, Tokyo",notes:"沉浸式数字艺术体验。2024新馆。门票¥3,800-4,800，务必提前预约！"},
-    {id:"5d",type:"poi",name:"涩谷Sky 展望台",category:"photo",time:"Evening",rating:4.6,reviews:15000,img:"https://cdn.dev.beautifuldestinations.app/images/01KGYFXCCHRXFM9Y297G6WWA20.jpeg",la:35.6580,lo:139.7016,addr:"Shibuya Scramble Square, Shibuya, Tokyo",notes:"230米高空开放式屋顶。日落+东京夜景摄影绝佳。门票¥2,000"},
-    {id:"5e",type:"poi",name:"涩谷十字路口 + 忠犬八公",category:"photo",time:"Evening",rating:4.3,reviews:40000,la:35.6594,lo:139.7006,addr:"Shibuya Crossing, Tokyo",notes:"全球最繁忙的十字路口！从Starbucks二楼或Mag's Park屋顶拍"},
-    {id:"5f",type:"restaurant",name:"新宿 Golden Gai 宵夜",category:"nightlife",time:"Late Night",rating:4.4,reviews:10000,la:35.6937,lo:139.7046,addr:"Golden Gai, Kabukichō, Shinjuku",notes:"200+家微型酒吧的迷宫巷。每家只容3-8人。推荐找英语OK的店"},
-  ]},
-  {id:6,date:"Apr 10",dow:"Thu",location:"东京",theme:"浅草寺 · 上野公園🌸 · 原宿 · 新宿御苑",weather:"16°C 🌧️",hotelIdx:1,activities:[
-    {id:"6a",type:"poi",name:"浅草寺 · 仲見世通り",category:"sightseeing",time:"Morning",rating:4.5,reviews:60000,img:"https://cdn.dev.beautifuldestinations.app/images/01KD6CAF0SJECYDE18QF4626CW.jpeg",la:35.7148,lo:139.7967,addr:"2-3-1 Asakusa, Taito City, Tokyo",notes:"东京最古老的寺庙。雷门+仲见世商店街，和服体验拍照"},
-    {id:"6b",type:"poi",name:"上野公園 · 不忍池",category:"sightseeing",time:"Midday",rating:4.4,reviews:30000,la:35.7141,lo:139.7744,addr:"Ueno Park, Taito City, Tokyo",notes:"1,000+樱花树。花見野餐圣地。还可逛东京国立博物馆(¥1,000)"},
-    {id:"6c",type:"poi",name:"仲見世Shopping Street + Ameyoko市場",category:"shopping",time:"Midday",rating:4.3,reviews:14592,img:"https://cdn.dev.beautifuldestinations.app/images/01KD6CAF0SJECYDE18QF4626CW.jpeg",la:35.7118,lo:139.7965,addr:"Asakusa → Ueno, Tokyo",notes:"传统手信→铁路桥下的热闹市集。海鲜、零食、讨价还价"},
-    {id:"6d",type:"poi",name:"明治神宮 + 原宿竹下通り",category:"sightseeing",time:"Afternoon",rating:4.6,reviews:50000,la:35.6764,lo:139.6993,addr:"Harajuku, Shibuya, Tokyo",notes:"宁静森林神社→潮流时尚街。可丽饼、卡哇伊文化、街拍"},
-    {id:"6e",type:"poi",name:"新宿御苑",category:"photo",time:"Afternoon",rating:4.6,reviews:43017,img:"https://cdn.dev.beautifuldestinations.app/images/01KFMZFKWB2YKM7GTNCX94NDDS.jpeg",la:35.6852,lo:139.7101,addr:"11 Naitomachi, Shinjuku, Tokyo",notes:"东京最佳赏樱地。1,000+樱花树，¥500入场。禁酒所以很安静"},
-    {id:"6f",type:"restaurant",name:"牛カツもと村 渋谷店",category:"food",time:"Evening",rating:4.8,reviews:11699,img:"https://cdn.dev.beautifuldestinations.app/images/01K9NYNZ0HTRZ4E9A5H70EJJPN.jpeg",la:35.6570,lo:139.7040,addr:"Shibuya, Tokyo",notes:"炸牛排！自己在石板上烤到喜欢的熟度。排队但值得"},
-    {id:"6g",type:"restaurant",name:"思い出横丁 / 歌舞伎町 宵夜",category:"nightlife",time:"Late Night",la:35.6944,lo:139.6985,addr:"Shinjuku, Tokyo",notes:"最后一晚深夜美食巡游。拉面、烤鸡串、居酒屋"},
-  ]},
-  {id:7,date:"Apr 11",dow:"Fri",location:"东京 → JB",theme:"最后的便利店扫货 · 出发回家",weather:"16°C 🌤️",activities:[
-    {id:"7a",type:"note",name:"最后的便利店扫货！7-11/Lawson/FamilyMart限定零食、お土産",category:"shopping",time:"Morning",cost:"",currency:"¥"},
-    {id:"7b",type:"note",name:"退房。前往成田/羽田机场",category:"transport",time:"Morning",cost:"",currency:"¥",notes:"成田特快N'EX ¥3,250 或利木津巴士"},
-    {id:"7c",type:"note",name:"飞回Johor Bahru 🏠 旅程结束！",category:"flight",time:"Daytime",cost:"",currency:"MYR"},
-  ]},
-];
+// ═══ GOOGLE PLACES PHOTOS API — paste your key below ═══
+const GOOGLE_PLACES_KEY = window.GOOGLE_PLACES_KEY || ''; // loaded from config.js (gitignored)
 
-function PinMap({markers,height=220,singlePin=false}){
-  const[hover,setHover]=useState(null);
-  const pts=markers.filter(m=>m.la&&m.lo);
+// Persistent photo cache — survives page reloads, saves API calls
+const PHOTO_CACHE_KEY='trip-photo-cache';
+const photoCache=(()=>{try{return JSON.parse(localStorage.getItem(PHOTO_CACHE_KEY))||{};}catch(e){return{};}})();
+function savePhotoCache(){try{localStorage.setItem(PHOTO_CACHE_KEY,JSON.stringify(photoCache));}catch(e){}}
+async function fetchPlacePhoto(name, addr, la, lo){
+  if(!GOOGLE_PLACES_KEY)return null;
+  const cacheKey=(name||'')+'|'+(addr||'')+'|'+(la||'')+'|'+(lo||'');
+  if(photoCache[cacheKey])return photoCache[cacheKey];
+  if(photoCache[cacheKey]===false)return null; // previously failed
+  try{
+    // Step 1: Find place using Text Search (New)
+    const searchQuery = name + (addr ? ', '+addr : '') + (la&&lo ? '' : ', Japan');
+    const searchRes = await fetch('https://places.googleapis.com/v1/places:searchText', {
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'X-Goog-Api-Key':GOOGLE_PLACES_KEY,
+        'X-Goog-FieldMask':'places.photos,places.displayName,places.formattedAddress,places.rating,places.userRatingCount'
+      },
+      body:JSON.stringify({
+        textQuery:searchQuery,
+        ...(la&&lo ? {locationBias:{circle:{center:{latitude:la,longitude:lo},radius:500}}} : {}),
+        maxResultCount:1
+      })
+    });
+    const searchData = await searchRes.json();
+    if(!searchData.places||!searchData.places[0]?.photos?.length){
+      photoCache[cacheKey]=false;
+      return null;
+    }
+    const place = searchData.places[0];
+    const photoRef = place.photos[0].name; // e.g. "places/xxx/photos/yyy"
+    // Step 2: Get photo URL
+    const photoUrl = `https://places.googleapis.com/v1/${photoRef}/media?maxHeightPx=400&maxWidthPx=800&key=${GOOGLE_PLACES_KEY}`;
+    const result = {
+      img: photoUrl,
+      rating: place.rating || null,
+      reviews: place.userRatingCount || null,
+      addr: place.formattedAddress || addr
+    };
+    photoCache[cacheKey]=result;
+    savePhotoCache();
+    return result;
+  }catch(e){
+    console.warn("Google Places photo failed for:",name,e);
+    photoCache[cacheKey]=false;
+    savePhotoCache();
+    return null;
+  }
+}
+
+// Auto-enrich activities: fetch photos + ratings for all activities missing images
+async function enrichActivities(days, setDays){
+  if(!GOOGLE_PLACES_KEY)return;
+  let changed=false;
+  const newDays = await Promise.all(days.map(async(day)=>{
+    const newActs = await Promise.all(day.activities.map(async(act)=>{
+      if(act.img && !act.img.includes('unsplash.com'))return act; // already has valid image
+      const result = await fetchPlacePhoto(act.name, act.addr, act.la, act.lo);
+      if(result){
+        changed=true;
+        return {
+          ...act,
+          img: result.img,
+          rating: act.rating || result.rating,
+          reviews: act.reviews || result.reviews,
+          addr: act.addr || result.addr
+        };
+      }
+      return act;
+    }));
+    return {...day, activities:newActs};
+  }));
+  if(changed)setDays(newDays);
+}
+
+// ═══ AUTO-GEOCODING via Mapbox Geocoding API ═══
+const geocodeCache={};
+async function geocodeAddress(addr){
+  if(!addr)return null;
+  const key=addr.trim().toLowerCase();
+  if(geocodeCache[key])return geocodeCache[key];
+  try{
+    const q=encodeURIComponent(addr.trim());
+    const res=await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${q}.json?access_token=${MAPBOX_TOKEN}&limit=1&language=ja,en,zh`);
+    const json=await res.json();
+    if(json.features&&json.features.length>0){
+      const[lo,la]=json.features[0].center;
+      const result={la,lo};
+      geocodeCache[key]=result;
+      return result;
+    }
+  }catch(e){console.warn("Geocode failed for:",addr,e);}
+  return null;
+}
+
+// Batch geocode all activities missing la/lo but having addr
+async function geocodeMissing(days,onProgress){
+  let updated=false;let count=0;let total=0;
+  // Count total needing geocoding
+  days.forEach(d=>{
+    if(d.hotel&&d.hotel.addr&&(!d.hotel.la||!d.hotel.lo))total++;
+    d.activities.forEach(a=>{if(a.addr&&(!a.la||!a.lo))total++;});
+  });
+  if(total===0)return{days,updated:false,count:0};
+
+  const newDays=JSON.parse(JSON.stringify(days));// deep clone
+  for(const d of newDays){
+    // Geocode hotel if missing
+    if(d.hotel&&d.hotel.addr&&(!d.hotel.la||!d.hotel.lo)){
+      const coords=await geocodeAddress(d.hotel.addr);
+      if(coords){d.hotel.la=coords.la;d.hotel.lo=coords.lo;updated=true;count++;}
+      if(onProgress)onProgress(count,total);
+    }
+    // Geocode activities
+    for(const a of d.activities){
+      if(a.addr&&(!a.la||!a.lo)){
+        const coords=await geocodeAddress(a.addr);
+        if(coords){a.la=coords.la;a.lo=coords.lo;updated=true;count++;}
+        if(onProgress)onProgress(count,total);
+      }
+    }
+  }
+  return{days:newDays,updated,count};
+}
+
+// Geocode a single activity (used on save)
+async function geocodeActivity(act){
+  if(act.addr&&(!act.la||!act.lo)){
+    const coords=await geocodeAddress(act.addr);
+    if(coords)return{...act,la:coords.la,lo:coords.lo};
+  }
+  return act;
+}
+
+function MapboxMap({markers,height=220,singlePin=false,highlightId=null,onMarkerClick=null}){
+  const containerRef=useRef(null);
+  const mapRef=useRef(null);
+  const markersRef=useRef([]);
+  const popupRef=useRef(null);
+  const onClickRef=useRef(onMarkerClick);
+  onClickRef.current=onMarkerClick;
+  const mapReady=useRef(false);
+  const pts=useMemo(()=>markers.filter(m=>m.la&&m.lo),[markers]);
+
+  const createMarkerEl=(p)=>{
+    const col=p.isH?"#8a6d3b":(CATS[p.cat]?.c||"#c46b98");
+    const emoji=p.isH?"🏨":(CATS[p.cat]?.e||"📍");
+    const el=document.createElement("div");
+    el.className="mapbox-marker";
+    el.style.cursor="pointer";
+    if(p.img&&!p.isH){
+      el.innerHTML=`<div style="width:38px;height:38px;border-radius:50%;overflow:hidden;border:2.5px solid #fff;box-shadow:0 0 0 2px ${col},0 2px 8px rgba(0,0,0,0.3)"><img src="${p.img}" style="width:100%;height:100%;object-fit:cover" loading="lazy" onerror="this.parentElement.innerHTML='${emoji}'"/></div>`;
+    } else {
+      const size=p.isH?32:28;
+      el.innerHTML=`<div style="width:${size}px;height:${size}px;border-radius:50%;background:${col};border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-size:${size>30?16:14}px">${emoji}</div>`;
+    }
+    return el;
+  };
+
+  const buildPopupHtml=(p)=>{
+    const col=CATS[p.cat]?.c||"#c46b98";
+    let html='<div style="width:250px;font-family:DM Sans,sans-serif">';
+    if(p.img) html+=`<img src="${p.img}" style="width:100%;height:130px;object-fit:cover"/>`;
+    html+='<div style="padding:10px 14px">';
+    html+=`<div style="font-size:14px;font-weight:700;color:#1a1a2e;margin-bottom:4px;line-height:1.3">${p.name}</div>`;
+    if(p.rating) html+=`<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><span style="background:#1a73a7;color:#fff;padding:1px 6px;border-radius:4px;font-size:12px;font-weight:800">${p.rating}</span><span style="color:#f59e0b;font-size:12px">${"★".repeat(Math.floor(p.rating))}</span>${p.reviews?`<span style="font-size:11px;color:#9ca3af">(${fN(p.reviews)})</span>`:""}</div>`;
+    if(p.addr) html+=`<div style="font-size:11px;color:#6b7280;margin-bottom:8px">📍 ${p.addr}</div>`;
+    html+=`<div style="display:flex;gap:6px"><a href="${gmUrl(p.la,p.lo)}" target="_blank" style="flex:1;text-align:center;padding:6px 10px;background:${col}15;color:${col};border-radius:8px;text-decoration:none;font-size:12px;font-weight:600">📍 地图</a><a href="${gmDir(p.la,p.lo)}" target="_blank" style="flex:1;text-align:center;padding:6px 10px;background:#1a73a715;color:#1a73a7;border-radius:8px;text-decoration:none;font-size:12px;font-weight:600">🧭 导航</a></div>`;
+    html+='</div></div>';
+    return html;
+  };
+
+  const clearMarkers=()=>{
+    markersRef.current.forEach(m=>m.marker.remove());
+    markersRef.current=[];
+    if(popupRef.current){popupRef.current.remove();popupRef.current=null;}
+  };
+
+  const addMarkers=(map,points)=>{
+    points.forEach((p,i)=>{
+      const el=createMarkerEl(p);
+      el.addEventListener('click',(e)=>{
+        e.stopPropagation();
+        if(popupRef.current)popupRef.current.remove();
+        if(onClickRef.current){onClickRef.current(p);return;}
+        const popup=new mapboxgl.Popup({offset:18,closeButton:true,maxWidth:'270px'})
+          .setLngLat([p.lo,p.la]).setHTML(buildPopupHtml(p)).addTo(map);
+        popupRef.current=popup;
+      });
+      const marker=new mapboxgl.Marker({element:el,anchor:'center'}).setLngLat([p.lo,p.la]).addTo(map);
+      markersRef.current.push({marker,el,data:p,idx:i});
+    });
+  };
+
+  const fitMap=(map,points)=>{
+    if(singlePin||points.length===1){
+      map.flyTo({center:[points[0].lo,points[0].la],zoom:15,duration:500});
+    }else if(points.length>1){
+      const bounds=new mapboxgl.LngLatBounds();
+      points.forEach(p=>bounds.extend([p.lo,p.la]));
+      map.fitBounds(bounds,{padding:{top:40,bottom:40,left:40,right:40},maxZoom:14,duration:500});
+    }
+  };
+
+  const updateRoute=(map,points)=>{
+    const src=map.getSource('route');
+    const data={type:'Feature',geometry:{type:'LineString',coordinates:points.map(p=>[p.lo,p.la])}};
+    if(src){
+      src.setData(data);
+    }else if(points.length>1&&!singlePin){
+      map.addSource('route',{type:'geojson',data});
+      map.addLayer({id:'route-line',type:'line',source:'route',paint:{'line-color':'#c46b98','line-width':2,'line-dasharray':[4,3],'line-opacity':0.45}});
+    }
+  };
+
+  // Init map once
+  useEffect(()=>{
+    if(!containerRef.current||!pts.length)return;
+    const map=new mapboxgl.Map({
+      container:containerRef.current,
+      style:'mapbox://styles/mapbox/light-v11',
+      center:[pts[0].lo,pts[0].la],
+      zoom:10,
+      attributionControl:true,
+    });
+    map.addControl(new mapboxgl.NavigationControl({showCompass:false}),'top-right');
+    mapRef.current=map;
+
+    map.on('load',()=>{
+      mapReady.current=true;
+      updateRoute(map,pts);
+      addMarkers(map,pts);
+      fitMap(map,pts);
+    });
+
+    return()=>{
+      clearMarkers();
+      mapReady.current=false;
+      map.remove();
+      mapRef.current=null;
+    };
+  },[pts.length?'has':'none']);// re-init when going from 0→N points
+
+  // Update markers when data changes (only if map already exists)
+  useEffect(()=>{
+    const map=mapRef.current;
+    if(!map||!mapReady.current)return;
+    clearMarkers();
+    addMarkers(map,pts);
+    updateRoute(map,pts);
+    fitMap(map,pts);
+  },[pts]);
+
+  // Handle highlight changes
+  useEffect(()=>{
+    if(!mapRef.current||!markersRef.current.length)return;
+    markersRef.current.forEach(m=>{
+      if(highlightId&&m.data.id===highlightId){
+        m.el.classList.add('mapbox-marker-highlight');
+        mapRef.current.flyTo({center:[m.data.lo,m.data.la],zoom:14,duration:600});
+      }else{
+        m.el.classList.remove('mapbox-marker-highlight');
+      }
+    });
+  },[highlightId]);
+
   if(!pts.length)return null;
-  const P=40,W=500,H=height;
-  let mla,xla,mlo,xlo;
-  if(singlePin||pts.length===1){const p=pts[0];mla=p.la-0.005;xla=p.la+0.005;mlo=p.lo-0.008;xlo=p.lo+0.008;}
-  else{mla=Math.min(...pts.map(p=>p.la))-0.003;xla=Math.max(...pts.map(p=>p.la))+0.003;mlo=Math.min(...pts.map(p=>p.lo))-0.005;xlo=Math.max(...pts.map(p=>p.lo))+0.005;}
-  const lr=xla-mla||0.01,or=xlo-mlo||0.01;
-  const tx=lo=>P+((lo-mlo)/or)*(W-P*2),ty=la=>P+((xla-la)/lr)*(H-P*2);
-  const cols={sightseeing:"#c46b98",food:"#c27019",shopping:"#6b48a8",transport:"#2d7a3a",hotel:"#8a6d3b",flight:"#1a73a7",anime:"#e03e6b",photo:"#0891b2",nightlife:"#7c3aed"};
+  const isFullHeight=typeof height==="string";
+  return <div ref={containerRef} style={{width:"100%",height:height,borderRadius:isFullHeight?0:12,overflow:"hidden",border:isFullHeight?"none":"1px solid #e8e4de"}}/>;
+}
+
+// Full-screen map modal
+function FullMapModal({markers,onClose,days}){
   return(
-    <div style={{borderRadius:12,overflow:"hidden",border:"1px solid #e8e4de",background:"linear-gradient(135deg, #e8f0e8, #d4e4d4 30%, #c8dcc8 60%, #e0e8e0)"}}>
-      <svg viewBox={`0 0 ${W} ${H}`} style={{width:"100%",height:"auto",display:"block"}}>
-        {[0.25,0.5,0.75].map(f=><g key={f}><line x1={P} y1={P+f*(H-P*2)} x2={W-P} y2={P+f*(H-P*2)} stroke="#b8ccb8" strokeWidth="0.5" strokeDasharray="4,4"/><line x1={P+f*(W-P*2)} y1={P} x2={P+f*(W-P*2)} y2={H-P} stroke="#b8ccb8" strokeWidth="0.5" strokeDasharray="4,4"/></g>)}
-        {pts.length>1&&pts.map((p,i)=>i>0?<line key={`l${i}`} x1={tx(pts[i-1].lo)} y1={ty(pts[i-1].la)} x2={tx(p.lo)} y2={ty(p.la)} stroke="#c46b98" strokeWidth="1.5" strokeDasharray="6,4" opacity="0.4"/>:null)}
-        {pts.map((p,i)=>{const x=tx(p.lo),y=ty(p.la),col=p.isH?"#1a73a7":(cols[p.cat]||"#c46b98"),isHv=hover===i;
-          return(<g key={i} style={{cursor:"pointer"}} onMouseEnter={()=>setHover(i)} onMouseLeave={()=>setHover(null)} onClick={()=>window.open(gmUrl(p.la,p.lo),"_blank")}>
-            <ellipse cx={x} cy={y+2} rx={isHv?8:6} ry={isHv?3:2} fill="rgba(0,0,0,0.15)"/>
-            <path d={`M${x},${y-20}C${x-10},${y-20} ${x-10},${y-8} ${x},${y}C${x+10},${y-8} ${x+10},${y-20} ${x},${y-20}Z`} fill={col} stroke="#fff" strokeWidth="2" transform={isHv?"scale(1.15)":""} style={{transformOrigin:`${x}px ${y-10}px`,transition:"transform 0.15s"}}/>
-            <circle cx={x} cy={y-13} r={3} fill="#fff"/>
-            {(isHv||pts.length<=6)&&<><rect x={x-Math.min(p.name.length*3.5,60)} y={y-36} width={Math.min(p.name.length*7,120)} height={14} rx={4} fill="rgba(26,26,46,0.85)"/><text x={x} y={y-27} textAnchor="middle" fontSize="9" fontWeight="700" fill="#fff" fontFamily="system-ui">{p.name.length>16?p.name.slice(0,16)+"…":p.name}</text></>}
-          </g>);})}
-        <text x={W-P} y={H-8} textAnchor="end" fontSize="8" fill="#999" fontFamily="system-ui">点击图钉 → Google Maps</text>
-      </svg>
+    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.7)",zIndex:1001,display:"flex",flexDirection:"column"}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"12px 16px",background:"linear-gradient(135deg,#1a1a2e,#2d2d4a)"}}>
+        <span style={{color:"#fff",fontWeight:700,fontSize:15}}>🗺️ 全行程地图</span>
+        <button onClick={onClose} style={{background:"rgba(255,255,255,0.15)",border:"none",color:"#fff",width:32,height:32,borderRadius:"50%",fontSize:16,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>✕</button>
+      </div>
+      <div style={{flex:1,position:"relative"}}>
+        <MapboxMap markers={markers} height="100%"/>
+      </div>
+    </div>
+  );
+}
+
+// Helper: build city stops from days
+function buildCityStops(days){
+  const stops=[];const seen=new Set();
+  days.filter(d=>!d.isPreTrip).forEach(d=>{
+    const loc=d.location.split("→")[0].split("/")[0].trim();
+    let la,lo;
+    if(d.hotel&&d.hotel.la){la=d.hotel.la;lo=d.hotel.lo;}
+    else{const a=d.activities.find(a=>a.la&&a.lo);if(a){la=a.la;lo=a.lo;}}
+    if(la&&lo&&!seen.has(loc)){seen.add(loc);stops.push({name:loc,la,lo});}
+  });
+  return stops;
+}
+
+// Inline route map — light style, in-country numbered stops + driving lines + "View full map" button
+function InlineRouteMap({days,onViewFull}){
+  const containerRef=useRef(null);const mapRef=useRef(null);const markersRef=useRef([]);
+  const stops=useMemo(()=>buildCityStops(days),[days]);
+
+  useEffect(()=>{
+    if(!containerRef.current||!stops.length)return;
+    const bounds=new mapboxgl.LngLatBounds();
+    stops.forEach(s=>bounds.extend([s.lo,s.la]));
+    const map=new mapboxgl.Map({container:containerRef.current,style:'mapbox://styles/mapbox/light-v11',center:bounds.getCenter(),zoom:5,attributionControl:false,interactive:true});
+    map.addControl(new mapboxgl.NavigationControl({showCompass:false}),'top-right');
+    mapRef.current=map;
+    map.on('load',()=>{
+      // Route line
+      if(stops.length>1){
+        map.addSource('route',{type:'geojson',data:{type:'Feature',geometry:{type:'LineString',coordinates:stops.map(s=>[s.lo,s.la])}}});
+        map.addLayer({id:'route-line',type:'line',source:'route',paint:{'line-color':'#1a1a2e','line-width':3.5,'line-opacity':0.8},layout:{'line-cap':'round','line-join':'round'}});
+      }
+      // Transport icons between stops
+      for(let i=0;i<stops.length-1;i++){
+        const a=stops[i],b=stops[i+1];
+        const dist=Math.sqrt(Math.pow(a.la-b.la,2)+Math.pow(a.lo-b.lo,2));
+        if(dist>0.3){
+          const midLa=(a.la+b.la)/2,midLo=(a.lo+b.lo)/2;
+          const el=document.createElement('div');
+          const hrs=Math.round(dist*110/80);
+          el.innerHTML=`<div style="background:#fff;padding:3px 8px;border-radius:12px;font-size:11px;font-weight:700;color:#1a1a2e;box-shadow:0 1px 6px rgba(0,0,0,0.15);white-space:nowrap;font-family:DM Sans,sans-serif;display:flex;align-items:center;gap:4px"><span style="color:#dc2626;font-size:13px">🚗</span>${hrs>0?hrs+'h':''}</div>`;
+          new mapboxgl.Marker({element:el,anchor:'center'}).setLngLat([midLo,midLa]).addTo(map);
+          markersRef.current.push(el);
+        }
+      }
+      // Numbered city markers
+      stops.forEach((s,i)=>{
+        const el=document.createElement('div');
+        el.className='mapbox-marker';
+        el.innerHTML=`<div style="width:36px;height:36px;border-radius:50%;background:#fff;border:3px solid #1a1a2e;box-shadow:0 2px 8px rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#1a1a2e;font-family:DM Sans,sans-serif">${i+1}</div>`;
+        new mapboxgl.Marker({element:el,anchor:'center'}).setLngLat([s.lo,s.la]).addTo(map);
+        markersRef.current.push(el);
+      });
+      map.fitBounds(bounds,{padding:{top:30,bottom:30,left:30,right:30},maxZoom:8,duration:500});
+    });
+    return()=>{markersRef.current=[];map.remove();mapRef.current=null;};
+  },[stops.length, stops.map(s=>s.name+s.la+s.lo).join()]);
+
+  if(!stops.length)return null;
+  return(
+    <div style={{position:"relative",borderRadius:14,overflow:"hidden",border:"1px solid #e8e4de",marginBottom:8,background:"linear-gradient(135deg,#f0ecf8,#e8e0f4 50%,#f5f0fa)"}}>
+      <div ref={containerRef} style={{width:"100%",height:180}}/>
+      <button onClick={onViewFull} style={{position:"absolute",bottom:10,right:10,background:"#fff",border:"1px solid #e8e4de",borderRadius:10,padding:"6px 14px",fontSize:12,fontWeight:600,color:"#1a1a2e",cursor:"pointer",boxShadow:"0 2px 8px rgba(0,0,0,0.1)",fontFamily:"inherit"}}>View full map</button>
+    </div>
+  );
+}
+
+// Full-screen route map — Layla.ai style: lavender globe, photo markers, flight/drive lines, play animation
+function FullRouteMap({days,origin,onClose}){
+  const containerRef=useRef(null);const mapRef=useRef(null);const markersRef=useRef([]);
+  const readyRef=useRef(false);const[playing,setPlaying]=useState(false);
+
+  // Build city stops with photos and activity counts (NO clustering — each city separate like Layla)
+  const route=useMemo(()=>{
+    const stops=[{name:origin.name,la:origin.la,lo:origin.lo,type:"home"}];
+    const tripDays=days.filter(d=>!d.isPreTrip);
+    const seen=new Set();
+    tripDays.forEach(d=>{
+      const loc=d.location.split("→")[0].split("/")[0].trim();
+      let la,lo;
+      if(d.hotel&&d.hotel.la){la=d.hotel.la;lo=d.hotel.lo;}
+      else{const a=d.activities.find(a=>a.la&&a.lo);if(a){la=a.la;lo=a.lo;}}
+      if(la&&lo&&!seen.has(loc)){
+        seen.add(loc);
+        // Find photos from this city's activities
+        const cityDays=tripDays.filter(dd=>dd.location.includes(loc));
+        const imgs=cityDays.flatMap(dd=>dd.activities.filter(a=>a.img).map(a=>a.img)).slice(0,3);
+        const actCount=cityDays.reduce((s,dd)=>s+dd.activities.length,0);
+        stops.push({name:loc,la,lo,type:"city",count:actCount,imgs,dayCount:cityDays.length});
+      }
+    });
+    stops.push({name:origin.name,la:origin.la,lo:origin.lo,type:"home"});
+    return stops;
+  },[days,origin]);
+
+  const segments=useMemo(()=>{
+    const segs=[];
+    for(let i=0;i<route.length-1;i++){
+      const from=route[i],to=route[i+1];
+      const dist=Math.sqrt(Math.pow(from.la-to.la,2)+Math.pow(from.lo-to.lo,2));
+      const isFlight=dist>5;
+      const km=Math.round(dist*111);
+      const hrs=isFlight?Math.floor(km/800):Math.floor(km/80);
+      const mins=isFlight?Math.round((km/800-hrs)*60):Math.round((km/80-hrs)*60);
+      const timeStr=hrs>0?(mins>0?`${hrs}h ${mins}m`:`${hrs}h`):`${mins}m`;
+      const icon=isFlight?'✈️':'🚗';
+      segs.push({from,to,mode:isFlight?"flight":"drive",
+        label:`<span style="display:inline-flex;align-items:center;gap:4px">${icon} ${icon} ${timeStr}</span>`});
+    }
+    return segs;
+  },[route]);
+
+  useEffect(()=>{
+    if(!containerRef.current||route.length<2)return;
+    const avgLa=route.reduce((s,p)=>s+p.la,0)/route.length;
+    const avgLo=route.reduce((s,p)=>s+p.lo,0)/route.length;
+    const spread=Math.max(Math.max(...route.map(p=>p.la))-Math.min(...route.map(p=>p.la)),Math.max(...route.map(p=>p.lo))-Math.min(...route.map(p=>p.lo)));
+    const zoom=spread>30?2:spread>15?3:spread>5?3.5:5;
+
+    const map=new mapboxgl.Map({container:containerRef.current,style:'mapbox://styles/mapbox/standard',center:[avgLo,avgLa],zoom,attributionControl:false,projection:'globe'});
+    mapRef.current=map;
+    map.on('style.load',()=>{
+      // Match Layla.ai's exact style: Standard "faded" theme with purple/lavender config
+      try{
+        map.setConfigProperty('basemap','theme','faded');
+        map.setConfigProperty('basemap','font','DM Sans');
+        map.setConfigProperty('basemap','colorWater','#efe7fd');
+        map.setConfigProperty('basemap','colorLand','#ebe4e0');
+        map.setConfigProperty('basemap','colorPlaceLabels','#2a182e');
+        map.setConfigProperty('basemap','colorAdminBoundaries','#ae86f7');
+        map.setConfigProperty('basemap','showLandmarkIcons',false);
+        map.setConfigProperty('basemap','show3dObjects',false);
+        map.setConfigProperty('basemap','showPointOfInterestLabels',false);
+        map.setConfigProperty('basemap','showTransitLabels',false);
+        map.setConfigProperty('basemap','showPedestrianRoads',false);
+        map.setConfigProperty('basemap','showRoadLabels',false);
+      }catch(e){console.warn('Standard style config not supported',e);}
+      // Layla's exact fog: lavender high-color, light lavender space
+    map.setFog({
+        color:'hsla(10, 79%, 88%, 0.95)',
+        'high-color':'hsla(270, 65%, 85%, 1)',
+        'space-color':'hsl(270, 45%, 98%)',
+        'horizon-blend':0.04,
+        range:[1,10],
+        'star-intensity':0.15,
+        'vertical-range':[30,120]
+      });
+    });
+    map.on('load',()=>{
+      readyRef.current=true;
+      // Route lines — dashed for flights, solid for drives (Layla style)
+      segments.forEach((seg,i)=>{
+        const steps=40;const coords=[];
+        for(let s=0;s<=steps;s++){const t=s/steps;
+          // Great circle arc for flights
+          if(seg.mode==='flight'){
+            const lat1=seg.from.la*Math.PI/180,lat2=seg.to.la*Math.PI/180;
+            const dLng=(seg.to.lo-seg.from.lo)*Math.PI/180;
+            const A=Math.sin((1-t)*Math.acos(Math.sin(lat1)*Math.sin(lat2)+Math.cos(lat1)*Math.cos(lat2)*Math.cos(dLng)));
+            coords.push([seg.from.lo+(seg.to.lo-seg.from.lo)*t,seg.from.la+(seg.to.la-seg.from.la)*t]);
+          }else{
+            coords.push([seg.from.lo+(seg.to.lo-seg.from.lo)*t,seg.from.la+(seg.to.la-seg.from.la)*t]);
+          }
+        }
+        map.addSource(`r${i}`,{type:'geojson',data:{type:'Feature',geometry:{type:'LineString',coordinates:coords}}});
+        map.addLayer({id:`rl${i}`,type:'line',source:`r${i}`,paint:{
+          'line-color':seg.mode==='flight'?'#555555':'#1a1a2e',
+          'line-width':seg.mode==='flight'?3:3.5,
+          'line-dasharray':seg.mode==='flight'?[6,4]:[1,0],
+          'line-opacity':0.75
+        }});
+        // Transport label (Layla style: white pill with dual icons + time)
+        const midLa=(seg.from.la+seg.to.la)/2,midLo=(seg.from.lo+seg.to.lo)/2;
+        const el=document.createElement('div');
+        el.innerHTML=`<div style="background:#fff;padding:5px 14px;border-radius:20px;font-size:13px;font-weight:700;color:#1a1a2e;box-shadow:0 2px 10px rgba(0,0,0,0.15);white-space:nowrap;font-family:DM Sans,sans-serif;display:flex;align-items:center;gap:3px">${seg.label}</div>`;
+        new mapboxgl.Marker({element:el,anchor:'center'}).setLngLat([midLo,midLa]).addTo(map);
+        markersRef.current.push(el);
+      });
+      // Markers — Layla style
+      route.forEach((s,i)=>{
+        if(i===route.length-1&&s.type==='home')return;
+        const el=document.createElement('div');el.className='mapbox-marker';el.style.cursor='pointer';
+        if(s.type==='home'){
+          // Home marker: white circle with house icon + label below (Layla style)
+          el.innerHTML=`<div style="position:relative"><div style="width:44px;height:44px;border-radius:50%;background:#fff;border:3px solid #8b8b9e;box-shadow:0 3px 14px rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center;font-size:22px">🏠</div><div style="position:absolute;top:50px;left:50%;transform:translateX(-50%);background:#fff;padding:3px 12px;border-radius:10px;font-size:12px;font-weight:700;white-space:nowrap;font-family:DM Sans,sans-serif;box-shadow:0 2px 6px rgba(0,0,0,0.12);color:#1a1a2e">${s.name}</div></div>`;
+        }else{
+          // City marker: photo thumbnails + count badge + name label (Layla style)
+          let photoHtml='';
+          if(s.imgs&&s.imgs.length>0){
+            if(s.imgs.length>=2){
+              // Stacked photos like Layla
+              photoHtml=`<div style="position:relative;width:54px;height:54px">`;
+              photoHtml+=`<div style="position:absolute;left:0;top:4px;width:40px;height:40px;border-radius:50%;overflow:hidden;border:3px solid #c46b98;box-shadow:0 2px 8px rgba(0,0,0,0.2);z-index:1"><img src="${s.imgs[0]}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.style.display='none'"/></div>`;
+              photoHtml+=`<div style="position:absolute;left:18px;top:0;width:40px;height:40px;border-radius:50%;overflow:hidden;border:3px solid #8b6baf;box-shadow:0 2px 8px rgba(0,0,0,0.2);z-index:2"><img src="${s.imgs[1]}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.style.display='none'"/></div>`;
+              photoHtml+=`</div>`;
+            }else{
+              photoHtml=`<div style="width:46px;height:46px;border-radius:50%;overflow:hidden;border:3px solid #c46b98;box-shadow:0 2px 10px rgba(0,0,0,0.2)"><img src="${s.imgs[0]}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML='📍'"/></div>`;
+            }
+          }else{
+            photoHtml=`<div style="width:46px;height:46px;border-radius:50%;background:#fff;border:3px solid #1a1a2e;box-shadow:0 2px 10px rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#1a1a2e;font-family:DM Sans,sans-serif">📍</div>`;
+          }
+          // Count badge (top-right, like Layla's "3" badge)
+          const badge=`<div style="position:absolute;top:-4px;right:-4px;width:22px;height:22px;border-radius:50%;background:#fff;border:2px solid #1a1a2e;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#1a1a2e;font-family:DM Sans,sans-serif;box-shadow:0 1px 4px rgba(0,0,0,0.15);z-index:5">${s.count}</div>`;
+          // City name label (above, dark pill like Layla)
+          const label=`<div style="position:absolute;top:-22px;left:50%;transform:translateX(-50%);background:#2d2d3d;color:#fff;padding:2px 12px;border-radius:12px;font-size:12px;font-weight:700;white-space:nowrap;font-family:DM Sans,sans-serif;box-shadow:0 2px 6px rgba(0,0,0,0.15);z-index:4">${s.name}</div>`;
+          el.innerHTML=`<div style="position:relative">${label}${photoHtml}${badge}</div>`;
+        }
+        new mapboxgl.Marker({element:el,anchor:'center'}).setLngLat([s.lo,s.la]).addTo(map);
+        markersRef.current.push(el);
+      });
+    });
+    return()=>{markersRef.current=[];readyRef.current=false;map.remove();mapRef.current=null;};
+  },[]);
+
+  // Animation: fly from origin → each city → zoom out to show all (Layla style)
+  const play=()=>{
+    if(!mapRef.current||!readyRef.current||playing)return;
+    setPlaying(true);const map=mapRef.current;
+    const cityStops=route.filter(s=>s.type!=='home');
+    let step=0;
+    const flyToStop=(s,zoom,dur,pause)=>{
+      return new Promise(resolve=>{
+        map.flyTo({center:[s.lo,s.la],zoom,duration:dur,essential:true});
+        setTimeout(resolve,dur+pause);
+      });
+    };
+    (async()=>{
+      // 1. Start at origin, zoom in
+      await flyToStop(route[0],7,1800,800);
+      // 2. Fly to each city, zoom in to show details
+      for(const city of cityStops){
+        await flyToStop(city,11,2200,1200);
+      }
+      // 3. Zoom out to show full route (Layla ends zoomed into Japan showing all cities)
+      const cStops=route.filter(s=>s.type==='city');
+      if(cStops.length>0){
+        const bounds=new mapboxgl.LngLatBounds();
+        cStops.forEach(s=>bounds.extend([s.lo,s.la]));
+        map.fitBounds(bounds,{padding:{top:80,bottom:80,left:80,right:80},maxZoom:7,duration:2000});
+      }
+      setPlaying(false);
+    })();
+  };
+
+  return(
+    <div style={{position:"fixed",inset:0,zIndex:1001,display:"flex",flexDirection:"column"}}>
+      {/* Close button — top-left ✕ (Layla style) */}
+      <button onClick={onClose} style={{position:"absolute",top:14,left:14,zIndex:10,width:36,height:36,borderRadius:"50%",background:"#fff",border:"1px solid #e0e0e0",fontSize:18,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 2px 8px rgba(0,0,0,0.12)",color:"#333"}}>✕</button>
+      {/* Origin label — top-right corner (Layla style: "📍 Singapore Changi") */}
+      <div style={{position:"absolute",top:14,right:14,zIndex:10,display:"flex",alignItems:"center",gap:8,background:"#fff",padding:"6px 16px",borderRadius:20,boxShadow:"0 2px 8px rgba(0,0,0,0.1)",fontFamily:"DM Sans,sans-serif"}}>
+        <span style={{fontSize:14}}>📍</span>
+        <span style={{fontSize:13,fontWeight:700,color:"#1a1a2e"}}>{origin.name}</span>
+      </div>
+      {/* "View full map" button — right side (Layla style) */}
+      <button onClick={onClose} style={{position:"absolute",top:"50%",right:14,transform:"translateY(-50%)",zIndex:10,background:"#fff",border:"1px solid #e0e0e0",borderRadius:12,padding:"8px 18px",fontSize:13,fontWeight:600,color:"#1a1a2e",cursor:"pointer",boxShadow:"0 2px 8px rgba(0,0,0,0.1)",fontFamily:"DM Sans,sans-serif"}}>View full map</button>
+      <div ref={containerRef} style={{flex:1}}/>
+      {/* Play button — bottom-left, lavender filled circle (Layla style) */}
+      <button onClick={play} disabled={playing} style={{
+        position:"absolute",bottom:24,left:24,width:52,height:52,borderRadius:"50%",zIndex:10,
+        background:playing?"#d4cce6":"#c8bce0",border:"none",
+        boxShadow:"0 3px 14px rgba(0,0,0,0.15)",color:"#fff",fontSize:22,
+        cursor:playing?"default":"pointer",display:"flex",alignItems:"center",justifyContent:"center",
+        transition:"background 0.2s"
+      }}>{playing?"⏳":"▶"}</button>
     </div>
   );
 }
@@ -147,7 +624,7 @@ function ExperienceDetail({act,onClose,onEdit}){
           <span style={{fontSize:12,padding:"4px 12px",borderRadius:20,background:c.bg,color:c.c,fontWeight:600}}>{c.e} {c.l}</span>
           {act.cost&&<span style={{fontSize:12,padding:"4px 12px",borderRadius:20,background:"#f5dce8",color:"#c46b98",fontWeight:700}}>💰 {act.currency||"¥"}{act.cost}</span>}
         </div>
-        {mk.length>0&&<PinMap markers={mk} height={180} singlePin/>}
+        {mk.length>0&&<MapboxMap markers={mk} height={180} singlePin/>}
         {mk.length>0&&<MapLinks markers={mk}/>}
         <div style={{display:"flex",gap:8,marginTop:8}}>
           <button onClick={()=>onEdit(act)} style={{...S.savBtn,flex:1}}>✏️ 编辑</button>
@@ -160,10 +637,11 @@ function ExperienceDetail({act,onClose,onEdit}){
 
 function DayDetailModal({days,initialDayId,onClose,onViewExp}){
   const[aid,setAid]=useState(initialDayId);
+  const[hovAct,setHovAct]=useState(null);
   const day=days.find(d=>d.id===aid)||days[0];
-  const mk=[];const h=day.hotelIdx!==undefined?HOTELS[day.hotelIdx]:null;
+  const mk=[];const h=day.hotel||null;
   if(h)mk.push({name:h.name,la:h.la,lo:h.lo,isH:true,cat:"hotel"});
-  day.activities.filter(a=>a.la&&a.lo).forEach(a=>mk.push({name:a.name,la:a.la,lo:a.lo,cat:a.category}));
+  day.activities.filter(a=>a.la&&a.lo).forEach(a=>mk.push({name:a.name,la:a.la,lo:a.lo,cat:a.category,id:a.id,img:a.img,rating:a.rating,reviews:a.reviews,addr:a.addr}));
   return(
     <div style={S.overlay} onClick={onClose}><div style={S.dayModal} onClick={e=>e.stopPropagation()}>
       <div style={{padding:"18px 22px 12px",borderBottom:"1px solid #f0ede8",flexShrink:0}}>
@@ -174,7 +652,7 @@ function DayDetailModal({days,initialDayId,onClose,onViewExp}){
         <div style={{fontSize:12,color:"#6b7280",marginBottom:8}}>• {day.location} • Day {day.id} • {day.activities.length} 体验</div>
         {h&&<div style={{padding:"10px 12px",background:"#fffcf5",border:"1px solid #f0e8d8",borderRadius:10,marginBottom:8}}><div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:1,color:"#8a6d3b",marginBottom:4}}>🏨 住宿 · {h.nights}晚</div><div style={{fontSize:14,fontWeight:800}}>{h.name}</div><div style={{fontSize:11,color:"#9ca3af",marginTop:2}}>📍 {h.addr} · <strong style={{color:"#c46b98"}}>{h.price}</strong></div></div>}
         {day.activities.map(act=>{const ac=gc(act.category);const tl=act.type==="restaurant"?"Restaurant":act.type==="poi"?"Place":"Note";
-          return(<div key={act.id} style={{marginBottom:8,borderRadius:10,border:"1px solid #f0ede8",overflow:"hidden",background:"#fff",boxShadow:"0 1px 3px rgba(0,0,0,0.03)"}}>
+          return(<div key={act.id} style={{marginBottom:8,borderRadius:10,border:hovAct===act.id?"2px solid "+ac.c:"1px solid #f0ede8",overflow:"hidden",background:hovAct===act.id?"#faf5f8":"#fff",boxShadow:"0 1px 3px rgba(0,0,0,0.03)",transition:"all 0.15s"}} onMouseEnter={()=>setHovAct(act.id)} onMouseLeave={()=>setHovAct(null)}>
             <div style={{padding:"6px 12px 0"}}><span style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:0.5,color:ac.c}}>{tl}</span></div>
             <div style={{padding:"4px 12px 8px",display:"flex",gap:10,alignItems:"flex-start"}}>
               <div style={{flex:1}}><div style={{fontSize:14,fontWeight:700,color:"#1a1a2e",marginBottom:2}}>{act.name}</div>{act.rating&&<div style={{display:"flex",alignItems:"center",gap:4}}><span style={{fontSize:12,fontWeight:700}}>{act.rating}</span><Stars r={act.rating}/>{act.reviews&&<span style={{fontSize:10,color:"#9ca3af"}}>({fN(act.reviews)})</span>}</div>}</div>
@@ -184,7 +662,7 @@ function DayDetailModal({days,initialDayId,onClose,onViewExp}){
           </div>);
         })}
       </div>
-      <div style={{padding:"10px 18px 16px",borderTop:"1px solid #f0ede8",flexShrink:0}}>{mk.length>0&&<PinMap markers={mk} height={180}/>}{mk.length>0&&<MapLinks markers={mk}/>}</div>
+      <div style={{padding:"10px 18px 16px",borderTop:"1px solid #f0ede8",flexShrink:0}}>{mk.length>0&&<MapboxMap markers={mk} height={180} highlightId={hovAct} onMarkerClick={(m)=>{const act=day.activities.find(a=>a.la===m.la&&a.lo===m.lo);if(act&&act.type!=="note")onViewExp(act);}}/>}{mk.length>0&&<MapLinks markers={mk}/>}</div>
     </div></div>
   );
 }
@@ -240,9 +718,34 @@ function BudgetSummary({days,rateInfo}){
     </>)}</div>);
 }
 
+// Auto-detect origin from flight activities or common city keywords
+const CITY_COORDS={
+  "johor bahru":{la:1.4927,lo:103.7414},"jb":{la:1.4927,lo:103.7414},
+  "singapore":{la:1.3521,lo:103.8198},"sg":{la:1.3521,lo:103.8198},"sin":{la:1.3521,lo:103.8198},
+  "kuala lumpur":{la:3.1390,lo:101.6869},"kl":{la:3.1390,lo:101.6869},"klia":{la:2.7456,lo:101.7099},
+  "penang":{la:5.4164,lo:100.3327},"bangkok":{la:13.7563,lo:100.5018},
+  "hong kong":{la:22.3193,lo:114.1694},"taipei":{la:25.0330,lo:121.5654},
+  "seoul":{la:37.5665,lo:126.9780},"shanghai":{la:31.2304,lo:121.4737},
+  "beijing":{la:39.9042,lo:116.4074},"manila":{la:14.5995,lo:120.9842},
+  "jakarta":{la:-6.2088,lo:106.8456},"hanoi":{la:21.0285,lo:105.8542},
+};
+function detectOrigin(days){
+  // Scan flight activities and route badge for origin hints
+  const allText=days.flatMap(d=>d.activities.filter(a=>a.category==="flight").map(a=>(a.name+" "+(a.notes||"")).toLowerCase())).join(" ");
+  // Also check location fields for arrow patterns like "东京 → JB"
+  const locText=days.map(d=>(d.location||"").toLowerCase()).join(" ");
+  const combined=allText+" "+locText;
+  for(const[city,coords] of Object.entries(CITY_COORDS)){
+    if(combined.includes(city))return{name:city.split(" ").map(w=>w[0].toUpperCase()+w.slice(1)).join(" "),...coords};
+  }
+  return null;
+}
+
 function App(){
   const[days,setDays]=useState(INIT_DAYS);const[exp,setExp]=useState({1:true});const[viewE,setViewE]=useState(null);const[dayM,setDayM]=useState(null);const[editA,setEditA]=useState(null);const[editD,setEditD]=useState(null);const[notes,setNotes]=useState(false);
-  const[copied,setCopied]=useState(false);const[saveStatus,setSaveStatus]=useState("");const[showPasteModal,setShowPasteModal]=useState(false);const[pasteText,setPasteText]=useState("");const[showMobile,setShowMobile]=useState(false);
+  const[copied,setCopied]=useState(false);const[saveStatus,setSaveStatus]=useState("");const[showPasteModal,setShowPasteModal]=useState(false);const[pasteText,setPasteText]=useState("");const[showMobile,setShowMobile]=useState(false);const[fullMap,setFullMap]=useState(false);
+  const[origin,setOrigin]=useState(null);
+  const[geocoding,setGeocoding]=useState(false);const[geocodeProgress,setGeocodeProgress]=useState("");
   const fileRef=useRef(null);
   const[rateInfo,setRateInfo]=useState({live:false,myr:RATES.MYR,updated:""});
 
@@ -267,16 +770,20 @@ function App(){
   const cities=[];let prev="";tripDays.forEach(d=>{const l=d.location.split("→")[0].split("/")[0].trim();if(l!==prev){cities.push({name:l,start:d.id});prev=l;}});
   const tA=tripDays.reduce((s,d)=>s+d.activities.length,0);
   const dateRange=useMemo(()=>{const td=days.filter(d=>!d.isPreTrip);if(!td.length)return"";const months={Jan:"1月",Feb:"2月",Mar:"3月",Apr:"4月",May:"5月",Jun:"6月",Jul:"7月",Aug:"8月",Sep:"9月",Oct:"10月",Nov:"11月",Dec:"12月"};const first=td[0].date,last=td[td.length-1].date;const[fm,fd]=first.split(" ");const[lm,ld]=last.split(" ");if(fm===lm)return`2026年${months[fm]}${fd}–${ld}日`;return`2026年${months[fm]}${fd}日–${months[lm]}${ld}日`;},[days]);
-  const allMk=useMemo(()=>{const m=[];HOTELS.forEach(h=>m.push({name:h.name,la:h.la,lo:h.lo,isH:true,cat:"hotel"}));days.forEach(d=>d.activities.filter(a=>a.la&&a.lo).forEach(a=>m.push({name:a.name,la:a.la,lo:a.lo,cat:a.category})));const s=new Set();return m.filter(p=>{if(s.has(p.name))return false;s.add(p.name);return true;});},[days]);
+  const allMk=useMemo(()=>{const m=[];days.forEach(d=>{if(d.hotel&&d.hotel.la&&d.hotel.lo)m.push({name:d.hotel.name,la:d.hotel.la,lo:d.hotel.lo,isH:true,cat:"hotel",addr:d.hotel.addr});d.activities.filter(a=>a.la&&a.lo).forEach(a=>m.push({name:a.name,la:a.la,lo:a.lo,cat:a.category,img:a.img,id:a.id,rating:a.rating,reviews:a.reviews,addr:a.addr}));});const s=new Set();return m.filter(p=>{if(s.has(p.name))return false;s.add(p.name);return true;});},[days]);
 
-  const hSave=form=>{setDays(p=>p.map(d=>{if(d.id!==editD)return d;const ex=d.activities.find(a=>a.id===form.id);if(ex)return{...d,activities:d.activities.map(a=>a.id===form.id?form:a)};return{...d,activities:[...d.activities,{...form,id:`${d.id}_${Date.now()}`}]};}));};
+  const hSave=async(form)=>{
+    // Auto-geocode if addr exists but no coordinates
+    const geocoded=await geocodeActivity(form);
+    setDays(p=>p.map(d=>{if(d.id!==editD)return d;const ex=d.activities.find(a=>a.id===geocoded.id);if(ex)return{...d,activities:d.activities.map(a=>a.id===geocoded.id?geocoded:a)};return{...d,activities:[...d.activities,{...geocoded,id:`${d.id}_${Date.now()}`}]};}));
+  };
   const hDel=id=>setDays(p=>p.map(d=>({...d,activities:d.activities.filter(a=>a.id!==id)})));
   const hClick=(act,did)=>{if(act.type==="note"){setEditA(act);setEditD(did);}else setViewE(act);};
   const hEditExp=act=>{setViewE(null);setEditA(act);setEditD(days.find(d=>d.activities.some(a=>a.id===act.id))?.id);};
 
   // Export JSON
   const handleExport=()=>{
-    const data=JSON.stringify({version:1,exportDate:new Date().toISOString(),days},null,2);
+    const data=JSON.stringify({version:1,exportDate:new Date().toISOString(),days,origin},null,2);
     const blob=new Blob([data],{type:"application/json"});
     const url=URL.createObjectURL(blob);
     const a=document.createElement("a");
@@ -284,16 +791,31 @@ function App(){
     URL.revokeObjectURL(url);
   };
 
-  // Import JSON from file
+  // Import JSON from file (with auto-geocoding)
   const handleImport=(e)=>{
     const file=e.target.files?.[0];if(!file)return;
     const reader=new FileReader();
-    reader.onload=(ev)=>{
+    reader.onload=async(ev)=>{
       try{
         const data=JSON.parse(ev.target.result);
         if(data.days&&Array.isArray(data.days)){
           setDays(data.days);setExp({[data.days[0]?.id]:true});
-          alert(`✅ 已导入 ${data.days.length} 天, ${data.days.reduce((s,d)=>s+d.activities.length,0)} 个体验`);
+          if(data.origin)setOrigin(data.origin);
+          const actCount=data.days.reduce((s,d)=>s+d.activities.length,0);
+          // Auto-geocode missing coordinates
+          setGeocoding(true);setGeocodeProgress("🔍 检查坐标...");
+          const result=await geocodeMissing(data.days,(done,total)=>{
+            setGeocodeProgress(`📍 地理编码中... ${done}/${total}`);
+          });
+          setGeocoding(false);setGeocodeProgress("");
+          if(result.updated){
+            setDays(result.days);
+            enrichActivities(result.days, setDays);
+            alert(`✅ 已导入 ${data.days.length} 天, ${actCount} 个体验\n📍 自动定位了 ${result.count} 个地址`);
+          }else{
+            enrichActivities(data.days, setDays);
+            alert(`✅ 已导入 ${data.days.length} 天, ${actCount} 个体验`);
+          }
         }else{alert("❌ 无效的JSON格式：缺少 days 数组");}
       }catch(err){alert("❌ JSON解析失败: "+err.message);}
     };
@@ -302,39 +824,78 @@ function App(){
 
   // Copy JSON to clipboard
   const handleCopy=async()=>{
-    const data=JSON.stringify({version:1,exportDate:new Date().toISOString(),days},null,2);
+    const data=JSON.stringify({version:1,exportDate:new Date().toISOString(),days,origin},null,2);
     await navigator.clipboard.writeText(data);
     setCopied(true);setTimeout(()=>setCopied(false),2000);
   };
 
-  // Import from paste modal
-  const handlePasteImport=()=>{
+  // Import from paste modal (with auto-geocoding)
+  const handlePasteImport=async()=>{
     try{
       const data=JSON.parse(pasteText);
       if(data.days&&Array.isArray(data.days)){
         setDays(data.days);setShowPasteModal(false);setPasteText("");
-        alert(`✅ 已导入 ${data.days.length} 天`);
+        if(data.origin)setOrigin(data.origin);
+        // Auto-geocode missing coordinates
+        setGeocoding(true);setGeocodeProgress("🔍 检查坐标...");
+        const result=await geocodeMissing(data.days,(done,total)=>{
+          setGeocodeProgress(`📍 地理编码中... ${done}/${total}`);
+        });
+        setGeocoding(false);setGeocodeProgress("");
+        if(result.updated){
+          setDays(result.days);
+          enrichActivities(result.days, setDays);
+          alert(`✅ 已导入 ${data.days.length} 天\n📍 自动定位了 ${result.count} 个地址`);
+        }else{
+          enrichActivities(data.days, setDays);
+          alert(`✅ 已导入 ${data.days.length} 天`);
+        }
       }else{alert("❌ 无效格式");}
     }catch(err){alert("❌ JSON解析失败");}
   };
+
+  // Auto-detect origin when days change and no origin set
+  useEffect(()=>{
+    if(!origin){
+      const detected=detectOrigin(days);
+      if(detected)setOrigin(detected);
+    }
+  },[days,origin]);
 
   // Auto-save to localStorage (debounced)
   useEffect(()=>{
     const timer=setTimeout(()=>{
       try{
-        localStorage.setItem("trip-planner-data",JSON.stringify({version:1,days}));
+        localStorage.setItem("trip-planner-data",JSON.stringify({version:1,days,origin}));
         setSaveStatus("saved");
       }catch(e){/* storage may not be available */}
     },2000);
     return()=>clearTimeout(timer);
-  },[days]);
+  },[days,origin]);
 
-  // Auto-load from localStorage on mount
+  // Auto-load from localStorage on mount (with auto-geocoding)
   useEffect(()=>{
-    try{
-      const raw=localStorage.getItem("trip-planner-data");
-      if(raw){const data=JSON.parse(raw);if(data.days)setDays(data.days);}
-    }catch(e){/* Key doesn't exist yet, use defaults */}
+    (async()=>{
+      try{
+        const raw=localStorage.getItem("trip-planner-data");
+        if(raw){
+          const data=JSON.parse(raw);
+          if(data.days){
+            setDays(data.days);
+            if(data.origin)setOrigin(data.origin);
+            // Auto-geocode any missing coordinates
+            const result=await geocodeMissing(data.days);
+            if(result.updated){
+              setDays(result.days);
+              // Then enrich with Google Places photos
+              enrichActivities(result.days, setDays);
+            } else {
+              enrichActivities(data.days, setDays);
+            }
+          }
+        }
+      }catch(e){/* Key doesn't exist yet, use defaults */}
+    })();
   },[]);
 
   return(<div style={S.root}>
@@ -344,14 +905,14 @@ function App(){
         <div style={{fontSize:11,letterSpacing:6,color:"#c46b98",opacity:0.7,marginBottom:6,fontWeight:700}}>旅の計画 · 互动行程规划</div>
         <h1 style={{fontSize:"clamp(22px, 5vw, 32px)",fontWeight:800,color:"#1a1a2e",margin:"0 0 6px",lineHeight:1.2}}>日本春季樱花自驾之旅</h1>
         <div style={{fontSize:14,color:"#6b7280"}}>{dateRange} · {tA}个体验 · 🌸樱花 🍜美食 🎮二次元 📸摄影 🌊海边</div>
-        <div style={S.routeBadge}>JB <span style={{color:"#c46b98"}}>✈</span> 大阪 <span style={{color:"#c46b98"}}>🚗</span> 富士山 <span style={{color:"#c46b98"}}>🚗</span> 东京 <span style={{color:"#c46b98"}}>✈</span> JB</div>
+        <div style={S.routeBadge}>{origin?origin.name:"🏠"} {cities.map((c,i)=>(<span key={c.name}><span style={{color:"#c46b98"}}>{i===0?" ✈ ":" 🚗 "}</span>{c.name}</span>))} <span style={{color:"#c46b98"}}> ✈ </span>{origin?origin.name:"🏠"}</div>
       </div>
+      <InlineRouteMap days={days} onViewFull={()=>setFullMap(true)}/>
       <div style={{display:"flex",alignItems:"center",justifyContent:"center",flexWrap:"wrap",padding:"8px 0",marginBottom:8}}>
         {cities.map((c,i)=>(<div key={c.name} style={{display:"flex",alignItems:"center"}}><div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:3}}><div style={{width:12,height:12,borderRadius:"50%",background:"linear-gradient(135deg,#c46b98,#e8a0bf)",border:"3px solid #faf8f4",boxShadow:"0 0 0 2px #c46b98"}}/><span style={{fontSize:12,fontWeight:700,color:"#1a1a2e"}}>{c.name}</span><span style={{fontSize:10,color:"#9ca3af"}}>Day {c.start}</span></div>{i<cities.length-1&&<div style={{width:40,height:2,background:"linear-gradient(90deg,#c46b98,#e8a0bf)",margin:"0 6px",marginBottom:26,opacity:0.35}}/>}</div>))}
       </div>
-      <PinMap markers={allMk} height={240}/><MapLinks markers={allMk.slice(0,12)}/>
       <div style={{display:"grid",gridTemplateColumns:"repeat(4, 1fr)",gap:8,margin:"12px 0 16px"}}>
-        {[["天数",tripDays.length+"天"],["体验",tA],["城市",cities.length],["住宿","2处"]].map(([l,v])=>(<div key={l} style={S.sumItem}><span style={S.sumLabel}>{l}</span><span style={S.sumValue}>{v}</span></div>))}
+        {[["天数",tripDays.length+"天"],["体验",tA],["城市",cities.length],["住宿",days.reduce((s,d)=>s+(d.hotel?1:0),0)+"处"]].map(([l,v])=>(<div key={l} style={S.sumItem}><span style={S.sumLabel}>{l}</span><span style={S.sumValue}>{v}</span></div>))}
       </div>
       {days.some(d=>d.isPreTrip)?days.filter(d=>d.isPreTrip).map(day=>(<DaySection key={day.id} day={day} expanded={!!exp[day.id]} onToggle={()=>setExp(p=>({...p,[day.id]:!p[day.id]}))} onClickAct={(a)=>hClick(a,day.id)} onOpenDay={id=>setDayM(id)} onAdd={did=>{setEditA({id:"new_"+Date.now(),type:"note",name:"",category:"sightseeing",time:"Daytime",cost:"",currency:"MYR",notes:""});setEditD(did);}} onRemove={id=>setDays(p=>p.filter(d=>d.id!==id))}/>)):<button onClick={()=>{setDays(p=>[{id:0,date:"Pre-Trip",dow:"",location:"准备",theme:"出发前准备",weather:"",isPreTrip:true,activities:[]},...p]);setExp(prev=>({...prev,[0]:true}));}} style={{...S.pillBtn,background:"#ecf5ec",color:"#2d7a3a",border:"2px dashed #2d7a3a",fontSize:13,padding:"8px 20px",margin:"0 auto 8px",display:"block"}}>+ 添加出发前准备</button>}
       {tripDays.map(day=>(<DaySection key={day.id} day={day} expanded={!!exp[day.id]} onToggle={()=>setExp(p=>({...p,[day.id]:!p[day.id]}))} onClickAct={(a)=>hClick(a,day.id)} onOpenDay={id=>setDayM(id)} onAdd={did=>{setEditA({id:"new_"+Date.now(),type:"poi",name:"",category:"sightseeing",time:"Morning",cost:"",currency:"¥",notes:""});setEditD(did);}} onRemove={id=>setDays(p=>p.filter(d=>d.id!==id))}/>))}
@@ -363,7 +924,8 @@ function App(){
         <button onClick={()=>fileRef.current?.click()} style={S.toolBtn}>📤 导入JSON</button>
         <button onClick={handleCopy} style={{...S.toolBtn,background:copied?"#ecf5ec":"#fff"}}>{copied?"✅ 已复制!":"📋 复制JSON"}</button>
         <button onClick={()=>setShowPasteModal(true)} style={S.toolBtn}>📋 粘贴导入</button>
-        {saveStatus==="saved"&&<span style={{fontSize:12,color:"#2d7a3a",alignSelf:"center"}}>💾 已自动保存</span>}
+        {geocoding&&<span style={{fontSize:12,color:"#c46b98",alignSelf:"center",fontWeight:600}}>{geocodeProgress}</span>}
+        {!geocoding&&saveStatus==="saved"&&<span style={{fontSize:12,color:"#2d7a3a",alignSelf:"center"}}>💾 已自动保存</span>}
         <input ref={fileRef} type="file" accept=".json" style={{display:"none"}} onChange={handleImport}/>
       </div>
       <BudgetSummary days={days} rateInfo={rateInfo}/>
@@ -422,6 +984,7 @@ function App(){
         </div>
       </div>
     )}
+    {fullMap&&(origin?<FullRouteMap days={days} origin={origin} onClose={()=>setFullMap(false)}/>:<FullMapModal markers={allMk} onClose={()=>setFullMap(false)} days={days}/>)}
     {viewE&&<ExperienceDetail act={viewE} onClose={()=>setViewE(null)} onEdit={hEditExp}/>}
     {dayM&&<DayDetailModal days={days} initialDayId={dayM} onClose={()=>setDayM(null)} onViewExp={act=>{setDayM(null);setViewE(act);}}/>}
     {editA&&<EditModal activity={editA} onSave={hSave} onDelete={hDel} onClose={()=>{setEditA(null);setEditD(null);}}/>}

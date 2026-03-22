@@ -1,0 +1,589 @@
+{
+  "version": 1,
+  "exportDate": "2026-03-22T11:00:00.123Z",
+  "days": [
+    {
+      "id": 0,
+      "date": "Pre-Trip",
+      "dow": "",
+      "location": "准备",
+      "theme": "出发前准备",
+      "weather": "",
+      "isPreTrip": true,
+      "activities": [
+        {
+          "id": "0_flight_out",
+          "type": "note",
+          "name": "✈️ 去程机票: Scoot TR882",
+          "category": "flight",
+          "time": "Evening",
+          "cost": "",
+          "currency": "MYR",
+          "notes": "Apr 10 · 17:15 SIN T1 → 01:05+1 HND T3 · 6h50m\nBooking Ref: BH2LSE\n⬜ 网上值机 (出发前48h)\n⬜ 确认行李额度\n⬜ 打印/截图登机牌",
+          "addr": "Singapore Changi Airport T1",
+          "la": 1.372786,
+          "lo": 103.995674
+        },
+        {
+          "id": "0_flight_return",
+          "type": "note",
+          "name": "✈️ 回程机票: Scoot TR885",
+          "category": "flight",
+          "time": "Morning",
+          "cost": "",
+          "currency": "MYR",
+          "notes": "Apr 18 · 08:20 NRT T1 → 14:35 SIN T1 · 7h15m\nBooking Ref: BH2LSE\n⚠️ 08:20起飞 = 最晚06:20到机场\n⬜ 提前一晚移动到成田附近 或 搭首班Narita Express (新宿05:30→成田07:00)",
+          "addr": "Narita International Airport T1",
+          "la": 35.7647,
+          "lo": 140.3864
+        },
+        {
+          "id": "0_hotel",
+          "type": "note",
+          "name": "🏨 酒店预订 (6晚)",
+          "category": "hotel",
+          "time": "Daytime",
+          "cost": "",
+          "currency": "MYR",
+          "notes": "Apr 11-17 · 新宿区域为最佳选择 (Day 1-7 base)\n⬜ 预订酒店 (推荐: 新宿站步行10分内)\n⬜ 确认入住/退房时间\n⬜ 保存确认邮件截图\n💡 Day 1凌晨01:05到达，酒店可能无法入住 → 已安排DiCE网咖过夜",
+          "addr": "Shinjuku, Tokyo"
+        },
+        {
+          "id": "0_car",
+          "type": "note",
+          "name": "🚗 Day 3 租车预订 (Mazda 3)",
+          "category": "transport",
+          "time": "Daytime",
+          "cost": "",
+          "currency": "¥",
+          "notes": "Apr 13 富士山自驾一日游\n⬜ 预订租车 (Times/Toyota/Nippon Rent-A-Car)\n⬜ 确认新宿取车+还车地点\n⬜ 确认包含免责补偿险 (CDW)\n⬜ 准备好IDP + 护照 + 信用卡\n💡 同城还车无附加费，非常划算",
+          "addr": "Shinjuku, Tokyo"
+        },
+        {
+          "id": "0_passport",
+          "type": "note",
+          "name": "📄 护照 & 签证",
+          "category": "sightseeing",
+          "time": "Daytime",
+          "cost": "0",
+          "currency": "MYR",
+          "notes": "⬜ 护照有效期 > 6个月 (至少到 Oct 2026)\n⬜ 马来西亚护照免签90天 ✅\n⬜ 护照复印件 (电子版+纸质)\n⬜ 2寸白底证件照备用"
+        },
+        {
+          "id": "0_idp",
+          "type": "note",
+          "name": "📄 国际驾照 (IDP)",
+          "category": "transport",
+          "time": "Daytime",
+          "cost": "150",
+          "currency": "MYR",
+          "notes": "Day 3 富士山自驾必须！\n⬜ 去 JPJ/AAM 办理 (马来西亚国内办，日本不能现场办)\n⬜ 带护照 + 驾照 + 证件照\n⬜ 处理时间: 即日/1-3天\n⚠️ 没有IDP = 不能在日本合法驾驶！"
+        },
+        {
+          "id": "0_esim",
+          "type": "note",
+          "name": "📱 eSIM 数据流量",
+          "category": "shopping",
+          "time": "Daytime",
+          "cost": "",
+          "currency": "MYR",
+          "notes": "⬜ 购买日本eSIM (推荐: Ubigi / Airalo / Mobal)\n⬜ 8天 3-5GB 足够\n⬜ 出发前激活测试\n💡 Google Maps离线地图也提前下载好 (关东地区)"
+        },
+        {
+          "id": "0_iccard",
+          "type": "note",
+          "name": "💳 Suica/Pasmo IC卡 & 现金",
+          "category": "transport",
+          "time": "Daytime",
+          "cost": "",
+          "currency": "¥",
+          "notes": "⬜ 到HND后购买Suica/Pasmo (便利店/售票机)\n⬜ 充值 ¥5,000-10,000 (电车+便利店+自贩机通用)\n⬜ 准备现金: 7-11 ATM接受国际卡\n⬜ 建议带 ¥30,000-50,000 现金备用\n💡 日本仍以现金为主，很多小店不收卡"
+        },
+        {
+          "id": "0_vjw",
+          "type": "note",
+          "name": "🛂 Visit Japan Web (入境必填!)",
+          "category": "flight",
+          "time": "Daytime",
+          "cost": "0",
+          "currency": "MYR",
+          "notes": "出发前在 vjw.digital.go.jp 完成!\n⬜ 注册账号\n⬜ 填写个人信息 + 护照资料\n⬜ 填写入境审查 (Immigration)\n⬜ 填写海关申报 (Customs)\n⬜ 生成QR码 → 截图保存到手机!\n⬜ 同行朋友也要各自填写\n⚠️ 到达HND后直接扫QR码过关，省大量排队时间\n💡 建议出发前3天内填写 (太早填会过期)"
+        },
+        {
+          "id": "0_tickets",
+          "type": "note",
+          "name": "🎫 景点门票预约",
+          "category": "sightseeing",
+          "time": "Daytime",
+          "cost": "",
+          "currency": "¥",
+          "notes": "⬜ Day 4: 涩谷Sky展望台 (¥2,200) — 官网预约 shibuya-sky.tokyo\n⬜ Day 2: 江之电一日券 — 可现场购买\n⬜ Day 1: 新宿御苑 (¥500) — 可现场购买\n💡 热门景点提前买 = 免排队"
+        },
+        {
+          "id": "0_packing",
+          "type": "note",
+          "name": "🧳 行李清单",
+          "category": "shopping",
+          "time": "Daytime",
+          "cost": "0",
+          "currency": "MYR",
+          "notes": "天气: 15-18°C · Day 6可能下雨\n⬜ 分层穿搭 (薄外套+卫衣+T恤)\n⬜ 轻便雨衣/折叠伞\n⬜ 舒适走路鞋 (每天1万步+)\n⬜ 充电宝 + Type-C线\n⬜ 日本插头 = A型 (和马来西亚不同，需转换器!)\n⬜ 小背包 (日间用)\n⬜ 护照夹/证件袋"
+        },
+        {
+          "id": "0_apps",
+          "type": "note",
+          "name": "📲 必装APP",
+          "category": "sightseeing",
+          "time": "Daytime",
+          "cost": "0",
+          "currency": "MYR",
+          "notes": "⬜ Google Maps (下载离线地图)\n⬜ Suica App (iPhone可直接充值)\n⬜ Google Translate (下载日语离线包)\n⬜ Navitime / Yahoo乗換案内 (电车换乘)\n⬜ PayPay (日本移动支付，部分店家用)"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "date": "Apr 11",
+      "dow": "Sat",
+      "location": "Haneda → Kamata → Shinjuku",
+      "theme": "凌晨的剥离感 · 网咖的夜 · 新宿初探",
+      "weather": "16°C 🌙→☀️",
+      "hotelIdx": 0,
+      "activities": [
+        {
+          "id": "1a",
+          "type": "poi",
+          "name": "01:05 凌晨抵达羽田机场 (HND T3)",
+          "category": "flight",
+          "time": "Early Morning",
+          "cost": "0",
+          "currency": "¥",
+          "la": 35.5494,
+          "lo": 139.7798,
+          "addr": "Haneda Airport Terminal 3, Ota City, Tokyo",
+          "img": "https://lh3.googleusercontent.com/gps-cs-s/AHVAweqgxG2Y3tw5-L2mBbwFI-i2OKXqQ1L90KzQUDgdHpG6CzZnzGdmwEwOO5smaVPHnomjegVMl4Kpu-GFYwifn09Epy426M6a42E_pMdHreFar5dEspP3EYyPQV3WOrF40tAS-co8VSmgMJxl=w408-h306-k-no",
+          "notes": "Scoot TR882 落地。过Visit Japan Web QR码快速通关 → 取行李 → 出到达大厅。\n💡 凌晨1点没有电车，只能打车。"
+        },
+        {
+          "id": "1b",
+          "type": "poi",
+          "name": "深夜出租车：羽田 → 蒲田",
+          "category": "transport",
+          "time": "Early Morning",
+          "cost": "4000",
+          "currency": "¥",
+          "la": 35.5625,
+          "lo": 139.7160,
+          "addr": "Kamata Station area, Ota City",
+          "notes": "约15分钟车程。看着车窗外空旷的跨海高架，感受强烈的异乡感。\n💡 蒲田是距羽田最近的网咖聚集区"
+        },
+        {
+          "id": "1c",
+          "type": "poi",
+          "name": "DiCE 蒲田西口店 (网咖过夜)",
+          "category": "hotel",
+          "time": "Night",
+          "la": 35.5615,
+          "lo": 139.7139,
+          "addr": "Nishikamata, Ota City",
+          "img": "https://lh3.googleusercontent.com/gps-cs-s/AHVAweqlB24XCIlBqqKJMqiBg_Bh5mjEIy5PuBJhQwxjC1z4vlI54lQc_TYTvoVPPyL9pk1Yu78jpdgNu7h0xRshoeTKwqcwmpLM1onRU6SaN5hqGDcHkT5W58fblPn2gUTSDoCJk3BkIWXrgKGm=w427-h240-k-no",
+          "notes": "务必选择「完全个室 (VIP Room)」。洗个热水澡，锁上门，在绝对私密的空间里沉沉睡去。\n💡 比酒店省钱，凌晨入住完美解决红眼航班问题",
+          "cost": "5000",
+          "currency": "¥"
+        },
+        {
+          "id": "1d",
+          "type": "poi",
+          "name": "天亮后：JR 京滨东北线 → 新宿酒店寄存行李",
+          "category": "transport",
+          "time": "Morning",
+          "cost": "500",
+          "currency": "¥",
+          "la": 35.6896,
+          "lo": 139.7006,
+          "addr": "Shinjuku Station, Tokyo",
+          "notes": "睡醒后从蒲田坐电车直达新宿 (~40min)。酒店寄存行李，轻装上阵。\n💡 大部分酒店即使未到入住时间也可免费寄存行李"
+        },
+        {
+          "id": "1e",
+          "type": "poi",
+          "name": "新宿御苑",
+          "category": "photo",
+          "time": "Midday",
+          "rating": 4.6,
+          "reviews": 43017,
+          "la": 35.6852,
+          "lo": 139.7101,
+          "addr": "11 Naitomachi, Shinjuku",
+          "img": "https://lh3.googleusercontent.com/gps-cs-s/AHVAwertUaSsPJbRLVaq2LAbde1CEMoxRgVo6T-2ia8dB4YuYX6QTKH6VbtkLYfCKogQkYnedMG33YzY-8jE6lvt4TMf4YvXH08aeo-krdCQ0wK2hynoS_pM7EcNAwV3-ZDhxNSCpFef9A=w408-h306-k-no",
+          "notes": "新海诚《言叶之庭》取景地。4月中旬虽然盛开期已过，但晚樱品种 (八重桜/里桜) 仍在绽放。\n🌸 日本庭园+温室+法式庭园，占地58公顷\n💡 新宿门进入最方便",
+          "cost": "500",
+          "currency": "¥"
+        },
+        {
+          "id": "1f",
+          "type": "poi",
+          "name": "中野 Broadway (Nakano Broadway)",
+          "category": "anime",
+          "time": "Afternoon",
+          "la": 35.7071,
+          "lo": 139.6655,
+          "addr": "Nakano, Tokyo",
+          "img": "https://lh3.googleusercontent.com/gps-cs-s/AHVAweoadmJgcZrviXWa-IsBRN_T7TW-TfawEADfoOYgZMmyxCTmeubMd0bU0qD1unGY0G-5G0jHYTxs0_QlsOJ6DGrlWaybtPeuNDt-tXJGNsB6eNBmu2td74F2H9XIAGcWAzMWbaGG2bseOIo=w408-h306-k-no",
+          "notes": "从新宿坐JR中央线只需5分钟！比秋叶原更深邃的二次元空间。\n💡 まんだらけ Mandarake 本店在此，绝版手办、古着、稀有漫画的圣地",
+          "cost": "3000",
+          "currency": "¥"
+        },
+        {
+          "id": "1g",
+          "type": "restaurant",
+          "name": "歌舞伎町 一兰拉面",
+          "category": "food",
+          "time": "Night",
+          "la": 35.6944,
+          "lo": 139.7016,
+          "addr": "Kabukicho, Shinjuku",
+          "img": "https://lh3.googleusercontent.com/gps-cs-s/AHVAweqagMrYIM31z-gsUMQPl-x3xCxfFxUQ8FhhVt0b-io3t9BUduruIykQGQ3WsCeZ5oiOkztKGirlPu7hflPEK_qb-oNmvz2CZOd77B4eIHsBu7f_CMgwZZWUgoHRzBa3vsH7u79uXw=w408-h306-k-no",
+          "notes": "在日本的第一碗正式拉面！一兰的独立隔间设计，安静且不被打扰。\n💡 歌舞伎町店24h营业，不用担心时间",
+          "cost": "1500",
+          "currency": "¥"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "date": "Apr 12",
+      "dow": "Sun",
+      "location": "Kamakura",
+      "theme": "镰仓海边 · Yorushika式的极致留白",
+      "weather": "17°C ☀️",
+      "hotelIdx": 0,
+      "activities": [
+        {
+          "id": "2a",
+          "type": "note",
+          "name": "乘坐湘南新宿线前往镰仓",
+          "category": "transport",
+          "time": "Morning",
+          "cost": "2000",
+          "currency": "¥",
+          "notes": "从新宿直达，购买江之电一日券 (Enoden Pass)。"
+        },
+        {
+          "id": "2b",
+          "type": "poi",
+          "name": "镰仓高校前站",
+          "category": "anime",
+          "time": "Morning",
+          "la": 35.3065,
+          "lo": 139.5018,
+          "addr": "Kamakurakokomae, Kamakura",
+          "img": "https://static.gltjp.com/glt/data/directory/12000/11211/20201108_214334_accdd9bd_w640.webp",
+          "notes": "《灌篮高手》经典闸道口。避开拥挤的人潮，拍一张纯粹的空镜头。",
+          "cost": "0",
+          "currency": "¥"
+        },
+        {
+          "id": "2c",
+          "type": "poi",
+          "name": "七里滨 (Shichirigahama)",
+          "category": "photo",
+          "time": "Afternoon",
+          "la": 35.306,
+          "lo": 139.51,
+          "addr": "Shichirigahama, Kamakura",
+          "img": "https://images.unsplash.com/photo-1574047814986-7e3f81eecdf1?auto=format&fit=crop&w=800&q=80",
+          "notes": "在这里戴上耳机听 Yorushika。看着江之电穿行在波光粼粼的海岸线旁。",
+          "cost": "0",
+          "currency": "¥"
+        },
+        {
+          "id": "2d",
+          "type": "poi",
+          "name": "江之岛 日落",
+          "category": "photo",
+          "time": "Evening",
+          "la": 35.3005,
+          "lo": 139.481,
+          "addr": "Enoshima, Fujisawa",
+          "img": "https://images.unsplash.com/photo-1582967664658-00918029c065?auto=format&fit=crop&w=800&q=80",
+          "notes": "在海边看富士山的剪影与日落，最美的公路片结尾感。",
+          "cost": "1500",
+          "currency": "¥"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "date": "Apr 13",
+      "dow": "Mon",
+      "location": "Mt. Fuji",
+      "theme": "单日公路片 · 富士山自驾与巡礼",
+      "weather": "15°C 🌤️",
+      "hotelIdx": 0,
+      "activities": [
+        {
+          "id": "3a",
+          "type": "note",
+          "name": "新宿提车：Mazda 3 出发！",
+          "category": "transport",
+          "time": "Morning",
+          "cost": "18000",
+          "currency": "¥",
+          "notes": "包含一日租车费与过路费预估。同城还车极其划算且从容。"
+        },
+        {
+          "id": "3b",
+          "type": "poi",
+          "name": "Lawson 富士河口湖町役場前店",
+          "category": "photo",
+          "time": "Midday",
+          "la": 35.5063,
+          "lo": 138.7594,
+          "addr": "1395-1 Funatsu, Fujikawaguchiko",
+          "img": "https://images.unsplash.com/photo-1623916053158-6925e0a6e355?auto=format&fit=crop&w=800&q=80",
+          "notes": "开着 Mazda 3 来这里打卡。理性工业设计与自然雪山的视觉碰撞。",
+          "cost": "1000",
+          "currency": "¥"
+        },
+        {
+          "id": "3c",
+          "type": "poi",
+          "name": "新倉山浅間公園 · 忠靈塔",
+          "category": "photo",
+          "time": "Afternoon",
+          "rating": 4.7,
+          "reviews": 5364,
+          "la": 35.5013,
+          "lo": 138.8014,
+          "addr": "Fujiyoshida, Yamanashi",
+          "img": "https://images.unsplash.com/photo-1524413840807-0c3cb6fa808d?auto=format&fit=crop&w=800&q=80",
+          "notes": "经典的富士山与五重塔构图。",
+          "cost": "0",
+          "currency": "¥"
+        },
+        {
+          "id": "3d",
+          "type": "poi",
+          "name": "山中湖 红富士之汤",
+          "category": "sightseeing",
+          "time": "Evening",
+          "la": 35.4373,
+          "lo": 138.855,
+          "addr": "Yamanakako, Yamanashi",
+          "notes": "返程前泡个绝景温泉，洗净自驾的疲劳。",
+          "cost": "900",
+          "currency": "¥"
+        },
+        {
+          "id": "3e",
+          "type": "note",
+          "name": "沿着中央道开回新宿还车",
+          "category": "transport",
+          "time": "Night",
+          "cost": "3000",
+          "currency": "¥",
+          "notes": "油费预估。夜晚的高速公路也是很好的冥想空间。"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "date": "Apr 14",
+      "dow": "Tue",
+      "location": "Shibuya",
+      "theme": "咒术回战朝圣 · 涩谷事变与都市丛林",
+      "weather": "18°C ☀️",
+      "hotelIdx": 0,
+      "activities": [
+        {
+          "id": "4a",
+          "type": "poi",
+          "name": "涩谷站 副都心线 B5F 站台",
+          "category": "anime",
+          "time": "Morning",
+          "la": 35.658,
+          "lo": 139.7016,
+          "addr": "Shibuya Station",
+          "img": "https://images.unsplash.com/photo-1541818166547-4148b81dbdf0?auto=format&fit=crop&w=800&q=80",
+          "notes": "【咒术回战朝圣】五条悟被狱门疆封印的确切地点，感受强烈的宿命感。",
+          "cost": "200",
+          "currency": "¥"
+        },
+        {
+          "id": "4b",
+          "type": "poi",
+          "name": "涩谷十字路口 (Shibuya Crossing)",
+          "category": "photo",
+          "time": "Midday",
+          "la": 35.6594,
+          "lo": 139.7006,
+          "addr": "Shibuya",
+          "img": "https://images.unsplash.com/photo-1542931287-023b922fa89b?auto=format&fit=crop&w=800&q=80",
+          "notes": "人潮汹涌的十字路口，是观察都市众生相的最佳机位。",
+          "cost": "0",
+          "currency": "¥"
+        },
+        {
+          "id": "4c",
+          "type": "restaurant",
+          "name": "牛カツもと村 渋谷店",
+          "category": "food",
+          "time": "Afternoon",
+          "la": 35.657,
+          "lo": 139.704,
+          "addr": "Shibuya, Tokyo",
+          "notes": "在石板上自己炙烤的炸牛排，补充能量的绝佳选择。",
+          "cost": "2500",
+          "currency": "¥"
+        },
+        {
+          "id": "4d",
+          "type": "poi",
+          "name": "涩谷 Sky 展望台",
+          "category": "photo",
+          "time": "Evening",
+          "la": 35.658,
+          "lo": 139.7016,
+          "addr": "Shibuya Scramble Square",
+          "img": "https://images.unsplash.com/photo-1582736183313-086e3f20f011?auto=format&fit=crop&w=800&q=80",
+          "notes": "在 230 米高空的露天玻璃角，拍摄东京的黄昏与入夜（需提前买票）。",
+          "cost": "2200",
+          "currency": "¥"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "date": "Apr 15",
+      "dow": "Wed",
+      "location": "Kanda & Akihabara",
+      "theme": "电锯人蕾塞篇朝圣 · 昭和滤镜的午后",
+      "weather": "17°C 🌥️",
+      "hotelIdx": 0,
+      "activities": [
+        {
+          "id": "5a",
+          "type": "poi",
+          "name": "神田猿乐町：女坂 (Onnazaka)",
+          "category": "anime",
+          "time": "Morning",
+          "la": 35.6983,
+          "lo": 139.7602,
+          "addr": "Kanda Sarugakucho, Chiyoda City",
+          "img": "https://images.unsplash.com/photo-1590559899731-a382839ceef2?auto=format&fit=crop&w=800&q=80",
+          "notes": "【电锯人朝圣】蕾塞去咖啡馆打工必经的长阶梯，寂静且充满年代感。",
+          "cost": "0",
+          "currency": "¥"
+        },
+        {
+          "id": "5b",
+          "type": "poi",
+          "name": "天主教堂附近的电话亭",
+          "category": "anime",
+          "time": "Midday",
+          "la": 35.699,
+          "lo": 139.759,
+          "addr": "Kanda Sarugakucho",
+          "notes": "【电锯人朝圣】电次与蕾塞在雨中躲避的同款电话亭。旁边还有类似剧中出现的咖啡小巷。",
+          "cost": "0",
+          "currency": "¥"
+        },
+        {
+          "id": "5c",
+          "type": "poi",
+          "name": "神保町 古书街与吃茶店",
+          "category": "sightseeing",
+          "time": "Afternoon",
+          "la": 35.6957,
+          "lo": 139.7582,
+          "addr": "Jimbocho, Tokyo",
+          "notes": "在这里找一家老派的昭和咖啡馆坐坐，点一杯深煎咖啡，感受时间的停滞。",
+          "cost": "1500",
+          "currency": "¥"
+        },
+        {
+          "id": "5d",
+          "type": "poi",
+          "name": "秋叶原 (Akihabara)",
+          "category": "anime",
+          "time": "Evening",
+          "la": 35.7023,
+          "lo": 139.7745,
+          "addr": "Akihabara",
+          "img": "https://images.unsplash.com/photo-1580970051185-da943482ee4b?auto=format&fit=crop&w=800&q=80",
+          "notes": "去 Radio Kaikan 或 Mandarake 淘一些属于你自己的二次元记忆。",
+          "cost": "5000",
+          "currency": "¥"
+        },
+        {
+          "id": "5_1774176947539",
+          "type": "poi",
+          "name": "Reze Cafe",
+          "category": "anime",
+          "time": "Morning",
+          "cost": "",
+          "currency": "¥",
+          "notes": "",
+          "addr": "トロワバグヴェール",
+          "img": "https://lh3.googleusercontent.com/gps-cs-s/AHVAweqm1kH7FXs3eYbeoTLlboOQX0ECgxWOO8tEPiMKl7ZQXvS9ze9eoxQdLzH1EGtgAYC7xVABb3m9MPDQbppw_wO15H9uC1rp1Ug3N6HSwN7IPeu8cg4q-z3ZpLpHzB2pzU3lqgrIc686WVQ=w426-h240-k-no"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "date": "Apr 16",
+      "dow": "Thu",
+      "location": "TBD",
+      "theme": "自由日 · 待规划",
+      "weather": "16°C 🌧️",
+      "hotelIdx": 0,
+      "activities": []
+    },
+    {
+      "id": 7,
+      "date": "Apr 17",
+      "dow": "Fri",
+      "location": "Tokyo → JB",
+      "theme": "收束与回归",
+      "weather": "16°C 🌤️",
+      "activities": [
+        {
+          "id": "7a",
+          "type": "note",
+          "name": "新宿最后的清晨：便利店巡礼",
+          "category": "shopping",
+          "time": "Morning",
+          "cost": "3000",
+          "currency": "¥",
+          "notes": "买一些 7-11 或 Lawson 的限定小食，打包一些日常感带回。"
+        },
+        {
+          "id": "7b",
+          "type": "note",
+          "name": "前往成田/羽田机场",
+          "category": "transport",
+          "time": "Midday",
+          "cost": "3500",
+          "currency": "¥",
+          "notes": "带着被疗愈好的心情，从东京飞离。"
+        },
+        {
+          "id": "7c",
+          "type": "note",
+          "name": "飞抵 Johor Bahru，旅程结束",
+          "category": "flight",
+          "time": "Night",
+          "cost": "0",
+          "currency": "MYR",
+          "notes": "重新面对生活时，或许心境也会变得像远方的风景一样平缓流淌。"
+        }
+      ]
+    }
+  ],
+  "origin": {
+    "name": "Johor Bahru",
+    "la": 1.4927,
+    "lo": 103.7414
+  }
+}

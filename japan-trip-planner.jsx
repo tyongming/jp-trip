@@ -89,7 +89,7 @@ const INIT_DAYS=[
   {id:7,date:"Apr 11",dow:"Fri",location:"东京 → JB",theme:"最后的便利店扫货 · 出发回家",weather:"16°C 🌤️",activities:[
     {id:"7a",type:"note",name:"最后的便利店扫货！7-11/Lawson/FamilyMart限定零食、お土産",category:"shopping",time:"Morning",cost:"",currency:"¥"},
     {id:"7b",type:"note",name:"退房。前往成田/羽田机场",category:"transport",time:"Morning",cost:"",currency:"¥",notes:"成田特快N'EX ¥3,250 或利木津巴士"},
-    {id:"7c",type:"note",name:"飞回Johor Bahru 🏠 旅程结束！",category:"flight",time:"Daytime",cost:"",currency:"MYR"},
+    {id:"7c",type:"note",name:"飞回singapore 🏠 旅程结束！",category:"flight",time:"Daytime",cost:"",currency:"MYR"},
   ]},
 ];
 
