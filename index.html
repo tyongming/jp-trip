@@ -891,7 +891,7 @@ function ActivityCard({act,onClick,index,dayId,onDragStart,onDragOver,onDrop,isD
 }
 
 function DaySection({day,expanded,onToggle,onClickAct,onOpenDay,onAdd,onRemove,onReorder}){
-  const dc=day.activities.reduce((s,a)=>s+pJ(a.cost,a.currency),0);
+  const dc=day.activities.reduce((s,a)=>s+pJ(a.cost,a.currency)+pJ(a.transportCost,a.transportCurrency||a.currency),0);
   const isPre=day.isPreTrip;
   const headerBg=isPre?"linear-gradient(135deg, #2d7a3a, #1a5c2a)":S.dayHeader.background;
   return(<div style={{...S.daySection,...(isPre?{border:"2px dashed #2d7a3a",background:"#f0f7f0"}:{})}}>
