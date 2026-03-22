@@ -930,7 +930,7 @@ function detectOrigin(days){
 }
 
 function App(){
-  const[days,setDays]=useState(INIT_DAYS);const[exp,setExp]=useState({1:true});const[viewE,setViewE]=useState(null);const[dayM,setDayM]=useState(null);const[editA,setEditA]=useState(null);const[editD,setEditD]=useState(null);const[notes,setNotes]=useState(false);
+  const[days,setDays]=useState(INIT_DAYS);const[exp,setExp]=useState({1:true});const[viewE,setViewE]=useState(null);const[dayM,setDayM]=useState(null);const[editA,setEditA]=useState(null);const[editD,setEditD]=useState(null);
   const[copied,setCopied]=useState(false);const[saveStatus,setSaveStatus]=useState("");const[showPasteModal,setShowPasteModal]=useState(false);const[pasteText,setPasteText]=useState("");const[showMobile,setShowMobile]=useState(false);const[fullMap,setFullMap]=useState(false);const[showVersions,setShowVersions]=useState(false);const[ghSaveStatus,setGhSaveStatus]=useState("");
   const[origin,setOrigin]=useState(null);
   const[geocoding,setGeocoding]=useState(false);const[geocodeProgress,setGeocodeProgress]=useState("");
@@ -1150,40 +1150,30 @@ function App(){
       </div>
       <BudgetSummary days={days} rateInfo={rateInfo}/>
       <div style={{...S.notesBox,marginTop:14}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",cursor:"pointer"}} onClick={()=>setNotes(!notes)}><span style={{fontSize:16,fontWeight:700}}>📋 旅行备忘 & 提醒</span><span style={{fontSize:18,color:"#9ca3af",transform:notes?"rotate(180deg)":"",transition:"transform 0.2s"}}>▾</span></div>
-        {notes&&(<div style={{marginTop:14,fontSize:14,color:"#4a4a5a",lineHeight:1.9}}>
-          <div>◆ <strong>护照:</strong> 有效期6个月以上</div>
-          <div>◆ <strong>签证:</strong> 马来西亚护照免签90天</div>
-          <div>◆ <strong>国际驾照 (IDP):</strong> 出发前在马来西亚办理！日本不能现场办</div>
-          <div>◆ <strong>靠左行驶!</strong> 日本和马来西亚一样靠左</div>
-          <div>◆ <strong>租车:</strong> Toyota/Nippon/Times。要求ETC卡过高速。单程还车有"乗り捨て"附加费</div>
-          <div>◆ <strong>IC卡:</strong> 机场买Suica/ICOCA，可坐车+便利店+自动贩卖机</div>
-          <div>◆ <strong>现金:</strong> 日本仍以现金为主 — 7-11 ATM接受国际卡</div>
-          <div>◆ <strong>eSIM:</strong> 出发前激活数据流量</div>
-          <div>◆ <strong>造幣局预约:</strong> 4/5-4/11开放，需要提前在japan-mint.go.jp预约!</div>
-          <div>◆ <strong>teamLab:</strong> 门票务必提前在官网预约!</div>
-          <div>◆ <strong>天气:</strong> 4月10-20°C — 分层穿搭+轻便雨衣</div>
-        </div>)}
-      </div>
-      <div style={{...S.notesBox,marginTop:14}}>
         <div style={{display:"flex",justifyContent:"space-between",cursor:"pointer"}} onClick={()=>setShowMobile(!showMobile)}>
-          <span style={{fontSize:16,fontWeight:700}}>📱 如何在手机上使用</span>
+          <span style={{fontSize:16,fontWeight:700}}>📖 使用指南</span>
           <span style={{transform:showMobile?"rotate(180deg)":"",transition:"0.2s"}}>▾</span>
         </div>
         {showMobile&&(
           <div style={{marginTop:14,fontSize:14,color:"#4a4a5a",lineHeight:1.9}}>
-            <div><strong>方法1: 直接打开HTML文件</strong></div>
-            <div>◆ 把 index.html 传到手机（微信/AirDrop/邮件）</div>
-            <div>◆ 用浏览器打开即可，所有功能均可用</div>
-            <div>◆ 图片、地图链接、编辑功能全部正常</div>
-            <div style={{marginTop:8}}><strong>方法2: 导出JSON → 其他设备</strong></div>
-            <div>◆ 点击"📋 复制JSON"</div>
-            <div>◆ 通过微信/Telegram/邮件发给自己</div>
-            <div>◆ 在另一台设备打开此页面，点击"📋 粘贴导入"</div>
-            <div style={{marginTop:8}}><strong>离线使用提示:</strong></div>
-            <div>◆ 数据自动保存到浏览器本地存储</div>
-            <div>◆ 导出JSON保存到手机本地作为备份</div>
-            <div>◆ Google Maps链接在离线状态也能打开（如已缓存）</div>
+            <div><strong>📱 多设备同步</strong></div>
+            <div>◆ 数据自动保存到 GitHub（每30秒）</div>
+            <div>◆ 新设备打开即自动加载最新行程</div>
+            <div>◆ 点击「📜 版本历史」可恢复任意历史版本</div>
+            <div style={{marginTop:8}}><strong>✏️ 编辑行程</strong></div>
+            <div>◆ 点击卡片 → 查看详情 / 编辑</div>
+            <div>◆ 拖拽 ⠿ 图标可排序活动</div>
+            <div>◆ 点击 + 添加新体验</div>
+            <div>◆ 点击 🗺️ 打开日视图+地图</div>
+            <div style={{marginTop:8}}><strong>💾 数据备份</strong></div>
+            <div>◆ 📥 导出JSON — 下载完整行程文件</div>
+            <div>◆ 📤 导入JSON — 从文件恢复行程</div>
+            <div>◆ 📋 复制/粘贴 — 跨设备快速传输</div>
+            <div>◆ ☁️ 保存到GitHub — 手动立即保存</div>
+            <div style={{marginTop:8}}><strong>🗺️ 地图功能</strong></div>
+            <div>◆ 点击地图标记 → 查看地点详情</div>
+            <div>◆ 点击 📍 → 打开 Google Maps 导航</div>
+            <div>◆ ▶️ 播放按钮 — 飞行动画预览路线</div>
           </div>
         )}
       </div>
