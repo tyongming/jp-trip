@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exportDate": "2026-03-22T19:28:41.119Z",
+  "exportDate": "2026-03-22T19:30:18.335Z",
   "days": [
     {
       "id": 0,
@@ -45,9 +45,11 @@
           "name": "🏨 酒店预订 (6晚)",
           "category": "hotel",
           "time": "Daytime",
-          "cost": "",
+          "cost": "？",
           "currency": "MYR",
-          "notes": "Apr 11-17 · 新宿区域为最佳选择 (Day 1-7 base)\n⬜ 预订酒店 (推荐: 新宿站步行10分内)\n⬜ 确认入住/退房时间\n⬜ 保存确认邮件截图\n💡 Day 1凌晨01:05到达，酒店可能无法入住 → 已安排DiCE网咖过夜"
+          "notes": "Apr 11-17 · 新宿区域为最佳选择 (Day 1-7 base)\n⬜ 预订酒店 (推荐: 新宿站步行10分内)\n⬜ 确认入住/退房时间\n⬜ 保存确认邮件截图\n💡 Day 1凌晨01:05到达，酒店可能无法入住 → 已安排DiCE网咖过夜",
+          "la": 34.373617,
+          "lo": 132.533869
         },
         {
           "id": "0_car",
@@ -67,11 +69,13 @@
           "name": "📄 护照 & 签证",
           "category": "flight",
           "time": "Daytime",
-          "cost": "0",
+          "cost": "",
           "currency": "MYR",
           "notes": "⬜ 护照有效期 > 6个月 (至少到 Oct 2026)\n⬜ 马来西亚护照免签90天 ✅\n⬜ 护照复印件 (电子版+纸质)\n⬜ 2寸白底证件照备用",
           "img": "",
-          "addr": ""
+          "addr": "",
+          "la": 36.591907,
+          "lo": 140.372803
         },
         {
           "id": "0_idp",
@@ -109,9 +113,11 @@
           "name": "🛂 Visit Japan Web (入境必填!)",
           "category": "flight",
           "time": "Daytime",
-          "cost": "0",
+          "cost": "",
           "currency": "MYR",
-          "notes": "出发前在 vjw.digital.go.jp 完成!\n⬜ 注册账号\n⬜ 填写个人信息 + 护照资料\n⬜ 填写入境审查 (Immigration)\n⬜ 填写海关申报 (Customs)\n⬜ 生成QR码 → 截图保存到手机!\n⬜ 同行朋友也要各自填写\n⚠️ 到达HND后直接扫QR码过关，省大量排队时间\n💡 建议出发前3天内填写 (太早填会过期)"
+          "notes": "出发前在 vjw.digital.go.jp 完成!\n⬜ 注册账号\n⬜ 填写个人信息 + 护照资料\n⬜ 填写入境审查 (Immigration)\n⬜ 填写海关申报 (Customs)\n⬜ 生成QR码 → 截图保存到手机!\n⬜ 同行朋友也要各自填写\n⚠️ 到达HND后直接扫QR码过关，省大量排队时间\n💡 建议出发前3天内填写 (太早填会过期)",
+          "la": 35.704352,
+          "lo": 139.544123
         },
         {
           "id": "0_tickets",
@@ -129,11 +135,13 @@
           "name": "🧳 行李清单",
           "category": "shopping",
           "time": "Daytime",
-          "cost": "0",
+          "cost": "",
           "currency": "MYR",
           "notes": "天气: 15-18°C · Day 6可能下雨\n⬜ 分层穿搭 (薄外套+卫衣+T恤)\n⬜ 轻便雨衣/折叠伞\n⬜ 舒适走路鞋 (每天1万步+)\n⬜ 充电宝 + Type-C线\n⬜ 日本插头 = A型 (和马来西亚不同，需转换器!)\n⬜ 小背包 (日间用)\n⬜ 护照夹/证件袋",
           "img": "",
-          "addr": ""
+          "addr": "",
+          "la": 35.407638,
+          "lo": 136.743926
         },
         {
           "id": "0_apps",
@@ -141,9 +149,11 @@
           "name": "📲 必装APP",
           "category": "sightseeing",
           "time": "Daytime",
-          "cost": "0",
+          "cost": "",
           "currency": "MYR",
-          "notes": "⬜ Google Maps (下载离线地图)\n⬜ Suica App (iPhone可直接充值)\n⬜ Google Translate (下载日语离线包)\n⬜ Navitime / Yahoo乗換案内 (电车换乘)\n⬜ PayPay (日本移动支付，部分店家用)"
+          "notes": "⬜ Google Maps (下载离线地图)\n⬜ Suica App (iPhone可直接充值)\n⬜ Google Translate (下载日语离线包)\n⬜ Navitime / Yahoo乗換案内 (电车换乘)\n⬜ PayPay (日本移动支付，部分店家用)",
+          "la": 40.005055,
+          "lo": 140.97809
         }
       ]
     },
