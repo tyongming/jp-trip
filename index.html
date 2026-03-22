@@ -52,19 +52,35 @@ const INIT_DAYS=[];
 // ═══ GITHUB VERSION HISTORY — auto-save + restore ═══
 const GITHUB_REPO='tyongming/jp-trip';
 const GITHUB_FILE='japan-trip-data.json';
+const GITHUB_BRANCH='data';
 const GITHUB_PAT=window.GITHUB_PAT||'';
+
+async function githubEnsureBranch(){
+  // Create 'data' branch from master if it doesn't exist
+  try{
+    const r=await fetch(`https://api.github.com/repos/${GITHUB_REPO}/git/ref/heads/${GITHUB_BRANCH}`,{headers:{'Authorization':`token ${GITHUB_PAT}`,'Accept':'application/vnd.github.v3+json'}});
+    if(r.ok)return true;
+    // Branch doesn't exist — create from master
+    const m=await fetch(`https://api.github.com/repos/${GITHUB_REPO}/git/ref/heads/master`,{headers:{'Authorization':`token ${GITHUB_PAT}`,'Accept':'application/vnd.github.v3+json'}});
+    if(!m.ok)return false;
+    const md=await m.json();
+    const c=await fetch(`https://api.github.com/repos/${GITHUB_REPO}/git/refs`,{method:'POST',headers:{'Authorization':`token ${GITHUB_PAT}`,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},body:JSON.stringify({ref:`refs/heads/${GITHUB_BRANCH}`,sha:md.object.sha})});
+    return c.ok;
+  }catch(e){return false;}
+}
 
 async function githubSave(days,origin){
   if(!GITHUB_PAT)return{ok:false,reason:'no_pat'};
   try{
+    await githubEnsureBranch();
     const content=btoa(unescape(encodeURIComponent(JSON.stringify({version:1,exportDate:new Date().toISOString(),days,origin},null,2))));
-    // Get current file SHA (needed for update)
+    // Get current file SHA on data branch
     let sha='';
     try{
-      const r=await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE}`,{headers:{'Authorization':`token ${GITHUB_PAT}`,'Accept':'application/vnd.github.v3+json'}});
+      const r=await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE}?ref=${GITHUB_BRANCH}`,{headers:{'Authorization':`token ${GITHUB_PAT}`,'Accept':'application/vnd.github.v3+json'}});
       if(r.ok){const d=await r.json();sha=d.sha;}
     }catch(e){}
-    const body={message:`Auto-save: ${days.reduce((s,d)=>s+d.activities.length,0)} activities, ${days.length} days`,content,branch:'master'};
+    const body={message:`Auto-save: ${days.reduce((s,d)=>s+d.activities.length,0)} activities, ${days.length} days`,content,branch:GITHUB_BRANCH};
     if(sha)body.sha=sha;
     const r=await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE}`,{method:'PUT',headers:{'Authorization':`token ${GITHUB_PAT}`,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},body:JSON.stringify(body)});
     return{ok:r.ok,status:r.status};
@@ -74,7 +90,7 @@ async function githubSave(days,origin){
 async function githubLoadVersions(){
   if(!GITHUB_PAT)return[];
   try{
-    const r=await fetch(`https://api.github.com/repos/${GITHUB_REPO}/commits?path=${GITHUB_FILE}&per_page=30`,{headers:{'Authorization':`token ${GITHUB_PAT}`,'Accept':'application/vnd.github.v3+json'}});
+    const r=await fetch(`https://api.github.com/repos/${GITHUB_REPO}/commits?sha=${GITHUB_BRANCH}&path=${GITHUB_FILE}&per_page=30`,{headers:{'Authorization':`token ${GITHUB_PAT}`,'Accept':'application/vnd.github.v3+json'}});
     if(!r.ok)return[];
     return await r.json();
   }catch(e){return[];}
