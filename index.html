@@ -44,8 +44,8 @@ const pJ=(c,cur)=>{const n=parseFloat(String(c).replace(/[^0-9.]/g,""));if(isNaN
 const fJ=v=>v>0?`¥${Math.round(v).toLocaleString()}`:"—";
 const fM=v=>v>0?`MYR ${Math.round(v).toLocaleString()}`:"—";
 const Stars=({r})=>r?<span style={{color:"#f59e0b",fontSize:12,letterSpacing:1}}>{"★".repeat(Math.floor(r))}{r%1>=0.3?"½":""}</span>:null;
-const gmUrl=(la,lo)=>`https://www.google.com/maps/search/?api=1&query=${la},${lo}`;
-const gmDir=(la,lo)=>`https://www.google.com/maps/dir/?api=1&destination=${la},${lo}`;
+const gmUrl=(la,lo,name)=>name?`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name)}@${la},${lo}`:`https://www.google.com/maps/search/?api=1&query=${la},${lo}`;
+const gmDir=(la,lo,name)=>name?`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(name)}@${la},${lo}`:`https://www.google.com/maps/dir/?api=1&destination=${la},${lo}`;
 
 const INIT_DAYS=[];
 
@@ -110,6 +110,8 @@ async function enrichActivities(days, setDays){
   const newDays = await Promise.all(days.map(async(day)=>{
     const newActs = await Promise.all(day.activities.map(async(act)=>{
       if(act.img && !act.img.includes('unsplash.com'))return act; // already has valid image
+      // Skip activities without address — no addr means no reliable photo to fetch
+      if(!act.addr && !act.la)return act;
       const result = await fetchPlacePhoto(act.name, act.addr, act.la, act.lo);
       if(result){
         changed=true;
@@ -130,21 +132,45 @@ async function enrichActivities(days, setDays){
 
 // ═══ AUTO-GEOCODING via Mapbox Geocoding API ═══
 const geocodeCache={};
-async function geocodeAddress(addr){
-  if(!addr)return null;
-  const key=addr.trim().toLowerCase();
+async function geocodeAddress(addr,name){
+  if(!addr&&!name)return null;
+  const searchStr=addr||name;
+  const key=searchStr.trim().toLowerCase();
   if(geocodeCache[key])return geocodeCache[key];
+  // Try Mapbox first (with bbox filter for East/Southeast Asia: lat 1-46, lon 100-146)
   try{
-    const q=encodeURIComponent(addr.trim());
-    const res=await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${q}.json?access_token=${MAPBOX_TOKEN}&limit=1&language=ja,en,zh`);
+    const q=encodeURIComponent(searchStr.trim());
+    const res=await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${q}.json?access_token=${MAPBOX_TOKEN}&limit=1&language=ja,en,zh&bbox=100,1,146,46`);
     const json=await res.json();
     if(json.features&&json.features.length>0){
       const[lo,la]=json.features[0].center;
-      const result={la,lo};
-      geocodeCache[key]=result;
-      return result;
+      // Sanity check: result should be in East/Southeast Asia region
+      if(la>=1&&la<=46&&lo>=100&&lo<=146){
+        const result={la,lo};
+        geocodeCache[key]=result;
+        return result;
+      }else{
+        console.warn("Mapbox result outside region, skipping:",searchStr,{la,lo});
+      }
     }
-  }catch(e){console.warn("Geocode failed for:",addr,e);}
+  }catch(e){console.warn("Mapbox geocode failed for:",searchStr,e);}
+  // Fallback to Google Places API (better for niche businesses, shops, cafes)
+  if(GOOGLE_PLACES_KEY){
+    try{
+      const res=await fetch('https://places.googleapis.com/v1/places:searchText',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','X-Goog-Api-Key':GOOGLE_PLACES_KEY,'X-Goog-FieldMask':'places.location'},
+        body:JSON.stringify({textQuery:searchStr})
+      });
+      const json=await res.json();
+      if(json.places&&json.places.length>0){
+        const loc=json.places[0].location;
+        const result={la:loc.latitude,lo:loc.longitude};
+        geocodeCache[key]=result;
+        return result;
+      }
+    }catch(e){console.warn("Google geocode fallback failed for:",searchStr,e);}
+  }
   return null;
 }
 
@@ -154,7 +180,7 @@ async function geocodeMissing(days,onProgress){
   // Count total needing geocoding
   days.forEach(d=>{
     if(d.hotel&&d.hotel.addr&&(!d.hotel.la||!d.hotel.lo))total++;
-    d.activities.forEach(a=>{if(a.addr&&(!a.la||!a.lo))total++;});
+    d.activities.forEach(a=>{if((a.addr||a.name)&&(!a.la||!a.lo))total++;});
   });
   if(total===0)return{days,updated:false,count:0};
 
@@ -162,14 +188,15 @@ async function geocodeMissing(days,onProgress){
   for(const d of newDays){
     // Geocode hotel if missing
     if(d.hotel&&d.hotel.addr&&(!d.hotel.la||!d.hotel.lo)){
-      const coords=await geocodeAddress(d.hotel.addr);
+      const coords=await geocodeAddress(d.hotel.addr,d.hotel.name);
       if(coords){d.hotel.la=coords.la;d.hotel.lo=coords.lo;updated=true;count++;}
       if(onProgress)onProgress(count,total);
     }
-    // Geocode activities
+    // Geocode activities — try addr first, fall back to name (skip pre-trip items without addr)
     for(const a of d.activities){
-      if(a.addr&&(!a.la||!a.lo)){
-        const coords=await geocodeAddress(a.addr);
+      if(d.isPreTrip && !a.addr)continue; // skip pre-trip checklist items without addresses
+      if((a.addr||a.name)&&(!a.la||!a.lo)){
+        const coords=await geocodeAddress(a.addr,a.name);
         if(coords){a.la=coords.la;a.lo=coords.lo;updated=true;count++;}
         if(onProgress)onProgress(count,total);
       }
@@ -180,8 +207,8 @@ async function geocodeMissing(days,onProgress){
 
 // Geocode a single activity (used on save)
 async function geocodeActivity(act){
-  if(act.addr&&(!act.la||!act.lo)){
-    const coords=await geocodeAddress(act.addr);
+  if((act.addr||act.name)&&(!act.la||!act.lo)){
+    const coords=await geocodeAddress(act.addr,act.name);
     if(coords)return{...act,la:coords.la,lo:coords.lo};
   }
   return act;
@@ -220,7 +247,7 @@ function MapboxMap({markers,height=220,singlePin=false,highlightId=null,onMarker
     html+=`<div style="font-size:14px;font-weight:700;color:#1a1a2e;margin-bottom:4px;line-height:1.3">${p.name}</div>`;
     if(p.rating) html+=`<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><span style="background:#1a73a7;color:#fff;padding:1px 6px;border-radius:4px;font-size:12px;font-weight:800">${p.rating}</span><span style="color:#f59e0b;font-size:12px">${"★".repeat(Math.floor(p.rating))}</span>${p.reviews?`<span style="font-size:11px;color:#9ca3af">(${fN(p.reviews)})</span>`:""}</div>`;
     if(p.addr) html+=`<div style="font-size:11px;color:#6b7280;margin-bottom:8px">📍 ${p.addr}</div>`;
-    html+=`<div style="display:flex;gap:6px"><a href="${gmUrl(p.la,p.lo)}" target="_blank" style="flex:1;text-align:center;padding:6px 10px;background:${col}15;color:${col};border-radius:8px;text-decoration:none;font-size:12px;font-weight:600">📍 地图</a><a href="${gmDir(p.la,p.lo)}" target="_blank" style="flex:1;text-align:center;padding:6px 10px;background:#1a73a715;color:#1a73a7;border-radius:8px;text-decoration:none;font-size:12px;font-weight:600">🧭 导航</a></div>`;
+    html+=`<div style="display:flex;gap:6px"><a href="${gmUrl(p.la,p.lo,p.name)}" target="_blank" style="flex:1;text-align:center;padding:6px 10px;background:${col}15;color:${col};border-radius:8px;text-decoration:none;font-size:12px;font-weight:600">📍 地图</a><a href="${gmDir(p.la,p.lo,p.name)}" target="_blank" style="flex:1;text-align:center;padding:6px 10px;background:#1a73a715;color:#1a73a7;border-radius:8px;text-decoration:none;font-size:12px;font-weight:600">🧭 导航</a></div>`;
     html+='</div></div>';
     return html;
   };
@@ -606,7 +633,33 @@ function FullRouteMap({days,origin,onClose}){
   );
 }
 
-function MapLinks({markers}){const pts=markers.filter(m=>m.la&&m.lo);if(!pts.length)return null;return(<div style={{display:"flex",flexWrap:"wrap",gap:5,padding:"8px 0"}}>{pts.slice(0,10).map((m,i)=>(<a key={i} href={gmUrl(m.la,m.lo)} target="_blank" rel="noopener noreferrer" style={{fontSize:11,color:"#1a73a7",background:"#e8f4fd",padding:"4px 10px",borderRadius:20,textDecoration:"none",fontWeight:600}}>📍 {m.name.length>12?m.name.slice(0,12)+"…":m.name}</a>))}</div>);}
+function MapLinks({markers}){const pts=markers.filter(m=>m.la&&m.lo);if(!pts.length)return null;return(<div style={{display:"flex",flexWrap:"wrap",gap:5,padding:"8px 0"}}>{pts.slice(0,10).map((m,i)=>(<a key={i} href={gmUrl(m.la,m.lo,m.name)} target="_blank" rel="noopener noreferrer" style={{fontSize:11,color:"#1a73a7",background:"#e8f4fd",padding:"4px 10px",borderRadius:20,textDecoration:"none",fontWeight:600}}>📍 {m.name.length>12?m.name.slice(0,12)+"…":m.name}</a>))}</div>);}
+
+function TikTokEmbed({url}){
+  const containerRef=useRef(null);
+  const videoId=url.match(/video\/(\d+)/)?.[1];
+  useEffect(()=>{
+    if(!containerRef.current||!videoId)return;
+    // Load TikTok embed script
+    const existing=document.querySelector('script[src*="tiktok.com/embed.js"]');
+    if(existing)existing.remove();
+    const s=document.createElement('script');
+    s.src='https://www.tiktok.com/embed.js';
+    s.async=true;
+    document.body.appendChild(s);
+    return()=>{};
+  },[videoId]);
+  if(!videoId)return null;
+  return(
+    <div ref={containerRef} style={{marginBottom:12,borderRadius:12,overflow:"hidden"}}>
+      <blockquote className="tiktok-embed" cite={url} data-video-id={videoId} style={{maxWidth:"100%",minWidth:280,margin:0}}>
+        <section>
+          <a target="_blank" href={url} rel="noopener noreferrer" style={{color:"#c46b98",fontSize:13,fontWeight:600}}>🎬 查看 TikTok 视频参考</a>
+        </section>
+      </blockquote>
+    </div>
+  );
+}
 
 function ExperienceDetail({act,onClose,onEdit}){
   const c=gc(act.category);const tl=act.type==="restaurant"?"Restaurant":act.type==="poi"?"Place":"Activity";
@@ -617,8 +670,21 @@ function ExperienceDetail({act,onClose,onEdit}){
       <div style={{padding:"16px 20px 20px"}}>
         <h2 style={{fontSize:20,fontWeight:800,color:"#1a1a2e",margin:"0 0 6px",lineHeight:1.3}}>{act.name}</h2>
         {act.rating&&<div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}><span style={{background:"#1a73a7",color:"#fff",padding:"2px 8px",borderRadius:6,fontSize:14,fontWeight:800}}>{act.rating}</span><Stars r={act.rating}/>{act.reviews&&<span style={{fontSize:13,color:"#6b7280"}}>({fN(act.reviews)})</span>}</div>}
-        {act.addr&&<a href={act.la?gmUrl(act.la,act.lo):`https://www.google.com/maps/search/${encodeURIComponent(act.addr)}`} target="_blank" rel="noopener noreferrer" style={{display:"flex",alignItems:"center",gap:6,fontSize:13,color:"#1a73a7",textDecoration:"none",marginBottom:8}}>📍 {act.addr}</a>}
-        {act.notes&&<div style={{fontSize:13,color:"#4a4a5a",lineHeight:1.6,marginBottom:12,padding:"10px 14px",background:"#faf8f4",borderRadius:10,borderLeft:"3px solid "+c.c}}>{act.notes}</div>}
+        {act.addr&&<a href={act.la?gmUrl(act.la,act.lo,act.name):`https://www.google.com/maps/search/${encodeURIComponent(act.addr)}`} target="_blank" rel="noopener noreferrer" style={{display:"flex",alignItems:"center",gap:6,fontSize:13,color:"#1a73a7",textDecoration:"none",marginBottom:8}}>📍 {act.addr}</a>}
+        {/* Transport route details */}
+        {(act.from||act.to||act.line)&&(
+          <div style={{marginBottom:12,padding:"12px 16px",background:"linear-gradient(135deg,#ecf5ec,#e8f4fd)",borderRadius:12,border:"1px solid #d4e8d4"}}>
+            {(act.from||act.to)&&<div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
+              {act.from&&<div style={{flex:1,padding:"6px 10px",background:"#fff",borderRadius:8,fontSize:13,fontWeight:700,color:"#2d7a3a",textAlign:"center"}}>🚏 {act.from}</div>}
+              {act.from&&act.to&&<span style={{fontSize:16,color:"#2d7a3a",fontWeight:800}}>→</span>}
+              {act.to&&<div style={{flex:1,padding:"6px 10px",background:"#fff",borderRadius:8,fontSize:13,fontWeight:700,color:"#1a73a7",textAlign:"center"}}>🏁 {act.to}</div>}
+            </div>}
+            {act.line&&<div style={{fontSize:13,color:"#4a7a4a",fontWeight:600}}>🚃 {act.line}</div>}
+            {act.directionsUrl&&<a href={act.directionsUrl} target="_blank" rel="noopener noreferrer" style={{display:"inline-flex",alignItems:"center",gap:6,marginTop:8,padding:"8px 14px",background:"#1a73a7",color:"#fff",borderRadius:8,textDecoration:"none",fontSize:13,fontWeight:600}}>📍 Google Maps 路线导航</a>}
+          </div>
+        )}
+        {act.notes&&<div style={{fontSize:13,color:"#4a4a5a",lineHeight:1.6,marginBottom:12,padding:"10px 14px",background:"#faf8f4",borderRadius:10,borderLeft:"3px solid "+c.c,whiteSpace:"pre-line"}}>{act.notes}</div>}
+        {act.tiktok&&<TikTokEmbed url={act.tiktok}/>}
         <div style={{display:"flex",gap:6,marginBottom:14,flexWrap:"wrap"}}>
           {act.time&&<span style={{fontSize:12,padding:"4px 12px",borderRadius:20,background:"#f0f0f0",color:"#666",fontWeight:600}}>🕐 {act.time}</span>}
           <span style={{fontSize:12,padding:"4px 12px",borderRadius:20,background:c.bg,color:c.c,fontWeight:600}}>{c.e} {c.l}</span>
@@ -628,7 +694,7 @@ function ExperienceDetail({act,onClose,onEdit}){
         {mk.length>0&&<MapLinks markers={mk}/>}
         <div style={{display:"flex",gap:8,marginTop:8}}>
           <button onClick={()=>onEdit(act)} style={{...S.savBtn,flex:1}}>✏️ 编辑</button>
-          {act.la&&act.lo&&<a href={gmDir(act.la,act.lo)} target="_blank" rel="noopener noreferrer" style={{...S.canBtn,display:"flex",alignItems:"center",justifyContent:"center",textDecoration:"none",gap:4}}>🧭 导航</a>}
+          {act.la&&act.lo&&<a href={gmDir(act.la,act.lo,act.name)} target="_blank" rel="noopener noreferrer" style={{...S.canBtn,display:"flex",alignItems:"center",justifyContent:"center",textDecoration:"none",gap:4}}>🧭 导航</a>}
         </div>
       </div>
     </div></div>
@@ -677,33 +743,54 @@ function EditModal({activity,onSave,onClose,onDelete}){
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}><div><label style={S.fl}>时间</label><select style={S.inp} value={form.time} onChange={e=>up("time",e.target.value)}>{TIMES.map(t=><option key={t}>{t}</option>)}</select></div><div><label style={S.fl}>分类</label><select style={S.inp} value={form.category} onChange={e=>up("category",e.target.value)}>{Object.entries(CATS).map(([k,v])=><option key={k} value={k}>{v.e} {v.l}</option>)}</select></div></div>
       <label style={S.fl}>图片URL</label><input style={S.inp} value={form.img||""} onChange={e=>up("img",e.target.value)} placeholder="https://..."/>
       <label style={S.fl}>地址</label><input style={S.inp} value={form.addr||""} onChange={e=>up("addr",e.target.value)}/>
+      {/* Transport fields — shown when category is transport */}
+      {form.category==="transport"&&(<>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+          <div><label style={S.fl}>🚏 出发站</label><input style={S.inp} value={form.from||""} onChange={e=>up("from",e.target.value)} placeholder="蒲田駅"/></div>
+          <div><label style={S.fl}>🏁 到达站</label><input style={S.inp} value={form.to||""} onChange={e=>up("to",e.target.value)} placeholder="新宿駅"/></div>
+        </div>
+        <label style={S.fl}>🚃 路线</label><input style={S.inp} value={form.line||""} onChange={e=>up("line",e.target.value)} placeholder="JR 京浜東北線 → 山手線"/>
+        <label style={S.fl}>🔗 Google Maps 路线链接</label><input style={S.inp} value={form.directionsUrl||""} onChange={e=>up("directionsUrl",e.target.value)} placeholder="https://maps.app.goo.gl/..."/>
+      </>)}
       <label style={S.fl}>备注</label><textarea style={{...S.inp,minHeight:60,resize:"vertical",fontFamily:"inherit"}} value={form.notes||""} onChange={e=>up("notes",e.target.value)}/>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 80px",gap:10}}><div><label style={S.fl}>评分</label><input style={S.inp} value={form.rating||""} onChange={e=>up("rating",parseFloat(e.target.value)||"")} placeholder="4.5"/></div><div><label style={S.fl}>费用</label><input style={S.inp} value={form.cost} onChange={e=>up("cost",e.target.value)} placeholder="2000"/></div><div><label style={S.fl}>币种</label><select style={S.inp} value={form.currency} onChange={e=>up("currency",e.target.value)}><option>¥</option><option>MYR</option><option>USD</option></select></div></div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 80px",gap:10}}><div><label style={S.fl}>费用</label><input style={S.inp} value={form.cost} onChange={e=>up("cost",e.target.value)} placeholder="2000"/></div><div><label style={S.fl}>币种</label><select style={S.inp} value={form.currency} onChange={e=>up("currency",e.target.value)}><option>¥</option><option>MYR</option><option>USD</option></select></div></div>
     </div>
     <div style={{display:"flex",gap:8,padding:"10px 22px 18px",borderTop:"1px solid #f0ede8"}}>{activity.id&&!activity.id.startsWith?.("new_")&&<button onClick={()=>{onDelete(activity.id);onClose();}} style={S.delBtn}>🗑 删除</button>}<div style={{flex:1}}/><button onClick={onClose} style={S.canBtn}>取消</button><button onClick={()=>{onSave(form);onClose();}} style={S.savBtn}>保存</button></div>
   </div></div>);
 }
 
-function ActivityCard({act,onClick}){const c=gc(act.category);const tl=act.type==="restaurant"?"Restaurant":act.type==="poi"?"Place":"Note";const cd=act.cost?`${act.currency||"¥"}${act.cost}`:"";
-  return(<div onClick={onClick} style={S.actCard} onMouseEnter={e=>{e.currentTarget.style.boxShadow="0 6px 20px rgba(0,0,0,0.07)";e.currentTarget.style.transform="translateY(-2px)";}} onMouseLeave={e=>{e.currentTarget.style.boxShadow="";e.currentTarget.style.transform="";}}>
-    <div style={{display:"flex",gap:12}}>{act.img?(<div style={{width:100,height:72,borderRadius:10,overflow:"hidden",flexShrink:0}}><img src={act.img} alt={act.name} style={{width:"100%",height:"100%",objectFit:"cover"}} loading="lazy"/></div>):(<div style={{width:36,height:36,borderRadius:"50%",background:c.bg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,flexShrink:0,marginTop:2}}>{c.e}</div>)}
+function ActivityCard({act,onClick,index,dayId,onDragStart,onDragOver,onDrop,isDragOver}){const c=gc(act.category);const tl=act.type==="restaurant"?"Restaurant":act.type==="poi"?"Place":"Note";const cd=act.cost?`${act.currency||"¥"}${act.cost}`:"";
+  return(<div onClick={onClick} draggable onDragStart={e=>{e.dataTransfer.setData("text/plain",JSON.stringify({id:act.id,dayId,index}));e.currentTarget.style.opacity="0.4";if(onDragStart)onDragStart(act.id);}} onDragEnd={e=>{e.currentTarget.style.opacity="1";}} onDragOver={e=>{e.preventDefault();e.currentTarget.style.borderTop="3px solid #c46b98";if(onDragOver)onDragOver(index);}} onDragLeave={e=>{e.currentTarget.style.borderTop="";}} onDrop={e=>{e.preventDefault();e.currentTarget.style.borderTop="";try{const data=JSON.parse(e.dataTransfer.getData("text/plain"));if(onDrop)onDrop(data,index);}catch(err){}}} style={{...S.actCard,cursor:"grab",userSelect:"none"}} onMouseEnter={e=>{e.currentTarget.style.boxShadow="0 6px 20px rgba(0,0,0,0.07)";e.currentTarget.style.transform="translateY(-2px)";}} onMouseLeave={e=>{e.currentTarget.style.boxShadow="";e.currentTarget.style.transform="";}}>
+    <div style={{display:"flex",gap:12,alignItems:"center"}}>
+      <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,flexShrink:0,cursor:"grab",color:"#ccc",fontSize:10,padding:"0 2px"}} title="拖拽排序">⠿</div>
+      {act.img?(<div style={{width:100,height:72,borderRadius:10,overflow:"hidden",flexShrink:0}}><img src={act.img} alt={act.name} style={{width:"100%",height:"100%",objectFit:"cover"}} loading="lazy"/></div>):(<div style={{width:36,height:36,borderRadius:"50%",background:c.bg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,flexShrink:0}}>{c.e}</div>)}
       <div style={{flex:1,minWidth:0}}><div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap",marginBottom:3}}><span style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:0.4,color:c.c,background:c.bg,padding:"2px 8px",borderRadius:5}}>{tl}</span><span style={{fontSize:11,color:"#9ca3af"}}>{act.time}</span>{cd&&<span style={{fontSize:12,fontWeight:700,color:"#c46b98",marginLeft:"auto"}}>{cd}</span>}</div>
         <div style={{fontSize:14,fontWeight:700,color:"#1a1a2e",lineHeight:1.3}}>{act.name}</div>
-        {act.rating&&<div style={{display:"flex",alignItems:"center",gap:5,marginTop:2}}><Stars r={act.rating}/><span style={{fontSize:12,fontWeight:700}}>{act.rating}</span>{act.reviews&&<span style={{fontSize:11,color:"#9ca3af"}}>({fN(act.reviews)})</span>}</div>}
+        {(act.from||act.to||act.line)&&(
+          <div style={{marginTop:4,padding:"6px 10px",background:"#ecf5ec",borderRadius:8,fontSize:12}}>
+            {(act.from||act.to)&&<div style={{display:"flex",alignItems:"center",gap:4,fontWeight:600,color:"#2d7a3a"}}>
+              {act.from&&<span>{act.from}</span>}
+              {act.from&&act.to&&<span style={{color:"#9ca3af"}}>→</span>}
+              {act.to&&<span>{act.to}</span>}
+            </div>}
+            {act.line&&<div style={{color:"#4a7a4a",marginTop:2}}>🚃 {act.line}</div>}
+            {act.directionsUrl&&<a href={act.directionsUrl} target="_blank" rel="noopener noreferrer" onClick={e=>e.stopPropagation()} style={{display:"inline-flex",alignItems:"center",gap:4,color:"#1a73a7",textDecoration:"none",fontWeight:600,marginTop:3}}>📍 Google Maps 路线</a>}
+          </div>
+        )}
         {act.notes&&<div style={{fontSize:11,color:"#9ca3af",marginTop:2,lineHeight:1.4,overflow:"hidden",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical"}}>{act.notes}</div>}
       </div>
     </div>
   </div>);
 }
 
-function DaySection({day,expanded,onToggle,onClickAct,onOpenDay,onAdd,onRemove}){
+function DaySection({day,expanded,onToggle,onClickAct,onOpenDay,onAdd,onRemove,onReorder}){
   const dc=day.activities.reduce((s,a)=>s+pJ(a.cost,a.currency),0);
   const isPre=day.isPreTrip;
   const headerBg=isPre?"linear-gradient(135deg, #2d7a3a, #1a5c2a)":S.dayHeader.background;
   return(<div style={{...S.daySection,...(isPre?{border:"2px dashed #2d7a3a",background:"#f0f7f0"}:{})}}>
     <div style={{...S.dayHeader,background:headerBg}} onClick={onToggle}><div style={S.dayNum}>{isPre?"📋":String(day.id).padStart(2,"0")}</div><div style={{flex:1}}><div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}><span style={{fontSize:15,fontWeight:700,color:"#fff"}}>{isPre?"出发前准备":day.dow+", "+day.date}</span><span style={S.locBadge}>{day.location}</span>{day.weather&&<span style={{fontSize:12,color:"rgba(255,255,255,0.45)"}}>{day.weather}</span>}</div><div style={{fontSize:12,color:"rgba(255,255,255,0.5)",marginTop:2}}>{day.theme} · {day.activities.length} items{dc>0?` · ~${fJ(dc)}`:""}
     </div></div>{!isPre&&<button onClick={e=>{e.stopPropagation();onOpenDay(day.id);}} style={S.mapBtn} title="日视图+地图">🗺️</button>}<button onClick={e=>{e.stopPropagation();if(confirm(`确定删除${isPre?"准备项":"Day "+day.id+" ("+day.date+")"}？`))onRemove(day.id);}} style={{background:"none",border:"none",color:"rgba(255,255,255,0.4)",fontSize:16,cursor:"pointer",padding:"4px 6px",borderRadius:6}} title="删除">✕</button><div style={{fontSize:18,color:"rgba(255,255,255,0.4)",transform:expanded?"rotate(180deg)":"",transition:"transform 0.2s"}}>▾</div></div>
-    {expanded&&<div style={{padding:"8px 14px 14px"}}>{day.activities.map(a=><ActivityCard key={a.id} act={a} onClick={()=>onClickAct(a,day.id)}/>)}<button onClick={()=>onAdd(day.id)} style={S.addBtn}><span style={{fontSize:18}}>+</span> {isPre?"添加准备项":"添加体验"}</button></div>}
+    {expanded&&<div style={{padding:"8px 14px 14px"}}>{day.activities.map((a,i)=><ActivityCard key={a.id} act={a} index={i} dayId={day.id} onClick={()=>onClickAct(a,day.id)} onDrop={(data,toIdx)=>{if(onReorder)onReorder(data,day.id,toIdx);}}/>)}<button onClick={()=>onAdd(day.id)} style={S.addBtn}><span style={{fontSize:18}}>+</span> {isPre?"添加准备项":"添加体验"}</button></div>}
   </div>);
 }
 
@@ -773,8 +860,16 @@ function App(){
   const allMk=useMemo(()=>{const m=[];days.forEach(d=>{if(d.hotel&&d.hotel.la&&d.hotel.lo)m.push({name:d.hotel.name,la:d.hotel.la,lo:d.hotel.lo,isH:true,cat:"hotel",addr:d.hotel.addr});d.activities.filter(a=>a.la&&a.lo).forEach(a=>m.push({name:a.name,la:a.la,lo:a.lo,cat:a.category,img:a.img,id:a.id,rating:a.rating,reviews:a.reviews,addr:a.addr}));});const s=new Set();return m.filter(p=>{if(s.has(p.name))return false;s.add(p.name);return true;});},[days]);
 
   const hSave=async(form)=>{
-    // Auto-geocode if addr exists but no coordinates
-    const geocoded=await geocodeActivity(form);
+    // Check if address or name changed — if so, re-geocode even if coords exist
+    const orig=days.flatMap(d=>d.activities).find(a=>a.id===form.id);
+    const addrChanged=orig&&(orig.addr!==form.addr||orig.name!==form.name);
+    let geocoded=form;
+    if(addrChanged){
+      // Clear old coords so geocodeActivity will re-fetch
+      geocoded=await geocodeActivity({...form,la:undefined,lo:undefined});
+    }else{
+      geocoded=await geocodeActivity(form);
+    }
     setDays(p=>p.map(d=>{if(d.id!==editD)return d;const ex=d.activities.find(a=>a.id===geocoded.id);if(ex)return{...d,activities:d.activities.map(a=>a.id===geocoded.id?geocoded:a)};return{...d,activities:[...d.activities,{...geocoded,id:`${d.id}_${Date.now()}`}]};}));
   };
   const hDel=id=>setDays(p=>p.map(d=>({...d,activities:d.activities.filter(a=>a.id!==id)})));
@@ -915,7 +1010,7 @@ function App(){
         {[["天数",tripDays.length+"天"],["体验",tA],["城市",cities.length],["住宿",days.reduce((s,d)=>s+(d.hotel?1:0),0)+"处"]].map(([l,v])=>(<div key={l} style={S.sumItem}><span style={S.sumLabel}>{l}</span><span style={S.sumValue}>{v}</span></div>))}
       </div>
       {days.some(d=>d.isPreTrip)?days.filter(d=>d.isPreTrip).map(day=>(<DaySection key={day.id} day={day} expanded={!!exp[day.id]} onToggle={()=>setExp(p=>({...p,[day.id]:!p[day.id]}))} onClickAct={(a)=>hClick(a,day.id)} onOpenDay={id=>setDayM(id)} onAdd={did=>{setEditA({id:"new_"+Date.now(),type:"note",name:"",category:"sightseeing",time:"Daytime",cost:"",currency:"MYR",notes:""});setEditD(did);}} onRemove={id=>setDays(p=>p.filter(d=>d.id!==id))}/>)):<button onClick={()=>{setDays(p=>[{id:0,date:"Pre-Trip",dow:"",location:"准备",theme:"出发前准备",weather:"",isPreTrip:true,activities:[]},...p]);setExp(prev=>({...prev,[0]:true}));}} style={{...S.pillBtn,background:"#ecf5ec",color:"#2d7a3a",border:"2px dashed #2d7a3a",fontSize:13,padding:"8px 20px",margin:"0 auto 8px",display:"block"}}>+ 添加出发前准备</button>}
-      {tripDays.map(day=>(<DaySection key={day.id} day={day} expanded={!!exp[day.id]} onToggle={()=>setExp(p=>({...p,[day.id]:!p[day.id]}))} onClickAct={(a)=>hClick(a,day.id)} onOpenDay={id=>setDayM(id)} onAdd={did=>{setEditA({id:"new_"+Date.now(),type:"poi",name:"",category:"sightseeing",time:"Morning",cost:"",currency:"¥",notes:""});setEditD(did);}} onRemove={id=>setDays(p=>p.filter(d=>d.id!==id))}/>))}
+      {tripDays.map(day=>(<DaySection key={day.id} day={day} expanded={!!exp[day.id]} onToggle={()=>setExp(p=>({...p,[day.id]:!p[day.id]}))} onClickAct={(a)=>hClick(a,day.id)} onOpenDay={id=>setDayM(id)} onAdd={did=>{setEditA({id:"new_"+Date.now(),type:"poi",name:"",category:"sightseeing",time:"Morning",cost:"",currency:"¥",notes:""});setEditD(did);}} onRemove={id=>setDays(p=>p.filter(d=>d.id!==id))} onReorder={(data,toDayId,toIdx)=>{setDays(p=>{const nd=JSON.parse(JSON.stringify(p));const fromDay=nd.find(d=>d.id===data.dayId);const toDay=nd.find(d=>d.id===toDayId);if(!fromDay||!toDay)return p;const[item]=fromDay.activities.splice(data.index,1);if(!item)return p;toDay.activities.splice(toIdx,0,item);return nd;});}}/>))}
       <button onClick={()=>{const DOWS=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];const MONS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];const MDAYS=[31,28,31,30,31,30,31,31,30,31,30,31];const last=tripDays[tripDays.length-1];let nid=(last?.id||0)+1;let ndate="",ndow="";if(last?.date){const[m,d]=last.date.split(" ");const mi=MONS.indexOf(m);const di=parseInt(d)+1;if(di>MDAYS[mi]){ndate=MONS[(mi+1)%12]+" 1";}else{ndate=m+" "+di;}const base=new Date(2026,mi,parseInt(d)+1);ndow=DOWS[base.getDay()];}else{ndate="";ndow="";}const nd={id:nid,date:ndate,dow:ndow,location:"",theme:"",weather:"",activities:[]};setDays(p=>[...p,nd]);setExp(prev=>({...prev,[nid]:true}));}} style={{...S.pillBtn,background:"linear-gradient(135deg,#c46b98,#e8a0bf)",color:"#fff",border:"none",fontSize:14,padding:"10px 24px",margin:"8px auto",display:"block"}}>+ 添加新天</button>
       <div style={{display:"flex",gap:8,justifyContent:"center",margin:"12px 0 20px"}}><button style={S.pillBtn} onClick={()=>{const a={};days.forEach(d=>a[d.id]=true);setExp(a);}}>全部展开</button><button style={S.pillBtn} onClick={()=>setExp({})}>全部折叠</button></div>
       {/* Save/Load Toolbar */}
@@ -1000,7 +1095,7 @@ const S={
   dayNum:{width:36,height:36,borderRadius:"50%",border:"2px solid #e8a0bf",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:13,color:"#f5dce8",flexShrink:0},
   locBadge:{background:"rgba(255,255,255,0.12)",padding:"3px 10px",borderRadius:100,fontSize:10,fontWeight:700,letterSpacing:0.8,color:"rgba(255,255,255,0.75)",textTransform:"uppercase"},
   mapBtn:{background:"rgba(255,255,255,0.08)",border:"none",borderRadius:8,padding:"5px 8px",cursor:"pointer",fontSize:14},
-  actCard:{padding:"12px 14px",marginBottom:8,borderRadius:12,border:"1px solid #f0ede8",cursor:"pointer",transition:"all 0.15s",boxShadow:"0 1px 4px rgba(0,0,0,0.04)",background:"#fff"},
+  actCard:{padding:"14px 16px",marginBottom:8,borderRadius:12,border:"1px solid #f0ede8",cursor:"pointer",transition:"all 0.15s",boxShadow:"0 1px 4px rgba(0,0,0,0.04)",background:"#fff"},
   addBtn:{display:"flex",alignItems:"center",justifyContent:"center",gap:6,width:"100%",padding:"10px",borderRadius:10,border:"2px dashed #e8e4de",background:"transparent",cursor:"pointer",fontSize:13,fontWeight:600,color:"#9ca3af",fontFamily:"inherit"},
   pillBtn:{padding:"7px 18px",borderRadius:100,border:"1px solid #e8e4de",background:"#fff",cursor:"pointer",fontSize:12,fontWeight:600,color:"#6b7280",fontFamily:"inherit"},
   sumItem:{background:"#fff",border:"1px solid #e8e4de",borderRadius:12,padding:"12px 8px",textAlign:"center",boxShadow:"0 1px 3px rgba(0,0,0,0.03)"},
