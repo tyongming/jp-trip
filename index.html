@@ -24,7 +24,8 @@ const CATS={flight:{l:"Flight",e:"✈️",c:"#1a73a7",bg:"#e8f4fd"},transport:{l
 const TIMES=["Early Morning","Morning","Midday","Afternoon","Evening","Night","Late Night","Daytime"];
 const gc=id=>CATS[id]||CATS.sightseeing;
 const fN=n=>n>=1000?(n/1000).toFixed(1).replace(/\.0$/,"")+"k":String(n);
-const pJ=(c,cur)=>{const n=parseFloat(String(c).replace(/[^0-9.]/g,""));if(isNaN(n))return 0;return cur==="MYR"?n*33.5:cur==="USD"?n*150:n;};
+let RATES={MYR:33.5,USD:150,_live:false,_updated:""};
+const pJ=(c,cur)=>{const n=parseFloat(String(c).replace(/[^0-9.]/g,""));if(isNaN(n))return 0;return cur==="MYR"?n*RATES.MYR:cur==="USD"?n*RATES.USD:n;};
 const fJ=v=>v>0?`¥${Math.round(v).toLocaleString()}`:"—";
 const fM=v=>v>0?`MYR ${Math.round(v).toLocaleString()}`:"—";
 const Stars=({r})=>r?<span style={{color:"#f59e0b",fontSize:12,letterSpacing:1}}>{"★".repeat(Math.floor(r))}{r%1>=0.3?"½":""}</span>:null;
@@ -219,14 +220,14 @@ function DaySection({day,expanded,onToggle,onClickAct,onOpenDay,onAdd}){
   </div>);
 }
 
-function BudgetSummary({days}){
-  const d=useMemo(()=>{const cs={};Object.keys(CATS).forEach(k=>{cs[k]=0;});const pd=[];days.forEach(dy=>{let dt=0;dy.activities.forEach(a=>{const v=pJ(a.cost,a.currency);cs[a.category]=(cs[a.category]||0)+v;dt+=v;});pd.push({id:dy.id,date:dy.date,total:dt});});return{cs,pd,g:Object.values(cs).reduce((s,v)=>s+v,0)};},[days]);
+function BudgetSummary({days,rateInfo}){
+  const d=useMemo(()=>{const cs={};Object.keys(CATS).forEach(k=>{cs[k]=0;});const pd=[];days.forEach(dy=>{let dt=0;dy.activities.forEach(a=>{const v=pJ(a.cost,a.currency);cs[a.category]=(cs[a.category]||0)+v;dt+=v;});pd.push({id:dy.id,date:dy.date,total:dt});});return{cs,pd,g:Object.values(cs).reduce((s,v)=>s+v,0)};},[days,rateInfo]);
   const has=d.g>0;const ci=Object.entries(CATS).filter(([k])=>d.cs[k]>0);const mx=Math.max(...Object.values(d.cs),1);
-  return(<div style={S.budgetBox}><h3 style={{fontSize:18,fontWeight:800,margin:"0 0 2px"}}>💰 预算汇总</h3><div style={{fontSize:12,color:"#9ca3af",marginBottom:16}}>自动计算 · ¥1 ≈ MYR 0.030</div>
+  return(<div style={S.budgetBox}><h3 style={{fontSize:18,fontWeight:800,margin:"0 0 2px"}}>💰 预算汇总</h3><div style={{fontSize:12,color:"#9ca3af",marginBottom:16}}>自动计算 · ¥1 ≈ MYR {(1/RATES.MYR).toFixed(4)} {rateInfo?.live?<span style={{color:"#2d7a3a",fontWeight:600}}> · 🟢 实时汇率</span>:<span style={{color:"#c27019",fontWeight:600}}> · 🟡 离线汇率</span>}</div>
     {!has?<div style={{textAlign:"center",padding:"20px",color:"#9ca3af",fontStyle:"italic",background:"#faf8f4",borderRadius:10,fontSize:14}}>点击体验 → 添加费用即可看到预算明细</div>:(<>
       <div style={{marginBottom:16}}>{ci.map(([k,c])=>(<div key={k} style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}><span style={{fontSize:14,width:20,textAlign:"center"}}>{c.e}</span><span style={{fontSize:12,color:"#6b7280",width:75,flexShrink:0}}>{c.l}</span><div style={{flex:1,height:18,background:"#f5f3f0",borderRadius:5,overflow:"hidden"}}><div style={{height:"100%",width:`${Math.max((d.cs[k]/mx)*100,3)}%`,background:`linear-gradient(90deg, ${c.bg}, ${c.c}22)`,borderRadius:5,transition:"width 0.4s"}}/></div><span style={{fontSize:12,fontWeight:700,color:c.c,width:80,textAlign:"right",flexShrink:0}}>{fJ(d.cs[k])}</span></div>))}</div>
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill, minmax(120px, 1fr))",gap:5,marginBottom:14}}>{d.pd.map(p=>(<div key={p.id} style={{padding:"7px 10px",background:"#faf8f4",borderRadius:7}}><div style={{display:"flex",justifyContent:"space-between"}}><span style={{fontSize:11,color:"#6b7280"}}>Day {p.id}</span><span style={{fontSize:10,color:"#b0b0b0"}}>{p.date}</span></div><div style={{fontSize:13,fontWeight:700,color:p.total>0?"#1a1a2e":"#d1d5db",marginTop:1}}>{p.total>0?fJ(p.total):"—"}</div></div>))}</div>
-      <div style={S.grandTotal}><div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline"}}><span style={{fontSize:13,color:"rgba(255,255,255,0.6)"}}>总计 (JPY)</span><span style={{fontSize:22,fontWeight:800,color:"#f5dce8"}}>{fJ(d.g)}</span></div><div style={{display:"flex",justifyContent:"space-between",marginTop:5,paddingTop:7,borderTop:"1px solid rgba(255,255,255,0.1)"}}><span style={{fontSize:12,color:"rgba(255,255,255,0.5)"}}>≈ MYR</span><span style={{fontSize:16,fontWeight:700,color:"rgba(255,255,255,0.7)"}}>{fM(d.g/33.5)}</span></div></div>
+      <div style={S.grandTotal}><div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline"}}><span style={{fontSize:13,color:"rgba(255,255,255,0.6)"}}>总计 (JPY)</span><span style={{fontSize:22,fontWeight:800,color:"#f5dce8"}}>{fJ(d.g)}</span></div><div style={{display:"flex",justifyContent:"space-between",marginTop:5,paddingTop:7,borderTop:"1px solid rgba(255,255,255,0.1)"}}><span style={{fontSize:12,color:"rgba(255,255,255,0.5)"}}>≈ MYR</span><span style={{fontSize:16,fontWeight:700,color:"rgba(255,255,255,0.7)"}}>{fM(d.g/RATES.MYR)}</span></div></div>
     </>)}</div>);
 }
 
@@ -234,6 +235,25 @@ function App(){
   const[days,setDays]=useState(INIT_DAYS);const[exp,setExp]=useState({1:true});const[viewE,setViewE]=useState(null);const[dayM,setDayM]=useState(null);const[editA,setEditA]=useState(null);const[editD,setEditD]=useState(null);const[notes,setNotes]=useState(false);
   const[copied,setCopied]=useState(false);const[saveStatus,setSaveStatus]=useState("");const[showPasteModal,setShowPasteModal]=useState(false);const[pasteText,setPasteText]=useState("");const[showMobile,setShowMobile]=useState(false);
   const fileRef=useRef(null);
+  const[rateInfo,setRateInfo]=useState({live:false,myr:RATES.MYR,updated:""});
+
+  // Fetch real-time exchange rates
+  useEffect(()=>{
+    (async()=>{
+      try{
+        const res=await fetch("https://open.er-api.com/v6/latest/JPY");
+        const json=await res.json();
+        if(json.result==="success"&&json.rates){
+          const myrRate=1/json.rates.MYR; // how many JPY per 1 MYR
+          const usdRate=1/json.rates.USD; // how many JPY per 1 USD
+          RATES={MYR:myrRate,USD:usdRate,_live:true,_updated:json.time_last_update_utc||""};
+          setRateInfo({live:true,myr:myrRate,updated:json.time_last_update_utc||""});
+        }
+      }catch(e){
+        console.warn("Exchange rate fetch failed, using fallback rates",e);
+      }
+    })();
+  },[]);
   const cities=[];let prev="";days.forEach(d=>{const l=d.location.split("→")[0].split("/")[0].trim();if(l!==prev){cities.push({name:l,start:d.id});prev=l;}});
   const tA=days.reduce((s,d)=>s+d.activities.length,0);
   const allMk=useMemo(()=>{const m=[];HOTELS.forEach(h=>m.push({name:h.name,la:h.la,lo:h.lo,isH:true,cat:"hotel"}));days.forEach(d=>d.activities.filter(a=>a.la&&a.lo).forEach(a=>m.push({name:a.name,la:a.la,lo:a.lo,cat:a.category})));const s=new Set();return m.filter(p=>{if(s.has(p.name))return false;s.add(p.name);return true;});},[days]);
@@ -333,7 +353,7 @@ function App(){
         {saveStatus==="saved"&&<span style={{fontSize:12,color:"#2d7a3a",alignSelf:"center"}}>💾 已自动保存</span>}
         <input ref={fileRef} type="file" accept=".json" style={{display:"none"}} onChange={handleImport}/>
       </div>
-      <BudgetSummary days={days}/>
+      <BudgetSummary days={days} rateInfo={rateInfo}/>
       <div style={{...S.notesBox,marginTop:14}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",cursor:"pointer"}} onClick={()=>setNotes(!notes)}><span style={{fontSize:16,fontWeight:700}}>📋 旅行备忘 & 提醒</span><span style={{fontSize:18,color:"#9ca3af",transform:notes?"rotate(180deg)":"",transition:"transform 0.2s"}}>▾</span></div>
         {notes&&(<div style={{marginTop:14,fontSize:14,color:"#4a4a5a",lineHeight:1.9}}>
