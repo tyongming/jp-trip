@@ -1062,7 +1062,7 @@ function App(){
   useEffect(()=>{
     const timer=setTimeout(()=>{
       try{
-        localStorage.setItem("trip-planner-data",JSON.stringify({version:1,days,origin}));
+        localStorage.setItem("trip-planner-data",JSON.stringify({version:1,days,origin,savedAt:new Date().toISOString()}));
         setSaveStatus("saved");
       }catch(e){/* storage may not be available */}
     },2000);
@@ -1081,27 +1081,46 @@ function App(){
     return()=>clearTimeout(timer);
   },[days,origin]);
 
-  // Auto-load: localStorage first, fallback to GitHub latest version
+  // Auto-load: fetch both localStorage and GitHub, pick the newer one
   useEffect(()=>{
     (async()=>{
-      let data=null;
+      let localData=null,ghData=null;
       // 1. Try localStorage
       try{
         const raw=localStorage.getItem("trip-planner-data");
-        if(raw){const parsed=JSON.parse(raw);if(parsed.days&&parsed.days.length>0)data=parsed;}
+        if(raw){const parsed=JSON.parse(raw);if(parsed.days&&parsed.days.length>0)localData=parsed;}
       }catch(e){}
-      // 2. If no local data, fetch latest from GitHub data branch
-      if(!data&&GITHUB_PAT){
+      // 2. Always try GitHub too (if PAT available)
+      if(GITHUB_PAT){
         try{
-          const r=await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE}?ref=${GITHUB_BRANCH}`,{headers:{'Authorization':`token ${GITHUB_PAT}`,'Accept':'application/vnd.github.v3+json'}});
-          if(r.ok){
-            const d=await r.json();
+          const[contentsRes,commitsRes]=await Promise.all([
+            fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE}?ref=${GITHUB_BRANCH}`,{headers:{'Authorization':`token ${GITHUB_PAT}`,'Accept':'application/vnd.github.v3+json'}}),
+            fetch(`https://api.github.com/repos/${GITHUB_REPO}/commits?sha=${GITHUB_BRANCH}&path=${GITHUB_FILE}&per_page=1`,{headers:{'Authorization':`token ${GITHUB_PAT}`,'Accept':'application/vnd.github.v3+json'}})
+          ]);
+          if(contentsRes.ok){
+            const d=await contentsRes.json();
             const parsed=JSON.parse(decodeURIComponent(escape(atob(d.content))));
-            if(parsed.days&&parsed.days.length>0){data=parsed;setSaveStatus("cloud");}
+            if(parsed.days&&parsed.days.length>0){
+              // Get commit date as the GitHub version's timestamp
+              let ghDate=parsed.savedAt||null;
+              if(commitsRes.ok){const commits=await commitsRes.json();if(commits[0])ghDate=commits[0].commit.committer.date;}
+              ghData={...parsed,savedAt:ghDate};
+            }
           }
         }catch(e){}
       }
-      // 3. Load data if found
+      // 3. Pick the newer source
+      let data=null;
+      if(localData&&ghData){
+        const localTime=localData.savedAt?new Date(localData.savedAt).getTime():0;
+        const ghTime=ghData.savedAt?new Date(ghData.savedAt).getTime():0;
+        data=ghTime>localTime?ghData:localData;
+        if(data===ghData)setSaveStatus("cloud");
+      }else{
+        data=localData||ghData;
+        if(data===ghData)setSaveStatus("cloud");
+      }
+      // 4. Load data if found
       if(data&&data.days){
         setDays(data.days);
         if(data.origin)setOrigin(data.origin);
