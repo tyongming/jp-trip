@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exportDate": "2026-03-23T20:03:01.567Z",
+  "exportDate": "2026-03-23T20:04:20.955Z",
   "days": [
     {
       "id": 0,
@@ -483,11 +483,16 @@
         {
           "currency": "¥",
           "time": "Morning",
-          "name": "08:30 新宿 Nippon Rent-A-Car 提车",
+          "name": "08:30 新宿 Nippon Rent-A-Car 提车 (NIPPON Rent-A-Car Shinjuku Minamiguchi Sales Office)",
           "cost": "18000",
           "category": "transport",
           "id": "2_bulk_1774296150562_0",
-          "type": "poi"
+          "type": "poi",
+          "addr": "2-chōme-13-1 Yoyogi, Shibuya, Tokyo 151-0053, Japan",
+          "la": 35.6870646,
+          "lo": 139.6958154,
+          "img": "https://places.googleapis.com/v1/places/ChIJ791iL9KMGGART2POxbtO7O8/photos/AU_ZVEEaJFB8g1PzOHhAe_bZ2HS32ERCszkIzCIvVdN6YJedkoqF9AciK2wOAUixG5EuXS89zjT0zSD7lOktwzYmJi4qmah-L9zZgemRnu3JQpO4oe9ZD03jBSPgqtACDY5NY4iR6Qa-pHqrNA4a6bkNMr77wPl_AlxmttvohI2K_ymQwhQrzsSHGVR4xGwLNn0IkySRmb5bQXjOOFt3IyhEPFevrJ7cjbKubVOdb_fHbK6izzl4jcuMWlh6GMhMJTPre9qMIJjjG41--Mn38PkcHG0iXuJjvGBIrkKB_HcNjPPrW7VYv6gTngpHLQzVhwo347HRMGcn4x438NDugXENv1--CMe0kuqMa0WHZyORVtDWROfU57BbmnBTRq-fFpqXjnksP751Djk-Lmw3LhuLDBSkSQ6JRiy8TYGcjY_XynMVUx4e/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
+          "notes": "清晨的新宿南口，在Nippon"
         },
         {
           "name": "09:00 驾车前往镰仓 (约1.5小时)",
