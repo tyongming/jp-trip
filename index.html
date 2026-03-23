@@ -111,9 +111,9 @@ async function githubLoadVersion(sha){
 
 // ═══ GEMINI AI — Function Declarations for CRUD ═══
 const ACTIVITY_SCHEMA={type:"object",properties:{
-  name:{type:"string",description:"活动名称，建议包含时间如'14:30 中野Broadway'"},
+  name:{type:"string",description:"活动名称，格式必须是'HH:MM 名称'如'14:30 中野Broadway'或'08:30 新宿御苑'。不要在名称里写时间段如Daytime/Morning，那是time字段的值。"},
   category:{type:"string",enum:["flight","transport","hotel","sightseeing","food","shopping","anime","photo","nightlife"],description:"活动分类"},
-  time:{type:"string",enum:["Early Morning","Morning","Midday","Afternoon","Evening","Night","Late Night","Daytime"],description:"时间段"},
+  time:{type:"string",enum:["Early Morning","Morning","Midday","Afternoon","Evening","Night","Late Night","Daytime"],description:"时间段分类（必填！与name中的具体时间对应：06-08=Early Morning, 08-11=Morning, 11-14=Midday, 14-17=Afternoon, 17-20=Evening, 20-23=Night, 23-06=Late Night, 全天=Daytime）"},
   cost:{type:"string",description:"费用金额（纯数字）"},currency:{type:"string",enum:["¥","MYR","USD"]},
   addr:{type:"string",description:"地址"},notes:{type:"string",description:"备注信息"},
   from:{type:"string",description:"交通出发站"},to:{type:"string",description:"交通到达站"},
@@ -173,7 +173,8 @@ async function askAI(question,kb,chatHistory,tripData){
 5. 当用户要求添加活动时，使用 add_activity function。注意：
    - 根据已有活动的时间安排，选择合适的时间段(time)插入，不要随意放在最后
    - 如果新活动和前一个活动之间需要交通，也要额外调用 add_activity 添加一个 transport 类型的活动，包含 from/to/line/cost 字段
-   - name 必须包含具体时间如 "13:00 一风堂拉面"
+   - name 必须包含具体时间如 "13:00 一风堂拉面"，不要在name里写 (Daytime) 或 (Morning)
+   - time 字段必须填写对应的时间段枚举值（如 Midday, Morning 等），这是必填字段！
    - 使用 reorder_activity 把新活动移到正确的位置
 6. 对于实时信息（当前天气、最新营业时间、当前价格），如果行程数据中没有，回复 [需要搜索] 标记，系统会自动用Google Search重新回答。
 7. 编辑活动时，updates 中只包含需要修改的字段。
