@@ -174,7 +174,15 @@ async function askAI(question,kb,chatHistory,tripData){
 5. 当用户要求添加活动时，使用 add_activity function。注意：
    - 根据已有活动的时间安排，选择合适的时间段(time)插入，不要随意放在最后
    - ⚠️ 不要创建单独的交通卡片！交通信息必须填在目的地活动卡片的 from/to/line/transportCost/directionsUrl 字段里。
-     例如：添加"一风堂拉面"，如果前一个活动在新宿御苑，则在一风堂的活动中填写 from="新宿御苑", to="一风堂 �的仓店", line="🚶 步行约10分钟", transportCost="0"
+   - 交通方式必须根据距离和实际情况选择最佳方案，用 [需要搜索] 来获取实时交通信息：
+     🚶 步行 (< 1km): line="🚶 步行约X分钟", transportCost="0"
+     🚃 电车/地铁 (1-30km): line="🚃 JR山手線 新宿→中野 1駅 約5分", transportCost="170"，必须标明具体线路名+站数+时间
+     🚌 巴士: line="🚌 都営バス XX系統 約15分", transportCost="210"
+     🚕 出租车/Uber (深夜/无电车): line="🚕 出租车 約15分", transportCost="2000"，注明预估费用
+     🚲 自行车/电动自行车: line="🚲 HELLO CYCLING 約20分", transportCost="130"，日本共享单车约¥130/30min
+     🚗 自驾: line="🚗 中央道 約2時間", transportCost="3000"，标明高速费+油费
+   - directionsUrl 必须填写 Google Maps 路线链接，格式: https://www.google.com/maps/dir/出发地/目的地/@lat,lng,zoom/data=!3e交通模式(0=驾车,1=自行车,2=步行,3=公交)
+   - 参考已有数据中的交通格式，如: "JR 京浜東北線 (3站) → 品川駅換乗 → JR 山手線 外回り (8站) · 约29分钟"
    - name 必须包含具体时间如 "13:00 一风堂拉面"，不要在name里写 (Daytime) 或 (Morning)
    - type 必须填写：poi=景点, restaurant=餐厅, note=备注/清单
    - time 字段必须填写对应的时间段枚举值（如 Midday, Morning 等），这是必填字段！
