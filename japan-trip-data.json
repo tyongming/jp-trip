@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exportDate": "2026-03-23T17:22:03.385Z",
+  "exportDate": "2026-03-23T17:23:27.939Z",
   "days": [
     {
       "id": 0,
@@ -380,6 +380,19 @@
           "type": "poi"
         },
         {
+          "transportCost": "3000",
+          "name": "09:30 驾车前往富士山区域",
+          "addr": "新宿 Nippon Rent-A-Car 提车点到新仓山浅间公园",
+          "to": "新仓山浅间公园",
+          "time": "Morning",
+          "category": "transport",
+          "line": "中央自动车道 (约1.5-2小时)",
+          "from": "新宿 Nippon Rent-A-Car",
+          "notes": "在新宿Nippon租下这台白色",
+          "id": "2_1774286449021",
+          "type": "note"
+        },
+        {
           "id": "2b",
           "type": "poi",
           "name": "镰仓高校前站",
@@ -451,20 +464,6 @@
           "type": "poi"
         },
         {
-          "cost": "3000",
-          "time": "Night",
-          "currency": "¥",
-          "addr": "3-chōme-38-1 Shinjuku, Shinjuku City, Tokyo 160-0022, Japan",
-          "name": "19:30 返回新宿还车 (Shinjuku Station East Exit Police Box)",
-          "category": "transport",
-          "la": 35.6917846,
-          "lo": 139.7011327,
-          "img": "https://places.googleapis.com/v1/places/ChIJ1Vh-qdCMGGAR3dvbmijVZao/photos/AU_ZVEHHjso4uhtdPX52qDeRHhY4bxQE_UE0CfFlkDloUQ8-5PrGxGbPEk9SZXYwmetYahlcIG-mfjSoA8OVUbtPkJd1D3sKO4WXh_qKEBt_8u8tvzZ64uqTmYHwIJIQ7NZGn9USDp2c59GPwUXAIvzoEkgfD2rS2n7eZwzGZineETrgS3IJQBL85fSNXXubO5JQcNeYn2XnUWzedOMvci4-99OS13KjhZR8ab8AChzbxDq-dV47UyvIBcg6RG74w85aJEqWW_8qCJSyl3WV-xlJWC_x6kbajPFyAnLb7bs1x5yF6viI6p1mxvqXaPp9rKosMY6qaLqBdp2zvcbTt_XiQDNmqB8fzAuAYu6itrHldM61tJrq03F1lZ_bgJLc_gA-An5McrHntXJFhEbOK4zC32S1-WoF-pSualDki1VHyPepDQ/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
-          "notes": "霓虹灯影在挡风玻璃上流转",
-          "id": "2_1774286357224",
-          "type": "poi"
-        },
-        {
           "id": "2d",
           "type": "poi",
           "name": "江之岛 日落",
@@ -481,17 +480,18 @@
           "reviews": 266
         },
         {
-          "transportCost": "3000",
-          "name": "09:30 驾车前往富士山区域",
-          "addr": "新宿 Nippon Rent-A-Car 提车点到新仓山浅间公园",
-          "to": "新仓山浅间公园",
-          "time": "Morning",
+          "cost": "3000",
+          "time": "Night",
+          "currency": "¥",
+          "addr": "3-chōme-38-1 Shinjuku, Shinjuku City, Tokyo 160-0022, Japan",
+          "name": "19:30 返回新宿还车 (Shinjuku Station East Exit Police Box)",
           "category": "transport",
-          "line": "中央自动车道 (约1.5-2小时)",
-          "from": "新宿 Nippon Rent-A-Car",
-          "notes": "在新宿Nippon租下这台白色",
-          "id": "2_1774286449021",
-          "type": "note"
+          "la": 35.6917846,
+          "lo": 139.7011327,
+          "img": "https://places.googleapis.com/v1/places/ChIJ1Vh-qdCMGGAR3dvbmijVZao/photos/AU_ZVEHHjso4uhtdPX52qDeRHhY4bxQE_UE0CfFlkDloUQ8-5PrGxGbPEk9SZXYwmetYahlcIG-mfjSoA8OVUbtPkJd1D3sKO4WXh_qKEBt_8u8tvzZ64uqTmYHwIJIQ7NZGn9USDp2c59GPwUXAIvzoEkgfD2rS2n7eZwzGZineETrgS3IJQBL85fSNXXubO5JQcNeYn2XnUWzedOMvci4-99OS13KjhZR8ab8AChzbxDq-dV47UyvIBcg6RG74w85aJEqWW_8qCJSyl3WV-xlJWC_x6kbajPFyAnLb7bs1x5yF6viI6p1mxvqXaPp9rKosMY6qaLqBdp2zvcbTt_XiQDNmqB8fzAuAYu6itrHldM61tJrq03F1lZ_bgJLc_gA-An5McrHntXJFhEbOK4zC32S1-WoF-pSualDki1VHyPepDQ/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
+          "notes": "霓虹灯影在挡风玻璃上流转",
+          "id": "2_1774286357224",
+          "type": "poi"
         }
       ]
     },
