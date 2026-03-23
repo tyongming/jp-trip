@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exportDate": "2026-03-23T21:36:26.714Z",
+  "exportDate": "2026-03-23T21:38:02.071Z",
   "days": [
     {
       "id": 0,
@@ -475,7 +475,7 @@
       "date": "Apr 13",
       "dow": "Mon",
       "location": "Mt. Fuji",
-      "theme": "单日公路片 · 富士山自驾与巡礼",
+      "theme": "单日公路片 · 富士山自驾与镰仓巡礼",
       "weather": "15°C 🌤️",
       "hotelIdx": 0,
       "activities": [
@@ -702,7 +702,25 @@
       "theme": "自由日 · 待规划",
       "weather": "16°C 🌧️",
       "hotelIdx": 0,
-      "activities": []
+      "activities": [
+        {
+          "type": "poi",
+          "cost": "9400",
+          "line": "JR中央線 新宿→東京駅 → JR京葉線 東京駅→舞浜駅 (約45分)",
+          "currency": "¥",
+          "category": "sightseeing",
+          "notes": "全球唯一梦幻乐园！建议提前在官网买好电子票，入园后第一时间扫码领「DPA (Disney Premier Access)」快速通行。💡 记得带个充电宝，全天拍照非常耗电。",
+          "name": "08:00 东京迪士尼乐园 (Tokyo Disneyland)",
+          "transportCost": "480",
+          "addr": "1-1 Maihama, Urayasu, Chiba 279-0031, Japan",
+          "time": "Morning",
+          "directionsUrl": "https://www.google.com/maps/dir/Shinjuku+Station/Tokyo+Disneyland/@35.6726,139.7567,12z/data=!3m1!4b1!4e3",
+          "la": 35.6328964,
+          "lo": 139.8803943,
+          "img": "https://places.googleapis.com/v1/places/ChIJszdHEQN9GGARy9MJ1TY22eQ/photos/AU_ZVEF6hYnsL56xkCqpC_htc4rEQhHzaPs5P2s-1godWv1obABI11BudOXnlvX730htVwbZnhdEe724oCL8mKU91MXtC9HOmEWuWAWmMmIj-UqArX6TEzE7kvh7jE81Ar9vVKeu3Y9bCh7NyM9u_qKlyoxz7SRQt_4ubNQ23ptZdLd8cXTFqbRNg-wBeuY9oMdVYoeSGoCgFdwFze-JOQ90tijqfWZv4fcJ8A9-SBnTbdpDCJj1jKS0dEiVMxeB5AsQMlyx_vu99I5bjkYs4nH1k9WjjzUXcRGhmZakHvNyPI4TBI3MmM7fWpBlJkLS1ImNPPa-FpjbXr8PLXCRIBNQmz8Udlb5rALbLGQMRcXlvev2dONeYGMrwYoTJiyBklqpL0GtO8aSaeggFlnoe7NURRJVnc0DmEXwNUgS1kKaBZcayw/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
+          "id": "6_1774301851278"
+        }
+      ]
     },
     {
       "id": 7,
