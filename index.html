@@ -195,33 +195,34 @@ ${kbContext}`;
       for(const fc of functionCalls){
         const fn=fc.functionCall;
         const act=fn.name==='add_activity'?fn.args?.activity:fn.name==='edit_activity'?fn.args?.updates:null;
-        if(act&&act.name&&(!act.addr||!act.la)){
+        if(act&&act.name&&(!act.addr||!act.la||!act.notes||act.notes.length<20)){
           try{
-            const searchQ=`${act.name} ${act.addr||''} Japan exact address location coordinates opening hours`;
-            const r2=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL_SMART}:generateContent?key=${GEMINI_KEY}`,{
-              method:'POST',headers:{'Content-Type':'application/json'},
-              body:JSON.stringify({contents:[{role:'user',parts:[{text:`Search for: ${act.name}${act.addr?' near '+act.addr:' Japan'}.\nReturn ONLY a valid JSON object (no markdown, no backticks) with ALL of these fields:\n{\n  "addr": "full Japanese address with postal code, e.g. 〒248-0006 神奈川県鎌倉市小町2-12-12",\n  "la": 35.3214,\n  "lo": 139.5529,\n  "placeName": "official Japanese business name, e.g. 一風堂 鎌倉小町通り店",\n  "notes": "multi-line notes in Chinese following this EXACT style:\\n🍜 招牌白丸元味豚骨拉面 ¥950，浓郁顺滑，推荐加味玉子 +¥120\\n⏰ 营业时间: 11:00-22:00 (L.O. 21:30)\\n💡 午餐高峰11:30-13:00排队约15分钟，建议稍早或稍晚去\\n📍 位于小町通商店街，从�的仓站步行5分钟"\n}\nIMPORTANT: The "notes" field MUST contain 3-4 lines of specific, factual info with emoji. Look at this example from existing data:\n"务必选择「完全个室 (VIP Room)」。洗个热水澡，锁上门，在绝对私密的空间里沉沉睡去。\\n💡 比酒店省钱，凌晨入住完美解决红眼航班问题"\nDo NOT write generic advice. Write SPECIFIC facts from your search results.`}]}],tools:[{google_search:{}},{google_maps:{}}],generationConfig:{maxOutputTokens:768,temperature:0.3}})
-            });
-            if(r2.ok){
-              const d2=await r2.json();const p2=d2.candidates?.[0]?.content?.parts||[];
-              const searchText=p2.filter(p=>p.text).map(p=>p.text).join('\n');
-              console.log('[Enrichment raw]',searchText);
-              // Extract JSON — use greedy match to capture full object including nested content
-              const jsonMatch=searchText.match(/\{[\s\S]*\}/);
-              if(jsonMatch){
-                try{
-                  const enrichData=JSON.parse(jsonMatch[0]);
-                  console.log('[Enrichment parsed]',enrichData);
-                  if(enrichData.addr)act.addr=enrichData.placeName?`${enrichData.placeName}, ${enrichData.addr}`:enrichData.addr;
-                  if(enrichData.la)act.la=parseFloat(enrichData.la);
-                  if(enrichData.lo)act.lo=parseFloat(enrichData.lo);
-                  if(enrichData.notes)act.notes=enrichData.notes;
-                  if(enrichData.img&&!act.img)act.img=enrichData.img;
-                  if(enrichData.placeName&&!act.name.includes(enrichData.placeName))act.name=act.name+` (${enrichData.placeName})`;
-                }catch(pe){console.warn('[Enrichment parse error]',pe.message,jsonMatch[0].slice(0,200));}
-              }else{console.warn('[Enrichment no JSON found]',searchText.slice(0,300));}
+            // Step 1: Google Places API for accurate address, coords, photo
+            if(GOOGLE_PLACES_KEY&&(!act.addr||!act.la)){
+              const sq=act.name+(act.addr?', '+act.addr:', Japan');
+              const pr=await fetch('https://places.googleapis.com/v1/places:searchText',{method:'POST',headers:{'Content-Type':'application/json','X-Goog-Api-Key':GOOGLE_PLACES_KEY,'X-Goog-FieldMask':'places.displayName,places.formattedAddress,places.location,places.photos,places.googleMapsUri'},body:JSON.stringify({textQuery:sq,maxResultCount:1})});
+              if(pr.ok){const pd=await pr.json();const pl=pd.places?.[0];
+                if(pl){
+                  console.log('[Enrichment Places]',pl.displayName?.text,pl.formattedAddress);
+                  if(pl.formattedAddress)act.addr=pl.formattedAddress;
+                  if(pl.location){act.la=pl.location.latitude;act.lo=pl.location.longitude;}
+                  if(pl.displayName?.text&&!act.name.includes(pl.displayName.text))act.name=act.name+` (${pl.displayName.text})`;
+                  if(pl.photos?.[0]?.name&&!act.img)act.img=`https://places.googleapis.com/v1/${pl.photos[0].name}/media?maxHeightPx=400&maxWidthPx=800&key=${GOOGLE_PLACES_KEY}`;
+                }
+              }
             }
-          }catch(e2){/* enrichment failed, use original data */}
+            // Step 2: Gemini + Search for travel-guide notes
+            if(!act.notes||act.notes.length<20){
+            const notePrompt='Write 3-4 lines of travel notes in Chinese for: '+act.name+(act.addr?' at '+act.addr:'')+'. Use emoji + specific facts. Example style:\n"🍜 招牌白丸元味 ¥950\n⏰ 11:00-22:00\n💡 午餐高峰排队15分钟\n📍 从�的仓站步行5分钟"\nWrite ONLY plain text notes. No JSON, no markdown. Be specific and factual.';
+            const nr=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL_SMART}:generateContent?key=${GEMINI_KEY}`,{
+              method:'POST',headers:{'Content-Type':'application/json'},
+              body:JSON.stringify({contents:[{role:'user',parts:[{text:notePrompt}]}],tools:[{google_search:{}}],generationConfig:{maxOutputTokens:256,temperature:0.3}})
+            });
+            if(nr.ok){const nd=await nr.json();const nt=nd.candidates?.[0]?.content?.parts?.filter(p=>p.text).map(p=>p.text).join('\n')||'';
+                if(nt.length>10){act.notes=nt.replace(/```[\s\S]*?```/g,'').replace(/^\s*\n/gm,'').trim();console.log('[Enrichment notes]',act.notes);}
+              }
+            }
+          }catch(e2){console.warn('[Enrichment error]',e2);}
         }
         enriched.push(fc);
       }
