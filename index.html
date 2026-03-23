@@ -161,10 +161,18 @@ async function askAI(question,kb,chatHistory,tripData){
 2. 引用行程数据时，请用 [[活动ID]] 格式标注活动（例如 [[1d]]），这样用户可以点击跳转到对应的活动卡片。
 3. 如果行程中没有相关信息，可以用通用知识回答，但注明"（通用建议）"。
 4. 回答要简洁实用，用中文回答。
-5. 当用户要求添加、编辑、删除或调整活动时，使用 function calling。尽量填充完整信息（地址、费用、时间、分类、坐标la/lo等）。
+5. 当用户要求添加活动时，使用 add_activity function。注意：
+   - 根据已有活动的时间安排，选择合适的时间段(time)插入，不要随意放在最后
+   - 如果新活动和前一个活动之间需要交通，也要额外调用 add_activity 添加一个 transport 类型的活动，包含 from/to/line/cost 字段
+   - name 必须包含具体时间如 "13:00 一风堂拉面"
+   - 使用 reorder_activity 把新活动移到正确的位置
 6. 对于实时信息（当前天气、最新营业时间、当前价格），如果行程数据中没有，回复 [需要搜索] 标记，系统会自动用Google Search重新回答。
 7. 编辑活动时，updates 中只包含需要修改的字段。
 8. 活动ID格式为行程数据中 [ID:xxx] 的 xxx 部分。
+9. notes 字段风格参考已有数据，例如：
+   "在日本的第一碗正式拉面！一兰的独立隔间设计，安静且不被打扰。\n💡 歌舞伎町店24h营业，不用担心时间"
+   "务必选择「完全个室 (VIP Room)」。洗个热水澡，锁上门，在绝对私密的空间里沉沉睡去。\n💡 比酒店省钱，凌晨入住完美解决红眼航班问题"
+   写具体的、有温度的、有画面感的文字，不要写"建议提前确认"这种废话。
 
 === 行程数据 ===
 ${tripContext}
@@ -213,7 +221,7 @@ ${kbContext}`;
             }
             // Step 2: Gemini + Search for travel-guide notes
             if(!act.notes||act.notes.length<20){
-            const notePrompt='Write 3-4 lines of travel notes in Chinese for: '+act.name+(act.addr?' at '+act.addr:'')+'. Use emoji + specific facts. Example style:\n"🍜 招牌白丸元味 ¥950\n⏰ 11:00-22:00\n💡 午餐高峰排队15分钟\n📍 从�的仓站步行5分钟"\nWrite ONLY plain text notes. No JSON, no markdown. Be specific and factual.';
+            const notePrompt='Write 3-4 lines of vivid travel notes in Chinese for: '+act.name+(act.addr?' at '+act.addr:'')+'. Write emotionally resonant notes with specific facts. Good examples from existing data: "在日本的第一碗正式拉面！一兰的独立隔间设计，安静且不被打扰。💡 歌舞伎町店24h营业" and "从新宿坐JR中央线只需5分钟！比秋叶原更深邃的二次元空间。💡 まんだらけ本店在此，绝版手办圣地". Include: signature item + price, one practical 💡 tip, one vivid sensory detail. Plain text only. No JSON, no markdown. No generic advice like 建议提前确认.';
             const nr=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL_SMART}:generateContent?key=${GEMINI_KEY}`,{
               method:'POST',headers:{'Content-Type':'application/json'},
               body:JSON.stringify({contents:[{role:'user',parts:[{text:notePrompt}]}],tools:[{google_search:{}}],generationConfig:{maxOutputTokens:256,temperature:0.3}})
