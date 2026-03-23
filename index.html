@@ -117,20 +117,33 @@ async function askAI(question,kb,chatHistory,tripData){
   if(tripData&&tripData.days&&tripData.days.length>0){
     tripContext=tripData.days.map(d=>{
       const acts=d.activities.map(a=>{
-        let line=`  - ${a.name}`;
+        let line=`  - [ID:${a.id}] ${a.name}`;
         if(a.time)line+=` (${a.time})`;
-        if(a.cost)line+=` · ${a.currency||'¥'}${a.cost}`;
-        if(a.addr)line+=` · ${a.addr}`;
-        if(a.from&&a.to)line+=` · ${a.from}→${a.to}`;
-        if(a.line)line+=` · ${a.line}`;
-        if(a.notes)line+=`\n    ${a.notes.split('\n')[0]}`;
+        if(a.cost)line+=` · 费用:${a.currency||'¥'}${a.cost}`;
+        if(a.transportCost)line+=` · 交通费:¥${a.transportCost}`;
+        if(a.addr)line+=` · 地址:${a.addr}`;
+        if(a.from&&a.to)line+=` · 路线:${a.from}→${a.to}`;
+        if(a.line)line+=` · 线路:${a.line}`;
+        if(a.notes)line+=`\n    备注:${a.notes.split('\n').slice(0,2).join(' | ')}`;
         return line;
       }).join('\n');
       return`【Day ${d.id}: ${d.date} ${d.dow} · ${d.location}】\n${d.theme}\n${acts}`;
     }).join('\n\n');
     if(tripData.origin)tripContext=`出发地: ${tripData.origin.name} (${tripData.origin.la},${tripData.origin.lo})\n\n${tripContext}`;
   }
-  const systemText=`你是一个日本旅行助手。你拥有用户的完整行程数据和知识库。请根据这些信息回答问题。如果知识库和行程中没有相关信息，请根据你的日本旅行知识回答，但注明是通用建议。回答要简洁实用，用中文回答。\n\n=== 行程数据 ===\n${tripContext}\n\n=== 知识库 ===\n${kbContext}`;
+  const systemText=`你是一个日本旅行助手。你拥有用户的完整行程数据和知识库。
+
+重要规则：
+1. 当用户问到行程中已有的信息（费用、路线、时间等），必须优先引用行程数据中的原始数据，不要用你的通用知识替代。
+2. 引用行程数据时，请用 [[活动ID]] 格式标注活动（例如 [[1d]]），这样用户可以点击跳转到对应的活动卡片。
+3. 如果行程中没有相关信息，可以用通用知识回答，但注明"（通用建议）"。
+4. 回答要简洁实用，用中文回答。
+
+=== 行程数据 ===
+${tripContext}
+
+=== 知识库 ===
+${kbContext}`;
   const contents=[];
   if(chatHistory)chatHistory.forEach(m=>{contents.push({role:m.role==='user'?'user':'model',parts:[{text:m.text}]});});
   contents.push({role:'user',parts:[{text:question}]});
@@ -899,7 +912,7 @@ function EditModal({activity,onSave,onClose,onDelete}){
 }
 
 function ActivityCard({act,onClick,index,dayId,onDragStart,onDragOver,onDrop,isDragOver}){const c=gc(act.category);const tl=act.type==="restaurant"?"Restaurant":act.type==="poi"?"Place":"Note";const cd=act.cost?`${act.currency||"¥"}${act.cost}`:"";
-  return(<div onClick={onClick} draggable onDragStart={e=>{e.dataTransfer.setData("text/plain",JSON.stringify({id:act.id,dayId,index}));e.currentTarget.style.opacity="0.4";if(onDragStart)onDragStart(act.id);}} onDragEnd={e=>{e.currentTarget.style.opacity="1";}} onDragOver={e=>{e.preventDefault();e.currentTarget.style.borderTop="3px solid #c46b98";if(onDragOver)onDragOver(index);}} onDragLeave={e=>{e.currentTarget.style.borderTop="";}} onDrop={e=>{e.preventDefault();e.currentTarget.style.borderTop="";try{const data=JSON.parse(e.dataTransfer.getData("text/plain"));if(onDrop)onDrop(data,index);}catch(err){}}} style={{...S.actCard,cursor:"grab",userSelect:"none"}} onMouseEnter={e=>{e.currentTarget.style.boxShadow="0 6px 20px rgba(0,0,0,0.07)";e.currentTarget.style.transform="translateY(-2px)";}} onMouseLeave={e=>{e.currentTarget.style.boxShadow="";e.currentTarget.style.transform="";}}>
+  return(<div id={"act-"+act.id} onClick={onClick} draggable onDragStart={e=>{e.dataTransfer.setData("text/plain",JSON.stringify({id:act.id,dayId,index}));e.currentTarget.style.opacity="0.4";if(onDragStart)onDragStart(act.id);}} onDragEnd={e=>{e.currentTarget.style.opacity="1";}} onDragOver={e=>{e.preventDefault();e.currentTarget.style.borderTop="3px solid #c46b98";if(onDragOver)onDragOver(index);}} onDragLeave={e=>{e.currentTarget.style.borderTop="";}} onDrop={e=>{e.preventDefault();e.currentTarget.style.borderTop="";try{const data=JSON.parse(e.dataTransfer.getData("text/plain"));if(onDrop)onDrop(data,index);}catch(err){}}} style={{...S.actCard,cursor:"grab",userSelect:"none"}} onMouseEnter={e=>{e.currentTarget.style.boxShadow="0 6px 20px rgba(0,0,0,0.07)";e.currentTarget.style.transform="translateY(-2px)";}} onMouseLeave={e=>{e.currentTarget.style.boxShadow="";e.currentTarget.style.transform="";}}>
     <div style={{display:"flex",gap:12,alignItems:"center"}}>
       <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,flexShrink:0,cursor:"grab",color:"#ccc",fontSize:10,padding:"0 2px"}} title="拖拽排序">⠿</div>
       {act.img?(<div style={{width:100,height:72,borderRadius:10,overflow:"hidden",flexShrink:0}}><img src={act.img} alt={act.name} style={{width:"100%",height:"100%",objectFit:"cover"}} loading="lazy"/></div>):(<div style={{width:36,height:36,borderRadius:"50%",background:c.bg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,flexShrink:0}}>{c.e}</div>)}
@@ -969,31 +982,34 @@ function detectOrigin(days){
 }
 
 // ═══ KNOWLEDGE BASE MODAL ═══
-// Simple markdown to React elements (bold, lists, code, line breaks)
-function renderMd(text){
+// Simple markdown to React elements (bold, lists, activity links)
+function renderMd(text,onActivityClick){
   if(!text)return null;
   return text.split('\n').map((line,i)=>{
-    // Heading ### → bold larger
-    if(line.match(/^###\s/))return React.createElement('div',{key:i,style:{fontWeight:700,fontSize:15,marginTop:8,marginBottom:4}},line.replace(/^###\s/,''));
-    if(line.match(/^##\s/))return React.createElement('div',{key:i,style:{fontWeight:800,fontSize:16,marginTop:10,marginBottom:4}},line.replace(/^##\s/,''));
-    // Bullet list
-    if(line.match(/^[\-\*]\s/))return React.createElement('div',{key:i,style:{paddingLeft:12,position:'relative'}},React.createElement('span',{style:{position:'absolute',left:0}},'•'),parseBold(line.replace(/^[\-\*]\s/,'')));
-    // Numbered list
+    if(line.match(/^###\s/))return React.createElement('div',{key:i,style:{fontWeight:700,fontSize:15,marginTop:8,marginBottom:4}},parseInline(line.replace(/^###\s/,''),onActivityClick));
+    if(line.match(/^##\s/))return React.createElement('div',{key:i,style:{fontWeight:800,fontSize:16,marginTop:10,marginBottom:4}},parseInline(line.replace(/^##\s/,''),onActivityClick));
+    if(line.match(/^[\-\*]\s/))return React.createElement('div',{key:i,style:{paddingLeft:12,position:'relative'}},React.createElement('span',{style:{position:'absolute',left:0}},'•'),parseInline(line.replace(/^[\-\*]\s/,''),onActivityClick));
     const numMatch=line.match(/^(\d+)[\.\)]\s/);
-    if(numMatch)return React.createElement('div',{key:i,style:{paddingLeft:16,position:'relative'}},React.createElement('span',{style:{position:'absolute',left:0,fontWeight:600}},numMatch[1]+'.'),parseBold(line.replace(/^\d+[\.\)]\s/,'')));
-    // Empty line
+    if(numMatch)return React.createElement('div',{key:i,style:{paddingLeft:16,position:'relative'}},React.createElement('span',{style:{position:'absolute',left:0,fontWeight:600}},numMatch[1]+'.'),parseInline(line.replace(/^\d+[\.\)]\s/,''),onActivityClick));
     if(!line.trim())return React.createElement('div',{key:i,style:{height:8}});
-    // Regular line with bold parsing
-    return React.createElement('div',{key:i},parseBold(line));
+    return React.createElement('div',{key:i},parseInline(line,onActivityClick));
   });
 }
-function parseBold(text){
-  const parts=text.split(/(\*\*[^*]+\*\*)/g);
+function parseInline(text,onActivityClick){
+  // Split by [[activityId]] and **bold**
+  const parts=text.split(/(\[\[[^\]]+\]\]|\*\*[^*]+\*\*)/g);
   if(parts.length===1)return text;
-  return parts.map((p,i)=>p.startsWith('**')&&p.endsWith('**')?React.createElement('strong',{key:i},p.slice(2,-2)):p);
+  return parts.map((p,i)=>{
+    if(p.startsWith('[[')&&p.endsWith(']]')){
+      const id=p.slice(2,-2);
+      return React.createElement('button',{key:i,onClick:()=>onActivityClick&&onActivityClick(id),style:{display:'inline',padding:'1px 8px',borderRadius:6,background:'#f5dce8',color:'#c46b98',fontSize:12,fontWeight:700,border:'1px solid #e8a0bf',cursor:'pointer',fontFamily:'inherit',margin:'0 2px'}},'\u{1F4CD} '+id);
+    }
+    if(p.startsWith('**')&&p.endsWith('**'))return React.createElement('strong',{key:i},p.slice(2,-2));
+    return p;
+  });
 }
 
-function KnowledgeBaseModal({knowledgeBase,setKnowledgeBase,days,origin,onClose}){
+function KnowledgeBaseModal({knowledgeBase,setKnowledgeBase,days,origin,onClose,onScrollToActivity}){
   const[tab,setTab]=useState('articles');
   const[search,setSearch]=useState('');
   const[editing,setEditing]=useState(null);// null=list, object=editing article
@@ -1104,7 +1120,7 @@ function KnowledgeBaseModal({knowledgeBase,setKnowledgeBase,days,origin,onClose}
             {chatMsgs.map((m,i)=>(
               <div key={i} style={{display:'flex',justifyContent:m.role==='user'?'flex-end':'flex-start',marginBottom:10}}>
                 <div style={{maxWidth:'80%',padding:'10px 14px',borderRadius:m.role==='user'?'14px 14px 4px 14px':'14px 14px 14px 4px',background:m.role==='user'?'linear-gradient(135deg,#c46b98,#e8a0bf)':'#fff',color:m.role==='user'?'#fff':'#1a1a2e',fontSize:14,lineHeight:1.6,border:m.role==='user'?'none':'1px solid #e8e4de',boxShadow:'0 1px 3px rgba(0,0,0,0.05)',whiteSpace:m.role==='user'?'pre-wrap':'normal'}}>
-                  {m.role==='ai'?renderMd(m.text):m.text}
+                  {m.role==='ai'?renderMd(m.text,(id)=>{onClose();setTimeout(()=>onScrollToActivity&&onScrollToActivity(id),300);}):m.text}
                   <div style={{fontSize:10,marginTop:4,opacity:0.6,textAlign:'right'}}>{m.time}</div>
                 </div>
               </div>
@@ -1418,7 +1434,13 @@ function App(){
     {dayM&&<DayDetailModal days={days} initialDayId={dayM} onClose={()=>setDayM(null)} onViewExp={act=>{setDayM(null);setViewE(act);}}/>}
     {editA&&<EditModal activity={editA} onSave={hSave} onDelete={hDel} onClose={()=>{setEditA(null);setEditD(null);}}/>}
     {showVersions&&<VersionHistoryModal onClose={()=>setShowVersions(false)} onRestore={(data)=>{setDays(data.days);if(data.origin)setOrigin(data.origin);if(data.knowledgeBase&&Array.isArray(data.knowledgeBase))setKnowledgeBase(data.knowledgeBase);}}/>}
-    {showKB&&<KnowledgeBaseModal knowledgeBase={knowledgeBase} setKnowledgeBase={setKnowledgeBase} days={days} origin={origin} onClose={()=>setShowKB(false)}/>}
+    {showKB&&<KnowledgeBaseModal knowledgeBase={knowledgeBase} setKnowledgeBase={setKnowledgeBase} days={days} origin={origin} onClose={()=>setShowKB(false)} onScrollToActivity={(id)=>{
+      // Expand the day containing this activity, then scroll to it
+      const dayObj=days.find(d=>d.activities.some(a=>a.id===id));
+      if(dayObj){setExp(p=>({...p,[dayObj.id]:true}));
+        setTimeout(()=>{const el=document.getElementById('act-'+id);if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.style.boxShadow='0 0 0 3px #c46b98';el.style.transition='box-shadow 0.3s';setTimeout(()=>{el.style.boxShadow='';},3000);}},400);
+      }
+    }}/>}
   </div>);
 }
 
