@@ -1002,11 +1002,11 @@ function KnowledgeBaseModal({knowledgeBase,setKnowledgeBase,onClose}){
   const tagPill={display:'inline-block',padding:'2px 10px',borderRadius:100,background:'#f0ecf8',color:'#6b48a8',fontSize:11,fontWeight:600,marginRight:4,marginBottom:4};
 
   return(<div style={S.overlay} onClick={onClose}>
-    <div style={{...S.modal,maxWidth:600,maxHeight:'85vh',display:'flex',flexDirection:'column'}} onClick={e=>e.stopPropagation()}>
+    <div style={{...S.modal,maxWidth:900,width:'95vw',height:window.innerWidth>=768?'80vh':'85vh',maxHeight:'90vh',display:'flex',flexDirection:'column'}} onClick={e=>e.stopPropagation()}>
       {/* Header */}
       <div style={{padding:'20px 24px 0',flexShrink:0}}>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>
-          <h2 style={{fontSize:20,fontWeight:800,color:'#1a1a2e'}}>📚 知识库</h2>
+          <h2 style={{fontSize:22,fontWeight:800,color:'#1a1a2e'}}>📚 知识库</h2>
           <button onClick={onClose} style={{background:'none',border:'none',fontSize:20,cursor:'pointer',color:'#9ca3af',padding:4}}>✕</button>
         </div>
         <div style={{display:'flex',gap:6,marginBottom:16,background:'#faf8f4',borderRadius:100,padding:4}}>
@@ -1019,35 +1019,43 @@ function KnowledgeBaseModal({knowledgeBase,setKnowledgeBase,onClose}){
       {tab==='articles'&&!editing&&(
         <div style={{flex:1,overflow:'auto',padding:'0 24px 20px'}}>
           <div style={{display:'flex',gap:8,marginBottom:14}}>
-            <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="🔍 搜索文章..." style={{...S.inp,flex:1}}/>
-            <button onClick={()=>setEditing({id:null,title:'',content:'',tags:[]})} style={{...S.savBtn,fontSize:13,padding:'8px 16px',whiteSpace:'nowrap'}}>+ 新建</button>
+            <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="🔍 搜索文章..." style={{...S.inp,flex:1,padding:'12px 16px',fontSize:15}}/>
+            <button onClick={()=>setEditing({id:null,title:'',content:'',tags:[]})} style={{...S.savBtn,fontSize:14,padding:'10px 20px',whiteSpace:'nowrap'}}>+ 新建</button>
           </div>
-          {filtered.length===0&&<div style={{textAlign:'center',padding:'40px 0',color:'#9ca3af',fontSize:14}}>{knowledgeBase.length===0?'还没有文章，点击 + 新建':'未找到匹配的文章'}</div>}
+          {filtered.length===0&&<div style={{textAlign:'center',padding:'60px 0',color:'#9ca3af',fontSize:15}}>{knowledgeBase.length===0?<><div style={{fontSize:32,marginBottom:12}}>📝</div><div>还没有文章，点击 + 新建</div></>:'未找到匹配的文章'}</div>}
+          <div style={{display:'grid',gridTemplateColumns:window.innerWidth>=768?'repeat(2, 1fr)':'1fr',gap:12}}>
           {filtered.map(a=>(
-            <div key={a.id} onClick={()=>setEditing({...a})} style={{...S.actCard,marginBottom:10,cursor:'pointer'}}>
-              <div style={{fontWeight:700,fontSize:15,color:'#1a1a2e',marginBottom:4}}>{a.title}</div>
-              <div style={{fontSize:13,color:'#6b7280',marginBottom:8,lineHeight:1.5}}>{a.content.slice(0,120)}{a.content.length>120?'...':''}</div>
+            <div key={a.id} onClick={()=>setEditing({...a})} style={{...S.actCard,marginBottom:0,cursor:'pointer',transition:'all 0.15s',borderRadius:14}}>
+              <div style={{fontWeight:700,fontSize:15,color:'#1a1a2e',marginBottom:6}}>{a.title}</div>
+              <div style={{fontSize:13,color:'#6b7280',marginBottom:8,lineHeight:1.6}}>{a.content.slice(0,150)}{a.content.length>150?'...':''}</div>
               <div>{a.tags.map(t=><span key={t} style={tagPill}>{t}</span>)}</div>
-              <div style={{fontSize:11,color:'#b0b0b0',marginTop:6}}>{a.updatedAt?new Date(a.updatedAt).toLocaleDateString():''}</div>
+              <div style={{fontSize:11,color:'#b0b0b0',marginTop:8}}>{a.updatedAt?new Date(a.updatedAt).toLocaleDateString():''}</div>
             </div>
           ))}
+          </div>
         </div>
       )}
 
       {/* Article Editor */}
       {tab==='articles'&&editing&&(
         <div style={{flex:1,overflow:'auto',padding:'0 24px 20px'}}>
-          <button onClick={()=>setEditing(null)} style={{background:'none',border:'none',fontSize:13,color:'#c46b98',fontWeight:700,cursor:'pointer',padding:'0 0 12px',fontFamily:'inherit'}}>← 返回列表</button>
-          <label style={S.fl}>标题</label>
-          <input value={editing.title} onChange={e=>setEditing({...editing,title:e.target.value})} placeholder="文章标题" style={S.inp}/>
-          <label style={S.fl}>标签 (逗号分隔)</label>
-          <input value={editing.tags.join(', ')} onChange={e=>setEditing({...editing,tags:e.target.value.split(',').map(t=>t.trim()).filter(Boolean)})} placeholder="shopping, tax-free, tips" style={S.inp}/>
+          <button onClick={()=>setEditing(null)} style={{background:'none',border:'none',fontSize:14,color:'#c46b98',fontWeight:700,cursor:'pointer',padding:'0 0 14px',fontFamily:'inherit'}}>← 返回列表</button>
+          <div style={{display:window.innerWidth>=768?'grid':'block',gridTemplateColumns:'1fr 1fr',gap:16}}>
+            <div>
+              <label style={S.fl}>标题</label>
+              <input value={editing.title} onChange={e=>setEditing({...editing,title:e.target.value})} placeholder="文章标题" style={{...S.inp,padding:'12px 16px',fontSize:15}}/>
+            </div>
+            <div>
+              <label style={S.fl}>标签 (逗号分隔)</label>
+              <input value={editing.tags.join(', ')} onChange={e=>setEditing({...editing,tags:e.target.value.split(',').map(t=>t.trim()).filter(Boolean)})} placeholder="shopping, tax-free, tips" style={{...S.inp,padding:'12px 16px',fontSize:15}}/>
+            </div>
+          </div>
           <label style={S.fl}>内容</label>
-          <textarea value={editing.content} onChange={e=>setEditing({...editing,content:e.target.value})} placeholder="在这里写文章内容..." style={{...S.inp,minHeight:200,resize:'vertical',lineHeight:1.7}}/>
-          <div style={{display:'flex',gap:8,marginTop:14}}>
+          <textarea value={editing.content} onChange={e=>setEditing({...editing,content:e.target.value})} placeholder="在这里写文章内容..." style={{...S.inp,minHeight:window.innerWidth>=768?300:200,resize:'vertical',lineHeight:1.7,fontSize:15,padding:'14px 16px'}}/>
+          <div style={{display:'flex',gap:8,marginTop:16}}>
             {editing.id&&<button onClick={()=>handleDeleteArticle(editing.id)} style={S.delBtn}>删除</button>}
             <button onClick={()=>setEditing(null)} style={S.canBtn}>取消</button>
-            <button onClick={handleSaveArticle} style={{...S.savBtn,flex:1}}>保存</button>
+            <button onClick={handleSaveArticle} style={{...S.savBtn,flex:1,padding:'12px 22px',fontSize:15}}>保存</button>
           </div>
         </div>
       )}
@@ -1056,25 +1064,38 @@ function KnowledgeBaseModal({knowledgeBase,setKnowledgeBase,onClose}){
       {tab==='ai'&&(
         <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
           <div style={{flex:1,overflow:'auto',padding:'0 24px 12px'}}>
-            {chatMsgs.length===0&&<div style={{textAlign:'center',padding:'40px 0',color:'#9ca3af',fontSize:14}}>
-              {GEMINI_KEY?'基于知识库内容回答你的旅行问题':'⚠️ 未配置 Gemini API Key\n请在 config.js 中设置 window.GEMINI_KEY'}
+            {chatMsgs.length===0&&<div style={{textAlign:'center',padding:'60px 20px',color:'#9ca3af',fontSize:15,lineHeight:1.8}}>
+              {GEMINI_KEY?<><div style={{fontSize:32,marginBottom:12}}>🤖</div><div style={{fontWeight:600,color:'#6b7280',marginBottom:4}}>AI 旅行助手</div><div>基于知识库内容回答你的旅行问题</div><div style={{fontSize:12,marginTop:8,color:'#b0b0b0'}}>试试问：「大阪有什么必去的地方？」「免税购物怎么操作？」</div></>:'⚠️ 未配置 Gemini API Key\n请在 config.js 中设置 window.GEMINI_KEY'}
             </div>}
+            <div style={{maxWidth:720,margin:'0 auto'}}>
             {chatMsgs.map((m,i)=>(
-              <div key={i} style={{display:'flex',justifyContent:m.role==='user'?'flex-end':'flex-start',marginBottom:10}}>
-                <div style={{maxWidth:'80%',padding:'10px 14px',borderRadius:m.role==='user'?'14px 14px 4px 14px':'14px 14px 14px 4px',background:m.role==='user'?'linear-gradient(135deg,#c46b98,#e8a0bf)':'#fff',color:m.role==='user'?'#fff':'#1a1a2e',fontSize:14,lineHeight:1.6,border:m.role==='user'?'none':'1px solid #e8e4de',boxShadow:'0 1px 3px rgba(0,0,0,0.05)',whiteSpace:'pre-wrap'}}>
-                  {m.text}
-                  <div style={{fontSize:10,marginTop:4,opacity:0.6,textAlign:'right'}}>{m.time}</div>
+              <div key={i} style={{display:'flex',justifyContent:m.role==='user'?'flex-end':'flex-start',marginBottom:12}}>
+                <div style={{display:'flex',alignItems:'flex-start',gap:8,maxWidth:'85%'}}>
+                  {m.role==='ai'&&<div style={{width:28,height:28,borderRadius:'50%',background:'linear-gradient(135deg,#6b48a8,#a78bfa)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:14,flexShrink:0,marginTop:2}}>🤖</div>}
+                  <div style={{padding:'12px 16px',borderRadius:m.role==='user'?'16px 16px 4px 16px':'16px 16px 16px 4px',background:m.role==='user'?'linear-gradient(135deg,#c46b98,#e8a0bf)':'#fff',color:m.role==='user'?'#fff':'#1a1a2e',fontSize:14,lineHeight:1.7,border:m.role==='user'?'none':'1px solid #e8e4de',boxShadow:'0 2px 6px rgba(0,0,0,0.06)',whiteSpace:'pre-wrap'}}>
+                    {m.text}
+                    <div style={{fontSize:10,marginTop:6,opacity:0.5,textAlign:'right'}}>{m.time}</div>
+                  </div>
+                  {m.role==='user'&&<div style={{width:28,height:28,borderRadius:'50%',background:'linear-gradient(135deg,#c46b98,#e8a0bf)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:14,flexShrink:0,marginTop:2}}>👤</div>}
                 </div>
               </div>
             ))}
-            {loading&&<div style={{display:'flex',justifyContent:'flex-start',marginBottom:10}}>
-              <div style={{padding:'10px 14px',borderRadius:'14px 14px 14px 4px',background:'#fff',border:'1px solid #e8e4de',fontSize:14,color:'#9ca3af'}}>思考中...</div>
+            {loading&&<div style={{display:'flex',justifyContent:'flex-start',marginBottom:12}}>
+              <div style={{display:'flex',alignItems:'flex-start',gap:8}}>
+                <div style={{width:28,height:28,borderRadius:'50%',background:'linear-gradient(135deg,#6b48a8,#a78bfa)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:14,flexShrink:0}}>🤖</div>
+                <div style={{padding:'12px 16px',borderRadius:'16px 16px 16px 4px',background:'#fff',border:'1px solid #e8e4de',fontSize:14,color:'#9ca3af'}}>
+                  <span style={{display:'inline-block',animation:'pulse 1.5s ease-in-out infinite'}}>思考中...</span>
+                </div>
+              </div>
             </div>}
+            </div>
             <div ref={chatEndRef}/>
           </div>
-          <div style={{padding:'12px 24px 20px',borderTop:'1px solid #e8e4de',display:'flex',gap:8,flexShrink:0}}>
-            <input value={chatInput} onChange={e=>setChatInput(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();handleSendChat();}}} placeholder="问我关于旅行的问题..." style={{...S.inp,flex:1}} disabled={loading}/>
-            <button onClick={handleSendChat} disabled={loading||!chatInput.trim()} style={{...S.savBtn,padding:'10px 18px',opacity:loading||!chatInput.trim()?0.5:1}}>发送</button>
+          <div style={{padding:'14px 24px 20px',borderTop:'1px solid #e8e4de',flexShrink:0}}>
+            <div style={{maxWidth:720,margin:'0 auto',display:'flex',gap:10,alignItems:'flex-end'}}>
+              <input value={chatInput} onChange={e=>setChatInput(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();handleSendChat();}}} placeholder="问我关于旅行的问题..." style={{...S.inp,flex:1,padding:'12px 16px',fontSize:15}} disabled={loading}/>
+              <button onClick={handleSendChat} disabled={loading||!chatInput.trim()} style={{...S.savBtn,padding:'12px 22px',fontSize:15,opacity:loading||!chatInput.trim()?0.5:1}}>发送</button>
+            </div>
           </div>
         </div>
       )}
