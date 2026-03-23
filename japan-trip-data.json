@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exportDate": "2026-03-23T20:06:47.300Z",
+  "exportDate": "2026-03-23T20:08:18.032Z",
   "days": [
     {
       "id": 0,
@@ -398,13 +398,13 @@
         {
           "id": "2b",
           "type": "poi",
-          "name": "镰仓高校前站",
+          "name": "09:30 镰仓高校前站 (Morning) (Kamakurakōkō-Mae Station)",
           "category": "anime",
           "time": "Morning",
-          "la": 35.3065,
-          "lo": 139.5018,
-          "addr": "Kamakurakokomae, Kamakura",
-          "img": "https://static.gltjp.com/glt/data/directory/12000/11211/20201108_214334_accdd9bd_w640.webp",
+          "la": 35.3067242,
+          "lo": 139.5005569,
+          "addr": "1 Chome-1 Koshigoe, Kamakura, Kanagawa 248-0033, Japan",
+          "img": "https://places.googleapis.com/v1/places/ChIJIRZ85hZPGGARffzavFo4QRk/photos/AU_ZVEG_FVLB26VAEgF8D8eKbHBCAxXUyR0HYYRiXLcgwHRE3WAn_RoFhke7Oab-sYIkoYMjZi5I7j-tKffYO3zlQFIERzoMt8ov5qbSTE4JdoGAS8vnoeaB_gjuNo2AFZ3IDcDpeoH7209j6KlgXiVVsptYKtLiqSslBTS3bxOhCvtM6TgZFg7fMF0h8Xr9g5wT0tJuBUTcF0fAsaqv_NqYg0ieKIy01NC5zcnqQgr0kBW1xbcQt7VNUjJJ-83MFegwa72wBu19YKi_VtlTOVOZ5N4rgr-NsoIraGvs0psvsmOLPDD_mhXtLhtE2iI948NXXFnTiTH2KCuUsSKiyBpdunlyihqioZP4A0NOV1h_CZvxxUxS6y1_ibvtzDj84gBC7RbuVCzJGc95dtRrLrhQTZOXIsXTKn_sOkZecqCI6k2LOQ/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
           "notes": "《灌篮高手》经典闸道口。避开拥挤的人潮，拍一张纯粹的空镜头。",
           "cost": "0",
           "currency": "¥"
