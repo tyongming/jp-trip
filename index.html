@@ -1206,15 +1206,32 @@ function PreviewCard({fc,days,onApply,onDismiss}){
   if(fnName==='edit_activity'){
     const orig=days.flatMap(d=>d.activities).find(a=>a.id===args.activityId);
     const updates=args.updates||{};
+    // Filter to only show fields that actually changed
+    const changedEntries=Object.entries(updates).filter(([k,v])=>{
+      if(!orig)return true;
+      const origVal=orig[k];
+      if(origVal==null&&(v==null||v===''))return false;
+      return String(v)!==String(origVal);
+    });
+    // Track which fields are checked (default: all changed fields checked)
+    const[checkedFields,setCheckedFields]=useState(()=>changedEntries.map(([k])=>k));
+    const toggleField=(field)=>setCheckedFields(prev=>prev.includes(field)?prev.filter(f=>f!==field):[...prev,field]);
+    // Store checked fields on fc for apply handler
+    fc._checkedFields=checkedFields;
     return(<div style={{border:'2px solid #1a73a7',borderRadius:12,padding:12,margin:'8px 0',background:'#e8f4fd'}}>
       <div style={{fontSize:11,fontWeight:700,color:'#1a73a7',marginBottom:8}}>✏️ 编辑: {orig?orig.name:args.activityId}</div>
+      {changedEntries.length===0?<div style={{fontSize:12,color:'#9ca3af',padding:8}}>没有检测到实际变更</div>:
       <div style={{background:'#fff',borderRadius:10,padding:10,border:'1px solid #e8e4de'}}>
-        {Object.entries(updates).map(([k,v])=>(<div key={k} style={{fontSize:13,marginBottom:4}}>
-          <span style={{fontWeight:700,color:'#6b7280'}}>{k}: </span>
-          {orig&&orig[k]!=null&&<span style={{textDecoration:'line-through',color:'#dc2626',marginRight:6}}>{String(orig[k]).slice(0,50)}</span>}
-          <span style={{color:'#2d7a3a',fontWeight:600}}>{String(v).slice(0,80)}</span>
+        <div style={{fontSize:10,color:'#9ca3af',marginBottom:6}}>☑️ 勾选要应用的字段：</div>
+        {changedEntries.map(([k,v])=>(<div key={k} style={{fontSize:13,marginBottom:6,display:'flex',alignItems:'flex-start',gap:6,opacity:checkedFields.includes(k)?1:0.4}}>
+          <input type="checkbox" checked={checkedFields.includes(k)} onChange={()=>toggleField(k)} style={{marginTop:3,cursor:'pointer',accentColor:'#1a73a7'}}/>
+          <div style={{flex:1}}>
+            <span style={{fontWeight:700,color:'#6b7280',fontSize:11,textTransform:'uppercase'}}>{k}</span>
+            {orig&&orig[k]!=null&&<div style={{fontSize:11,color:'#dc2626',textDecoration:'line-through',lineHeight:1.3,maxHeight:40,overflow:'hidden'}}>{String(orig[k]).slice(0,100)}</div>}
+            <div style={{fontSize:12,color:'#2d7a3a',fontWeight:600,lineHeight:1.3,maxHeight:60,overflow:'hidden'}}>{String(v).slice(0,120)}</div>
+          </div>
         </div>))}
-      </div>
+      </div>}
       {btnRow}{status}
     </div>);
   }
@@ -1377,7 +1394,11 @@ function AIChatBubble({knowledgeBase,setKnowledgeBase,days,origin,setDays,setOri
     const msg=chatMsgs[msgIdx];const fc=msg.functionCalls[callIdx];
     const{name:fnName,args}=fc.functionCall;
     if(fnName==='add_activity'){const{dayId,activity}=args;setDays(prev=>prev.map(d=>{if(d.id!==dayId)return d;return{...d,activities:[...d.activities,{...activity,id:`${dayId}_${Date.now()}`,type:activity.type||(activity.from?'note':activity.category==='food'?'restaurant':'poi')}]};}));}
-    else if(fnName==='edit_activity'){const{activityId,updates}=args;setDays(prev=>prev.map(d=>({...d,activities:d.activities.map(a=>a.id===activityId?{...a,...updates}:a)})));}
+    else if(fnName==='edit_activity'){const{activityId,updates}=args;
+      // Only apply fields that the user selected (checked) in the preview
+      const checkedFields=fc._checkedFields;
+      const filteredUpdates=checkedFields?Object.fromEntries(Object.entries(updates).filter(([k])=>checkedFields.includes(k))):updates;
+      setDays(prev=>prev.map(d=>({...d,activities:d.activities.map(a=>a.id===activityId?{...a,...filteredUpdates}:a)})));}
     else if(fnName==='delete_activity'){setDays(prev=>prev.map(d=>({...d,activities:d.activities.filter(a=>a.id!==args.activityId)})));}
     else if(fnName==='reorder_activity'){setDays(prev=>{const nd=JSON.parse(JSON.stringify(prev));for(const d of nd){const idx=d.activities.findIndex(a=>a.id===args.activityId);if(idx>=0){const[item]=d.activities.splice(idx,1);d.activities.splice(Math.min(args.newIndex,d.activities.length),0,item);break;}}return nd;});}
     else if(fnName==='add_day'){setDays(prev=>{const nd=[...prev,{id:args.id,date:args.date,dow:args.dow,location:args.location,theme:args.theme,weather:args.weather||'',activities:args.activities||[]}];nd.sort((a,b)=>a.id-b.id);return nd;});setExp(prev=>({...prev,[args.id]:true}));}
