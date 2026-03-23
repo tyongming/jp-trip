@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exportDate": "2026-03-23T21:22:27.541Z",
+  "exportDate": "2026-03-23T21:23:40.452Z",
   "days": [
     {
       "id": 0,
@@ -659,9 +659,9 @@
           "name": "13:00 牛カツもと村 渋谷店 (Gyukatsu Motomura Shibuya Branch)",
           "category": "food",
           "time": "Afternoon",
-          "la": 35.664455,
-          "lo": 139.69878,
-          "addr": "Gyukatsu Motomura Shibuya Branch",
+          "la": 35.620681,
+          "lo": 139.060161,
+          "addr": "Gyukatsu Motomura Shibuya Branch 〒150-0002 Tokyo, Shibuya, 3 Chome−18−10 大野ビル2号館 B1F",
           "notes": "在石板上自己炙烤的炸牛排，补充能量的绝佳选择。",
           "cost": "2500",
           "currency": "¥",
