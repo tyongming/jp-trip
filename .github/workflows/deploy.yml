@@ -30,6 +30,7 @@ jobs:
           window.GOOGLE_PLACES_KEY = '${{ secrets.GOOGLE_PLACES_KEY }}';
           window.GITHUB_PAT = '${{ secrets.GH_PAT }}';
           window.GEMINI_KEY = '${{ secrets.GEMINI_KEY }}';
+          window.GEMINI_MODEL = '${{ vars.GEMINI_MODEL }}';
           SCRIPT
 
       - uses: actions/configure-pages@v4
