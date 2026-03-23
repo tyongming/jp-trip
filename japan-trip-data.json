@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exportDate": "2026-03-23T20:14:42.482Z",
+  "exportDate": "2026-03-23T20:24:59.697Z",
   "days": [
     {
       "id": 0,
@@ -422,6 +422,20 @@
           "img": "https://places.googleapis.com/v1/places/ChIJu6hYHU1nGWARfaBH0X127o8/photos/AU_ZVEH-EQjPM_WQIXuQl3F5gNEnhKPVprtNkLPxeskBR_wry-TJlyRP9AlN26SkC5MJbgdtBwRBUTk85HjD6FDZp1FSpLz3Mw_l5GP9ZV4_9MNXdfAaYiYwWsjYDS0RX48zhEgDOT94cKUD5o6o9HjIFC7GOvYVL0VnDT9PdWMwEClA_cjlJJ6OuXSy3mH1-62oG_Jr_PbIn_G4iUMwas07nZTzBCzFn7-UfYA9dKH1Itswbi1bJDB16Kt7JDtbm6R1WWz32CNGzGg_S-dZVTwcrwQGE859JV_bL8JdPCx0ELrYaQpE1d417Vz5nvE_QnwbnnSN0fRYnvW7lszz_k7SOcyGNsbNGl28rWjGSCqyGk8i_E3qlAsiZKQvJRc9m8HoaFUJbkG8NBPAd33XOsDYnl3vpbPuvUcQyVzFvqz63BRtyyO9adOYDlJC60Rsh5ze/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
           "notes": "攀登398级台阶后，朱",
           "id": "2_1774286391978",
+          "type": "poi"
+        },
+        {
+          "la": 35.522904,
+          "lo": 138.7457522,
+          "name": "14:00 大石公园 (Oishi Park)",
+          "addr": "2585 Oishi, Fujikawaguchiko, Minamitsuru District, Yamanashi 401-0305, Japan",
+          "category": "sightseeing",
+          "cost": "0",
+          "time": "Afternoon",
+          "notes": "利用长焦镜头压缩空间，让富士山显得巨大，同时将樱花作为前景虚化，营造出梦幻的背景。非常适合人像摄影。",
+          "currency": "¥",
+          "img": "https://lh3.googleusercontent.com/gps-cs-s/AHVAweo6WtzI6n9IGsHcwVYI_ce2nEZnhTCclQqblDqLOu-8huLG2YdCN4V8-jzKt6F4iUyxWg1t0u4MYfBQtVqpDDaoAZOSrVQnJmqvEDu84tlu4itmwBmb6O_zH3BR_ZaGjsSA4-Nz=w203-h114-k-no",
+          "id": "2_1774297441204",
           "type": "poi"
         },
         {
