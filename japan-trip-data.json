@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exportDate": "2026-03-23T20:42:46.354Z",
+  "exportDate": "2026-03-23T20:44:46.159Z",
   "days": [
     {
       "id": 0,
@@ -684,6 +684,19 @@
           "currency": "¥",
           "rating": 4.6,
           "reviews": 23777
+        },
+        {
+          "type": "poi",
+          "cost": "0",
+          "notes": "位于原宿的“魔法界”主题商店。店内陈列着电影中的经典魔法道具，即使不买周边，光是橱窗陈列和店内装潢就非常适合拍照。 | 💡 建议提前在官网预约，否则高峰期可能需要排队进店。",
+          "addr": "6-chōme-31-17 Jingūmae, Shibuya, Tokyo 150-0001, Japan",
+          "name": "14:00 哈利波特商店 (Harry Potter Mahou Dokoro) 原宿店 (Harry Potter Shop Harajuku)",
+          "category": "shopping",
+          "time": "Midday",
+          "la": 35.6686494,
+          "lo": 139.7044101,
+          "img": "https://places.googleapis.com/v1/places/ChIJB88UHACNGGARUkPYerZYTDU/photos/AU_ZVEFZxHrBj83vMVcRHs6oD38gGPZQcW-jujcTDUipGDXx3T-kovhYBtTbH9r_WJ411_-bUnN2dUNAJ-bqAreRehe_4-7Krm2mL-gh7Kq6sCIK3iorZFD-UpKoJGFoa3C0HoEKv-ppnhKab8j_KQQjXrkjy3vXvLnSKhVLg4Rq9Jpz3gMVzmoAn-LumjTsuQJaIE2gbo2gSXbnSDuAKTWQEwNbFx2oHgw72Bxps4n5tf1DeINSCfamzAGSzmFLXASYyrO9DfRMRxIU_c_01r6wFBow_kV-FY02uh4WnZVn7BxIRlBpiQ77989T3N0RGsgFzws3afZW9HoNKDyHgp4fy8bVe8QDTRrnMQiuPqY1_rBg0AHxLweOdK-RqzYoAw60zYH4UcJ5txJLE2KGTaSpf9iYlXWDv8GYQGN3G-jrDJdH12aM81NH5QllrFtzpA/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
+          "id": "4_1774298655499"
         }
       ]
     },
