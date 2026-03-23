@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exportDate": "2026-03-23T17:20:43.412Z",
+  "exportDate": "2026-03-23T17:22:03.385Z",
   "days": [
     {
       "id": 0,
@@ -366,20 +366,18 @@
       "hotelIdx": 0,
       "activities": [
         {
-          "id": "2a",
-          "type": "note",
-          "name": "乘坐湘南新宿线前往镰仓",
           "category": "transport",
-          "time": "Morning",
-          "cost": "2000",
+          "name": "08:30 新宿 Nippon Rent-A-Car 提车 (Nippon Rent-a-car)",
           "currency": "¥",
-          "notes": "从新宿直达，购买江之电一日券 (Enoden Pass)。",
-          "la": 36.008046,
-          "lo": 139.659916,
-          "img": "https://places.googleapis.com/v1/places/ChIJ33NPKsJFGGARDg77hD466cc/photos/ATCDNfUfK4ckMaxNpLSrCY8hYQDFvj6GT4u0SSdCu6MPBYmceDOG8NacaADcyAW4M_scdrAk9U9enklUakePpAPvCch9yWwXwN2MA2x8nHaBeLnH1fPrhKdJ6DUg-jY8lHVKcI2yZ90XIsveeyX_qEw5Ji5q8jfhMu9xopXtFlA9L78d3ffs326HhV2MhpGxL1fAnCbEZyL3PmeUaRHxxfffBeKHcFT_VvGdngmgbkFY0KI-7e_K3jeQTV8Gl30vZlcrB4KEVjnveQ8d0hzAdEV90bdhYz8zLL9ItQCCvCSE9NeiVdMoTGyd1P9xL4ENZyVkbUwNLLrNYR3Cz28m0li_2fitHsfwTaWndTkVQMjqVfHm7Ayyhq0IOwRfYa5JevBeT1se8TfjkZ-Dp8bDJbd8NuUwBR0TvkJ9E-Aj_NtZ23GfuQ/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
-          "rating": 4.1,
-          "reviews": 1721,
-          "addr": "1-chōme-1-15 Onarimachi, Kamakura, Kanagawa 248-0012, Japan"
+          "addr": "Japan, 〒169-0075 Tokyo, Shinjuku City, Takadanobaba, 4-chōme−9−１２ 日新西北ビル",
+          "time": "Morning",
+          "cost": "18000",
+          "la": 35.7134664,
+          "lo": 139.70298409999998,
+          "img": "https://places.googleapis.com/v1/places/ChIJAUmnTDiNGGARXpkKw3fDgDk/photos/AU_ZVEF3Wr_iK92yKpMCuPzUy2iOJLn3_V8wooI9mGSbNBW2JNdRvQJiokoV43YymHKnfdI7ExbnNBw8WwIUnw5qYtO19NdJGqKHyFgWNZON63xTmg883LPvvKJz_u80o_kJOIdVSPxmU6eqGync9XyEeul9oGbZRmgAegQKBWJ8dtQZkMqtDb67Xn4pPvIzy-ITPGBBwGd_qGmb5CKxPxQSFdmIBvoVRuKW381jIbmP9ebrWxY6nWMQ08euxZIL03nHAdt6TFNn8DXts8vnyZA0vpB84Pn9y3bz11LQ8dteXMzN_w/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
+          "notes": "清晨的高田马场还带着些",
+          "id": "2_1774286355117",
+          "type": "poi"
         },
         {
           "id": "2b",
@@ -412,36 +410,6 @@
           "reviews": 420
         },
         {
-          "category": "transport",
-          "name": "08:30 新宿 Nippon Rent-A-Car 提车 (Nippon Rent-a-car)",
-          "currency": "¥",
-          "addr": "Japan, 〒169-0075 Tokyo, Shinjuku City, Takadanobaba, 4-chōme−9−１２ 日新西北ビル",
-          "time": "Morning",
-          "cost": "18000",
-          "la": 35.7134664,
-          "lo": 139.70298409999998,
-          "img": "https://places.googleapis.com/v1/places/ChIJAUmnTDiNGGARXpkKw3fDgDk/photos/AU_ZVEF3Wr_iK92yKpMCuPzUy2iOJLn3_V8wooI9mGSbNBW2JNdRvQJiokoV43YymHKnfdI7ExbnNBw8WwIUnw5qYtO19NdJGqKHyFgWNZON63xTmg883LPvvKJz_u80o_kJOIdVSPxmU6eqGync9XyEeul9oGbZRmgAegQKBWJ8dtQZkMqtDb67Xn4pPvIzy-ITPGBBwGd_qGmb5CKxPxQSFdmIBvoVRuKW381jIbmP9ebrWxY6nWMQ08euxZIL03nHAdt6TFNn8DXts8vnyZA0vpB84Pn9y3bz11LQ8dteXMzN_w/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
-          "notes": "清晨的高田马场还带着些",
-          "id": "2_1774286355117",
-          "type": "poi"
-        },
-        {
-          "id": "2d",
-          "type": "poi",
-          "name": "江之岛 日落",
-          "category": "photo",
-          "time": "Evening",
-          "la": 35.3005,
-          "lo": 139.481,
-          "addr": "Enoshima, Fujisawa",
-          "img": "https://places.googleapis.com/v1/places/ChIJcbT_oOZOGGARFHp30PfDRyY/photos/ATCDNfXakQ-0f3wBxCtn8e_Ud1YxRFfFP7dlgQNTg6WdRQm9STdR51JNXW_sVTPIV5L3D_h83UlC6_sYTgP2K2WOBdeyex4WnCwoteXP5DBKn37vtP1EAPzDXVgf3i-9Cq1wTx1twVCSFtaryUfL92bQN13R9-765GOQHRl58E-Xl0bRKFh5nCEj7ta-hao3W2XQAWcokEsegAOkLNBwIbdkL0NO95xthtbBrx8zC0LuofIKu_g1TcKtRR-Qt2gVVt-7RMS92Q8xaOMNDzRsi1zepm1IV4wT9AZFCRB-odKNLDeejZ9Y3VwRAjepTC7zS0PUoUU7uw-IPppB4G1L_vAc_322gpq2kia_wuW4LnpXA4YhNrDFMxuk5MpYfZqQbmbUutMDHg8l6Qwy4bTtE7moF4FHWHeweiK589MF98XAfxo/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
-          "notes": "在海边看富士山的剪影与日落，最美的公路片结尾感。",
-          "cost": "1500",
-          "currency": "¥",
-          "rating": 4.5,
-          "reviews": 266
-        },
-        {
           "name": "13:00 新倉山浅間公園 · 忠靈塔 (Arakurayama Sengen Park)",
           "category": "sightseeing",
           "cost": "0",
@@ -453,20 +421,6 @@
           "img": "https://places.googleapis.com/v1/places/ChIJu6hYHU1nGWARfaBH0X127o8/photos/AU_ZVEH-EQjPM_WQIXuQl3F5gNEnhKPVprtNkLPxeskBR_wry-TJlyRP9AlN26SkC5MJbgdtBwRBUTk85HjD6FDZp1FSpLz3Mw_l5GP9ZV4_9MNXdfAaYiYwWsjYDS0RX48zhEgDOT94cKUD5o6o9HjIFC7GOvYVL0VnDT9PdWMwEClA_cjlJJ6OuXSy3mH1-62oG_Jr_PbIn_G4iUMwas07nZTzBCzFn7-UfYA9dKH1Itswbi1bJDB16Kt7JDtbm6R1WWz32CNGzGg_S-dZVTwcrwQGE859JV_bL8JdPCx0ELrYaQpE1d417Vz5nvE_QnwbnnSN0fRYnvW7lszz_k7SOcyGNsbNGl28rWjGSCqyGk8i_E3qlAsiZKQvJRc9m8HoaFUJbkG8NBPAd33XOsDYnl3vpbPuvUcQyVzFvqz63BRtyyO9adOYDlJC60Rsh5ze/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
           "notes": "攀登398级台阶后，朱",
           "id": "2_1774286391978",
-          "type": "poi"
-        },
-        {
-          "cost": "3000",
-          "time": "Night",
-          "currency": "¥",
-          "addr": "3-chōme-38-1 Shinjuku, Shinjuku City, Tokyo 160-0022, Japan",
-          "name": "19:30 返回新宿还车 (Shinjuku Station East Exit Police Box)",
-          "category": "transport",
-          "la": 35.6917846,
-          "lo": 139.7011327,
-          "img": "https://places.googleapis.com/v1/places/ChIJ1Vh-qdCMGGAR3dvbmijVZao/photos/AU_ZVEHHjso4uhtdPX52qDeRHhY4bxQE_UE0CfFlkDloUQ8-5PrGxGbPEk9SZXYwmetYahlcIG-mfjSoA8OVUbtPkJd1D3sKO4WXh_qKEBt_8u8tvzZ64uqTmYHwIJIQ7NZGn9USDp2c59GPwUXAIvzoEkgfD2rS2n7eZwzGZineETrgS3IJQBL85fSNXXubO5JQcNeYn2XnUWzedOMvci4-99OS13KjhZR8ab8AChzbxDq-dV47UyvIBcg6RG74w85aJEqWW_8qCJSyl3WV-xlJWC_x6kbajPFyAnLb7bs1x5yF6viI6p1mxvqXaPp9rKosMY6qaLqBdp2zvcbTt_XiQDNmqB8fzAuAYu6itrHldM61tJrq03F1lZ_bgJLc_gA-An5McrHntXJFhEbOK4zC32S1-WoF-pSualDki1VHyPepDQ/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
-          "notes": "霓虹灯影在挡风玻璃上流转",
-          "id": "2_1774286357224",
           "type": "poi"
         },
         {
@@ -495,6 +449,49 @@
           "img": "https://places.googleapis.com/v1/places/ChIJU2ZNcq5lGWARpuCLQW4dl7g/photos/AU_ZVEFFMT1H8atyiiHdLWc5hI0oXpuyYBMx_rzgl4cubhFLvDqEv5AWMqmq1VXWhpQDKx5Bm3s8xEHZ0VAiWu9HAxi-C6_Ee9Yci_blwz6K7LHVilX4fsHbowaNOMUkEdJc83_Bszjy7iXe1ASBaT1ol9KDbR0TrbpuoZRzXKKwm3-vJR1aNg7q7R1FxUaPNCJuaEobY6U0RnGVXmQdEhdigZ8li0_sBvHVVb-cNx6s7B_EjUxGi_0Kyy-_GD9HKXBzj0jJ0Ll1b7LqXIGk_uCj4jJxBDRkff7qTAOCHaa5I-ASwWAzzDREHcxuK7bVGefF5KPNPVvBFEzwPlQdWTKZnEdLIGMjqhEIi3zYVSdjA_skwzjJKk6DwnNQ7DAJxZLcPEiW8V9CtBN5rJ_Gpck-RXhDtQRIoqHOsf7v05C9sgzNDZih/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
           "id": "2_1774286395232",
           "type": "poi"
+        },
+        {
+          "cost": "3000",
+          "time": "Night",
+          "currency": "¥",
+          "addr": "3-chōme-38-1 Shinjuku, Shinjuku City, Tokyo 160-0022, Japan",
+          "name": "19:30 返回新宿还车 (Shinjuku Station East Exit Police Box)",
+          "category": "transport",
+          "la": 35.6917846,
+          "lo": 139.7011327,
+          "img": "https://places.googleapis.com/v1/places/ChIJ1Vh-qdCMGGAR3dvbmijVZao/photos/AU_ZVEHHjso4uhtdPX52qDeRHhY4bxQE_UE0CfFlkDloUQ8-5PrGxGbPEk9SZXYwmetYahlcIG-mfjSoA8OVUbtPkJd1D3sKO4WXh_qKEBt_8u8tvzZ64uqTmYHwIJIQ7NZGn9USDp2c59GPwUXAIvzoEkgfD2rS2n7eZwzGZineETrgS3IJQBL85fSNXXubO5JQcNeYn2XnUWzedOMvci4-99OS13KjhZR8ab8AChzbxDq-dV47UyvIBcg6RG74w85aJEqWW_8qCJSyl3WV-xlJWC_x6kbajPFyAnLb7bs1x5yF6viI6p1mxvqXaPp9rKosMY6qaLqBdp2zvcbTt_XiQDNmqB8fzAuAYu6itrHldM61tJrq03F1lZ_bgJLc_gA-An5McrHntXJFhEbOK4zC32S1-WoF-pSualDki1VHyPepDQ/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
+          "notes": "霓虹灯影在挡风玻璃上流转",
+          "id": "2_1774286357224",
+          "type": "poi"
+        },
+        {
+          "id": "2d",
+          "type": "poi",
+          "name": "江之岛 日落",
+          "category": "photo",
+          "time": "Evening",
+          "la": 35.3005,
+          "lo": 139.481,
+          "addr": "Enoshima, Fujisawa",
+          "img": "https://places.googleapis.com/v1/places/ChIJcbT_oOZOGGARFHp30PfDRyY/photos/ATCDNfXakQ-0f3wBxCtn8e_Ud1YxRFfFP7dlgQNTg6WdRQm9STdR51JNXW_sVTPIV5L3D_h83UlC6_sYTgP2K2WOBdeyex4WnCwoteXP5DBKn37vtP1EAPzDXVgf3i-9Cq1wTx1twVCSFtaryUfL92bQN13R9-765GOQHRl58E-Xl0bRKFh5nCEj7ta-hao3W2XQAWcokEsegAOkLNBwIbdkL0NO95xthtbBrx8zC0LuofIKu_g1TcKtRR-Qt2gVVt-7RMS92Q8xaOMNDzRsi1zepm1IV4wT9AZFCRB-odKNLDeejZ9Y3VwRAjepTC7zS0PUoUU7uw-IPppB4G1L_vAc_322gpq2kia_wuW4LnpXA4YhNrDFMxuk5MpYfZqQbmbUutMDHg8l6Qwy4bTtE7moF4FHWHeweiK589MF98XAfxo/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
+          "notes": "在海边看富士山的剪影与日落，最美的公路片结尾感。",
+          "cost": "1500",
+          "currency": "¥",
+          "rating": 4.5,
+          "reviews": 266
+        },
+        {
+          "transportCost": "3000",
+          "name": "09:30 驾车前往富士山区域",
+          "addr": "新宿 Nippon Rent-A-Car 提车点到新仓山浅间公园",
+          "to": "新仓山浅间公园",
+          "time": "Morning",
+          "category": "transport",
+          "line": "中央自动车道 (约1.5-2小时)",
+          "from": "新宿 Nippon Rent-A-Car",
+          "notes": "在新宿Nippon租下这台白色",
+          "id": "2_1774286449021",
+          "type": "note"
         }
       ]
     },
