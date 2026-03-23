@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exportDate": "2026-03-23T17:23:27.939Z",
+  "exportDate": "2026-03-23T18:36:24.215Z",
   "days": [
     {
       "id": 0,
@@ -390,7 +390,10 @@
           "from": "新宿 Nippon Rent-A-Car",
           "notes": "在新宿Nippon租下这台白色",
           "id": "2_1774286449021",
-          "type": "note"
+          "type": "note",
+          "la": 35.700799,
+          "lo": 140.509281,
+          "img": "https://places.googleapis.com/v1/places/ChIJu6hYHU1nGWARfaBH0X127o8/photos/AU_ZVEGaWEeqeiFx4tSuzOhQKnkI_gO9NS0lMuxoQ34nko8KI3AnsK-5hD_ha50_DiUb8EI5hKFUUKXiaoYBkudY21CXBgAtl1E302HqtTVSxy1I3JKxO3_zZzWgQQP2kCnAQcDnjvXZXjs3SBhoo6dh-3VRtrb3fwY-MhWzkCFltzvnAVU8MvFtfGQj_0eV8Pfuh2TuAYEsfcKFbZ63qF5fd9YNjomdNNmNdqw4dHoqN4ScINmR1mckHOk_SqcZmfwR7OZxIeeJJdUFy_Xf9ToiB40mNh6E8I1Wpuob2gAZNwYzIm0-id0n20omRHi67kZ3rnE4W9vMTa9-tXFe4WuA3TsjOA3f4_sySasNwdlyLRMKc936xrInps9PdccIXEUvtINqzA2qvtlwdmMn6-P0Dh4sJMrTaWx9mFstOEs1b7Qf8UdCCX4dCDYq83lLRPFu/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc"
         },
         {
           "id": "2b",
