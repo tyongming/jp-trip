@@ -200,24 +200,26 @@ ${kbContext}`;
             const searchQ=`${act.name} ${act.addr||''} Japan exact address location coordinates opening hours`;
             const r2=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL_SMART}:generateContent?key=${GEMINI_KEY}`,{
               method:'POST',headers:{'Content-Type':'application/json'},
-              body:JSON.stringify({contents:[{role:'user',parts:[{text:`Search for: ${act.name}${act.addr?' near '+act.addr:' Japan'}.\nReturn ONLY a JSON object with these fields:\n- addr: full address in format "Japanese address" (e.g. "〒248-0006 神奈川県鎌倉市小町2-12-12")\n- la: latitude (number)\n- lo: longitude (number)\n- notes: 3-4 lines in Chinese, travel guide style with emoji. Include: 🍜 signature dish + price, ⏰ opening hours, 💡 practical tip (e.g. queue time, best seat). NO generic advice like "请确认" or "建议提前".\n- placeName: the official business name in Japanese (e.g. "一風堂 鎌倉小町通り店")\nNo other text outside the JSON. Return valid JSON only.`}]}],tools:[{google_search:{}},{google_maps:{}}],generationConfig:{maxOutputTokens:512,temperature:0.2}})
+              body:JSON.stringify({contents:[{role:'user',parts:[{text:`Search for: ${act.name}${act.addr?' near '+act.addr:' Japan'}.\nReturn ONLY a valid JSON object (no markdown, no backticks) with ALL of these fields:\n{\n  "addr": "full Japanese address with postal code, e.g. 〒248-0006 神奈川県鎌倉市小町2-12-12",\n  "la": 35.3214,\n  "lo": 139.5529,\n  "placeName": "official Japanese business name, e.g. 一風堂 鎌倉小町通り店",\n  "notes": "multi-line notes in Chinese following this EXACT style:\\n🍜 招牌白丸元味豚骨拉面 ¥950，浓郁顺滑，推荐加味玉子 +¥120\\n⏰ 营业时间: 11:00-22:00 (L.O. 21:30)\\n💡 午餐高峰11:30-13:00排队约15分钟，建议稍早或稍晚去\\n📍 位于小町通商店街，从�的仓站步行5分钟"\n}\nIMPORTANT: The "notes" field MUST contain 3-4 lines of specific, factual info with emoji. Look at this example from existing data:\n"务必选择「完全个室 (VIP Room)」。洗个热水澡，锁上门，在绝对私密的空间里沉沉睡去。\\n💡 比酒店省钱，凌晨入住完美解决红眼航班问题"\nDo NOT write generic advice. Write SPECIFIC facts from your search results.`}]}],tools:[{google_search:{}},{google_maps:{}}],generationConfig:{maxOutputTokens:768,temperature:0.3}})
             });
             if(r2.ok){
               const d2=await r2.json();const p2=d2.candidates?.[0]?.content?.parts||[];
               const searchText=p2.filter(p=>p.text).map(p=>p.text).join('\n');
-              // Try to extract JSON from response
-              const jsonMatch=searchText.match(/\{[\s\S]*?\}/);
+              console.log('[Enrichment raw]',searchText);
+              // Extract JSON — use greedy match to capture full object including nested content
+              const jsonMatch=searchText.match(/\{[\s\S]*\}/);
               if(jsonMatch){
                 try{
                   const enrichData=JSON.parse(jsonMatch[0]);
+                  console.log('[Enrichment parsed]',enrichData);
                   if(enrichData.addr)act.addr=enrichData.placeName?`${enrichData.placeName}, ${enrichData.addr}`:enrichData.addr;
                   if(enrichData.la)act.la=parseFloat(enrichData.la);
                   if(enrichData.lo)act.lo=parseFloat(enrichData.lo);
                   if(enrichData.notes)act.notes=enrichData.notes;
                   if(enrichData.img&&!act.img)act.img=enrichData.img;
                   if(enrichData.placeName&&!act.name.includes(enrichData.placeName))act.name=act.name+` (${enrichData.placeName})`;
-                }catch(pe){}
-              }
+                }catch(pe){console.warn('[Enrichment parse error]',pe.message,jsonMatch[0].slice(0,200));}
+              }else{console.warn('[Enrichment no JSON found]',searchText.slice(0,300));}
             }
           }catch(e2){/* enrichment failed, use original data */}
         }
