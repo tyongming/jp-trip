@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exportDate": "2026-03-23T20:10:42.822Z",
+  "exportDate": "2026-03-23T20:12:01.004Z",
   "days": [
     {
       "id": 0,
@@ -367,15 +367,15 @@
       "activities": [
         {
           "category": "transport",
-          "name": "08:30 新宿 Nippon Rent-A-Car 提车 (Nippon Rent-a-car)",
+          "name": "08:30 新宿 Nippon Rent-A-Car 提车并前往镰仓 (Nippon Rent-a-car)",
           "currency": "¥",
-          "addr": "Japan, 〒169-0075 Tokyo, Shinjuku City, Takadanobaba, 4-chōme−9−１２ 日新西北ビル",
+          "addr": "Japan, 〒160-0022 Tokyo, Shinjuku City, Shinjuku, 5-chōme−6−１ SHINJUKU YAWARAGI BUILDING",
           "time": "Morning",
           "cost": "18000",
-          "la": 35.7134664,
-          "lo": 139.70298409999998,
-          "img": "https://places.googleapis.com/v1/places/ChIJAUmnTDiNGGARXpkKw3fDgDk/photos/AU_ZVEF3Wr_iK92yKpMCuPzUy2iOJLn3_V8wooI9mGSbNBW2JNdRvQJiokoV43YymHKnfdI7ExbnNBw8WwIUnw5qYtO19NdJGqKHyFgWNZON63xTmg883LPvvKJz_u80o_kJOIdVSPxmU6eqGync9XyEeul9oGbZRmgAegQKBWJ8dtQZkMqtDb67Xn4pPvIzy-ITPGBBwGd_qGmb5CKxPxQSFdmIBvoVRuKW381jIbmP9ebrWxY6nWMQ08euxZIL03nHAdt6TFNn8DXts8vnyZA0vpB84Pn9y3bz11LQ8dteXMzN_w/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
-          "notes": "新宿出发，经中央自动车道前往富士五湖区域。",
+          "la": 35.691859099999995,
+          "lo": 139.7096866,
+          "img": "https://places.googleapis.com/v1/places/ChIJ2VfcI92MGGARFoxqkwZsgFs/photos/AU_ZVEG8dJgSYTVGdiWBXwGvXSxpvx47Gwo1q4nT2InDfKw9Q1HJzKeJVy7F_CfljldSQ9Hf4T1S3p1GzDvgHqywkJO7sDMldD6_6KvLOz4BAc0eXqxsf1VZLSLSv8h1ZGpIV1B9d7dQirRMTMSTR-nj16tQMJ7DsEq5b2In-Xz3geMUf-YOQxSsB5eAnU2FSA_pe2OdM12iJh3SIE77l_fQLokeJMoJghXzYmJNJM628geQaCPM7oTgcOVgsqspov-_wwA3FsdxvP-5WvAM-OHUZcBbtKqKlpJPq389MDsgkK8roEo0e-y1CDxtg5PtDer7D2bl-vzaXBIQm_XS5P2Ib_i-Zls3SRWu3jojUMxvbHDjFFWK5a9dACojhklMaza8lXa1VsFZxnZQctiBdwFiERoSO1Oo3YSGDhW6TO4qUYpWIWkcF2ALpz3PwJPglU5c/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
+          "notes": "清晨的新宿街头，在Yawaragi",
           "id": "2_1774286355117",
           "type": "poi"
         },
