@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exportDate": "2026-03-23T11:03:33.108Z",
+  "exportDate": "2026-03-23T11:09:20.035Z",
   "days": [
     {
       "id": 0,
@@ -426,20 +426,6 @@
           "currency": "¥",
           "rating": 4.5,
           "reviews": 266
-        },
-        {
-          "currency": "¥",
-          "addr": "Japan, 〒248-0033 Kanagawa, Kamakura, Koshigoe, 3-chōme−5−２９ プラザ鎌倉 2F",
-          "cost": "1200",
-          "category": "food",
-          "time": "Midday",
-          "name": "13:00 一风堂拉面 (Ippudo) (Ippudo - Shonan Seaside)",
-          "la": 35.3086323,
-          "lo": 139.4905848,
-          "img": "https://places.googleapis.com/v1/places/ChIJd-WgzRxPGGAR_1pi_WfCI3o/photos/AU_ZVEFxOnINUrWz6m7Cqgl0pbfrmh6BiL4fDK-gO06rJX4urSA5FlmQiissVG5hsSNiJIiMJuqA3nGRLHU2wpNMgnDHIU_ffsR1z9fPMK_6fM_rhTx9viRpKfGfymOMYnwdv8FbU-Y9VY-hDcgbpJ2fb9fJ0VVbJIuysjlO7oMNIQRGpxZZ4aWxPrMftjIr4z7l44QQ3RGyTAvvAKY_a13rLbufH_gkJskqnuIstpgtcRWEsJ7paIRy1w1lP804O31ZvseLmWxsF1GduHCfFoTR8wuzo6JRzfFVqdmTCt0uXntfAw/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
-          "notes": "🍜 招牌赤丸新味 ¥",
-          "id": "2_1774263752875",
-          "type": "poi"
         }
       ]
     },
