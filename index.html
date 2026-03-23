@@ -1195,14 +1195,81 @@ function PreviewCard({fc,days,onApply,onDismiss}){
   </div>);
 }
 
-function KnowledgeBaseModal({knowledgeBase,setKnowledgeBase,days,origin,setDays,onClose,onScrollToActivity}){
-  const[tab,setTab]=useState('articles');
-  const[search,setSearch]=useState('');
-  const[editing,setEditing]=useState(null);// null=list, object=editing article
+// ═══ Floating AI Chat Bubble ═══
+function AIChatBubble({knowledgeBase,setKnowledgeBase,days,origin,setDays,onScrollToActivity}){
+  const[open,setOpen]=useState(false);
   const[chatMsgs,setChatMsgs]=useState([]);
   const[chatInput,setChatInput]=useState('');
   const[loading,setLoading]=useState(false);
   const chatEndRef=useRef(null);
+
+  const handleSendChat=async()=>{
+    const q=chatInput.trim();if(!q)return;
+    const userMsg={role:'user',text:q,time:new Date().toLocaleTimeString()};
+    setChatMsgs(prev=>[...prev,userMsg]);setChatInput('');setLoading(true);
+    const history=chatMsgs.map(m=>({role:m.role==='user'?'user':'model',text:m.text||'I suggested changes.'}));
+    const result=await askAI(q,knowledgeBase,history,{days,origin});
+    const aiMsg={role:'ai',text:typeof result==='string'?result:(result.text||''),time:new Date().toLocaleTimeString(),
+      functionCalls:(typeof result==='object'&&result.functionCalls)||[],
+      groundingSources:(typeof result==='object'&&result.groundingMetadata?.groundingChunks)||[]};
+    setChatMsgs(prev=>[...prev,aiMsg]);setLoading(false);
+  };
+
+  const handleApplyPreview=(msgIdx,callIdx)=>{
+    const msg=chatMsgs[msgIdx];const fc=msg.functionCalls[callIdx];
+    const{name:fnName,args}=fc.functionCall;
+    if(fnName==='add_activity'){const{dayId,activity}=args;setDays(prev=>prev.map(d=>{if(d.id!==dayId)return d;return{...d,activities:[...d.activities,{...activity,id:`${dayId}_${Date.now()}`,type:activity.from?'note':'poi'}]};}));}
+    else if(fnName==='edit_activity'){const{activityId,updates}=args;setDays(prev=>prev.map(d=>({...d,activities:d.activities.map(a=>a.id===activityId?{...a,...updates}:a)})));}
+    else if(fnName==='delete_activity'){setDays(prev=>prev.map(d=>({...d,activities:d.activities.filter(a=>a.id!==args.activityId)})));}
+    else if(fnName==='reorder_activity'){setDays(prev=>{const nd=JSON.parse(JSON.stringify(prev));for(const d of nd){const idx=d.activities.findIndex(a=>a.id===args.activityId);if(idx>=0){const[item]=d.activities.splice(idx,1);d.activities.splice(Math.min(args.newIndex,d.activities.length),0,item);break;}}return nd;});}
+    else if(fnName==='save_to_kb'){setKnowledgeBase(prev=>[...prev,{id:'kb_'+Date.now(),title:args.title,content:args.content,tags:args.tags||[],createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()}]);}
+    else if(fnName==='edit_kb'){setKnowledgeBase(prev=>prev.map(a=>a.id===args.articleId?{...a,...(args.title?{title:args.title}:{}),...(args.content?{content:args.content}:{}),...(args.tags?{tags:args.tags}:{}),updatedAt:new Date().toISOString()}:a));}
+    else if(fnName==='delete_kb'){setKnowledgeBase(prev=>prev.filter(a=>a.id!==args.articleId));}
+    setChatMsgs(prev=>prev.map((m,i)=>{if(i!==msgIdx)return m;const nfc=[...m.functionCalls];nfc[callIdx]={...nfc[callIdx],applied:true};return{...m,functionCalls:nfc};}));
+  };
+  const handleDismissPreview=(msgIdx,callIdx)=>{setChatMsgs(prev=>prev.map((m,i)=>{if(i!==msgIdx)return m;const nfc=[...m.functionCalls];nfc[callIdx]={...nfc[callIdx],dismissed:true};return{...m,functionCalls:nfc};}));};
+
+  useEffect(()=>{chatEndRef.current?.scrollIntoView({behavior:'smooth'});},[chatMsgs,loading]);
+
+  if(!open)return(<button onClick={()=>setOpen(true)} style={{position:'fixed',bottom:24,right:24,width:56,height:56,borderRadius:'50%',background:'linear-gradient(135deg,#c46b98,#e8a0bf)',border:'none',boxShadow:'0 4px 20px rgba(196,107,152,0.4)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:24,color:'#fff',zIndex:999,transition:'transform 0.2s'}} onMouseEnter={e=>e.currentTarget.style.transform='scale(1.1)'} onMouseLeave={e=>e.currentTarget.style.transform='scale(1)'}>🤖</button>);
+
+  return(<div style={{position:'fixed',bottom:24,right:24,width:380,maxWidth:'calc(100vw - 32px)',height:520,maxHeight:'calc(100vh - 48px)',borderRadius:20,background:'#fff',boxShadow:'0 8px 40px rgba(0,0,0,0.15)',display:'flex',flexDirection:'column',zIndex:999,border:'1px solid #e8e4de',overflow:'hidden'}}>
+    <div style={{padding:'14px 18px',background:'linear-gradient(135deg,#1a1a2e,#2d2d4a)',display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}}>
+      <span style={{fontSize:15,fontWeight:700,color:'#fff'}}>🤖 AI 旅行助手</span>
+      <button onClick={()=>setOpen(false)} style={{background:'none',border:'none',fontSize:18,cursor:'pointer',color:'rgba(255,255,255,0.6)',padding:4}}>✕</button>
+    </div>
+    <div style={{flex:1,overflow:'auto',padding:'12px 14px'}}>
+      {chatMsgs.length===0&&<div style={{textAlign:'center',padding:'30px 0',color:'#9ca3af',fontSize:13}}>
+        {GEMINI_KEY?'问我任何旅行问题，或让我帮你添加/编辑活动':'⚠️ 未配置 Gemini API Key'}
+      </div>}
+      {chatMsgs.map((m,i)=>(
+        <div key={i} style={{display:'flex',justifyContent:m.role==='user'?'flex-end':'flex-start',marginBottom:8}}>
+          <div style={{maxWidth:'85%',padding:'8px 12px',borderRadius:m.role==='user'?'12px 12px 4px 12px':'12px 12px 12px 4px',background:m.role==='user'?'linear-gradient(135deg,#c46b98,#e8a0bf)':'#faf8f4',color:m.role==='user'?'#fff':'#1a1a2e',fontSize:13,lineHeight:1.5,border:m.role==='user'?'none':'1px solid #e8e4de',whiteSpace:m.role==='user'?'pre-wrap':'normal'}}>
+            {m.role==='ai'?(<div>
+              {m.text&&renderMd(m.text,(id)=>{setOpen(false);setTimeout(()=>onScrollToActivity&&onScrollToActivity(id),300);})}
+              {m.functionCalls&&m.functionCalls.map((fc,ci)=>(<PreviewCard key={ci} fc={fc} days={days} onApply={()=>handleApplyPreview(i,ci)} onDismiss={()=>handleDismissPreview(i,ci)}/>))}
+              {m.groundingSources&&m.groundingSources.length>0&&(<div style={{fontSize:10,color:'#9ca3af',marginTop:6,paddingTop:4,borderTop:'1px solid #f0ede8'}}>🔍 {m.groundingSources.slice(0,2).map((s,si)=>(<a key={si} href={s.web?.uri} target="_blank" rel="noopener" style={{color:'#1a73a7',marginRight:6,textDecoration:'none',fontSize:10}}>{s.web?.title||'Link'}</a>))}</div>)}
+            </div>):m.text}
+            <div style={{fontSize:9,marginTop:3,opacity:0.5,textAlign:'right'}}>{m.time}</div>
+          </div>
+        </div>
+      ))}
+      {loading&&<div style={{display:'flex',justifyContent:'flex-start',marginBottom:8}}>
+        <div style={{padding:'8px 12px',borderRadius:'12px 12px 12px 4px',background:'#faf8f4',border:'1px solid #e8e4de',fontSize:13,color:'#9ca3af'}}>思考中...</div>
+      </div>}
+      <div ref={chatEndRef}/>
+    </div>
+    <div style={{padding:'10px 14px',borderTop:'1px solid #e8e4de',display:'flex',gap:6,flexShrink:0}}>
+      <input value={chatInput} onChange={e=>setChatInput(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();handleSendChat();}}} placeholder="问我旅行问题..." style={{...S.inp,flex:1,fontSize:13,padding:'8px 12px'}} disabled={loading}/>
+      <button onClick={handleSendChat} disabled={loading||!chatInput.trim()} style={{...S.savBtn,padding:'8px 14px',fontSize:13,opacity:loading||!chatInput.trim()?0.5:1}}>发送</button>
+    </div>
+  </div>);
+}
+
+function KnowledgeBaseModal({knowledgeBase,setKnowledgeBase,onClose}){
+  const[search,setSearch]=useState('');
+  const[viewing,setViewing]=useState(null);// null=list, string=viewing article id
+  const[editing,setEditing]=useState(null);// null=not editing, object=editing article
 
   const filtered=useMemo(()=>{
     if(!search.trim())return knowledgeBase;
@@ -1216,91 +1283,32 @@ function KnowledgeBaseModal({knowledgeBase,setKnowledgeBase,days,origin,setDays,
   const handleSaveArticle=()=>{
     if(!editing.title.trim())return alert('请输入标题');
     const now=new Date().toISOString();
-    if(editing.id){
-      setKnowledgeBase(prev=>prev.map(a=>a.id===editing.id?{...editing,updatedAt:now}:a));
-    }else{
-      setKnowledgeBase(prev=>[{...editing,id:'kb_'+Date.now(),createdAt:now,updatedAt:now},...prev]);
-    }
-    setEditing(null);
+    if(editing.id){setKnowledgeBase(prev=>prev.map(a=>a.id===editing.id?{...editing,updatedAt:now}:a));}
+    else{setKnowledgeBase(prev=>[{...editing,id:'kb_'+Date.now(),createdAt:now,updatedAt:now},...prev]);}
+    setEditing(null);setViewing(null);
   };
+  const handleDeleteArticle=(id)=>{if(!confirm('确定删除？'))return;setKnowledgeBase(prev=>prev.filter(a=>a.id!==id));setEditing(null);setViewing(null);};
 
-  const handleDeleteArticle=(id)=>{
-    if(!confirm('确定删除这篇文章？'))return;
-    setKnowledgeBase(prev=>prev.filter(a=>a.id!==id));
-    setEditing(null);
-  };
-
-  const handleSendChat=async()=>{
-    const q=chatInput.trim();if(!q)return;
-    const userMsg={role:'user',text:q,time:new Date().toLocaleTimeString()};
-    setChatMsgs(prev=>[...prev,userMsg]);setChatInput('');setLoading(true);
-    const history=chatMsgs.map(m=>({role:m.role==='user'?'user':'model',text:m.text||'我对行程做了一些建议。'}));
-    const result=await askAI(q,knowledgeBase,history,{days,origin});
-    const aiMsg={role:'ai',text:typeof result==='string'?result:(result.text||''),time:new Date().toLocaleTimeString(),
-      functionCalls:(typeof result==='object'&&result.functionCalls)||[],
-      groundingSources:(typeof result==='object'&&result.groundingMetadata?.groundingChunks)||[]};
-    setChatMsgs(prev=>[...prev,aiMsg]);
-    setLoading(false);
-  };
-
-  const handleApplyPreview=(msgIdx,callIdx)=>{
-    const msg=chatMsgs[msgIdx];const fc=msg.functionCalls[callIdx];
-    const{name:fnName,args}=fc.functionCall;
-    if(fnName==='add_activity'){
-      const{dayId,activity}=args;
-      setDays(prev=>prev.map(d=>{if(d.id!==dayId)return d;return{...d,activities:[...d.activities,{...activity,id:`${dayId}_${Date.now()}`,type:activity.from?'note':'poi'}]};}));
-    }else if(fnName==='edit_activity'){
-      const{activityId,updates}=args;
-      setDays(prev=>prev.map(d=>({...d,activities:d.activities.map(a=>a.id===activityId?{...a,...updates}:a)})));
-    }else if(fnName==='delete_activity'){
-      setDays(prev=>prev.map(d=>({...d,activities:d.activities.filter(a=>a.id!==args.activityId)})));
-    }else if(fnName==='reorder_activity'){
-      setDays(prev=>{const nd=JSON.parse(JSON.stringify(prev));for(const d of nd){const idx=d.activities.findIndex(a=>a.id===args.activityId);if(idx>=0){const[item]=d.activities.splice(idx,1);d.activities.splice(Math.min(args.newIndex,d.activities.length),0,item);break;}}return nd;});
-    }else if(fnName==='save_to_kb'){
-      setKnowledgeBase(prev=>[...prev,{id:'kb_'+Date.now(),title:args.title,content:args.content,tags:args.tags||[],createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()}]);
-    }else if(fnName==='edit_kb'){
-      setKnowledgeBase(prev=>prev.map(a=>a.id===args.articleId?{...a,...(args.title?{title:args.title}:{}),
-        ...(args.content?{content:args.content}:{}),
-        ...(args.tags?{tags:args.tags}:{}),updatedAt:new Date().toISOString()}:a));
-    }else if(fnName==='delete_kb'){
-      setKnowledgeBase(prev=>prev.filter(a=>a.id!==args.articleId));
-    }
-    setChatMsgs(prev=>prev.map((m,i)=>{if(i!==msgIdx)return m;const nfc=[...m.functionCalls];nfc[callIdx]={...nfc[callIdx],applied:true};return{...m,functionCalls:nfc};}));
-  };
-
-  const handleDismissPreview=(msgIdx,callIdx)=>{
-    setChatMsgs(prev=>prev.map((m,i)=>{if(i!==msgIdx)return m;const nfc=[...m.functionCalls];nfc[callIdx]={...nfc[callIdx],dismissed:true};return{...m,functionCalls:nfc};}));
-  };
-
-  useEffect(()=>{chatEndRef.current?.scrollIntoView({behavior:'smooth'});},[chatMsgs,loading]);
-
-  const tabStyle=(t)=>({padding:'8px 20px',borderRadius:100,border:'none',background:tab===t?'linear-gradient(135deg,#c46b98,#e8a0bf)':'transparent',color:tab===t?'#fff':'#6b7280',fontWeight:700,fontSize:13,cursor:'pointer',fontFamily:'inherit',transition:'all 0.15s'});
   const tagPill={display:'inline-block',padding:'2px 10px',borderRadius:100,background:'#f0ecf8',color:'#6b48a8',fontSize:11,fontWeight:600,marginRight:4,marginBottom:4};
+  const viewArticle=viewing?knowledgeBase.find(a=>a.id===viewing):null;
 
   return(<div style={S.overlay} onClick={onClose}>
     <div style={{...S.modal,maxWidth:600,maxHeight:'85vh',display:'flex',flexDirection:'column'}} onClick={e=>e.stopPropagation()}>
-      {/* Header */}
-      <div style={{padding:'20px 24px 0',flexShrink:0}}>
-        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>
-          <h2 style={{fontSize:20,fontWeight:800,color:'#1a1a2e'}}>📚 知识库</h2>
-          <button onClick={onClose} style={{background:'none',border:'none',fontSize:20,cursor:'pointer',color:'#9ca3af',padding:4}}>✕</button>
-        </div>
-        <div style={{display:'flex',gap:6,marginBottom:16,background:'#faf8f4',borderRadius:100,padding:4}}>
-          <button onClick={()=>setTab('articles')} style={tabStyle('articles')}>📝 文章</button>
-          <button onClick={()=>setTab('ai')} style={tabStyle('ai')}>🤖 AI问答</button>
-        </div>
+      <div style={{padding:'20px 24px 16px',flexShrink:0,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+        <h2 style={{fontSize:20,fontWeight:800,color:'#1a1a2e'}}>📚 知识库</h2>
+        <button onClick={onClose} style={{background:'none',border:'none',fontSize:20,cursor:'pointer',color:'#9ca3af',padding:4}}>✕</button>
       </div>
 
-      {/* Articles Tab */}
-      {tab==='articles'&&!editing&&(
+      {/* Article List */}
+      {!viewing&&!editing&&(
         <div style={{flex:1,overflow:'auto',padding:'0 24px 20px'}}>
           <div style={{display:'flex',gap:8,marginBottom:14}}>
-            <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="🔍 搜索文章..." style={{...S.inp,flex:1}}/>
+            <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="🔍 搜索..." style={{...S.inp,flex:1}}/>
             <button onClick={()=>setEditing({id:null,title:'',content:'',tags:[]})} style={{...S.savBtn,fontSize:13,padding:'8px 16px',whiteSpace:'nowrap'}}>+ 新建</button>
           </div>
-          {filtered.length===0&&<div style={{textAlign:'center',padding:'40px 0',color:'#9ca3af',fontSize:14}}>{knowledgeBase.length===0?'还没有文章，点击 + 新建':'未找到匹配的文章'}</div>}
+          {filtered.length===0&&<div style={{textAlign:'center',padding:'40px 0',color:'#9ca3af',fontSize:14}}>{knowledgeBase.length===0?'还没有文章，点击 + 新建 或用 AI 助手保存':'未找到匹配的文章'}</div>}
           {filtered.map(a=>(
-            <div key={a.id} onClick={()=>setEditing({...a})} style={{...S.actCard,marginBottom:10,cursor:'pointer'}}>
+            <div key={a.id} onClick={()=>setViewing(a.id)} style={{...S.actCard,marginBottom:10,cursor:'pointer'}}>
               <div style={{fontWeight:700,fontSize:15,color:'#1a1a2e',marginBottom:4}}>{a.title}</div>
               <div style={{fontSize:13,color:'#6b7280',marginBottom:8,lineHeight:1.5}}>{a.content.slice(0,120)}{a.content.length>120?'...':''}</div>
               <div>{a.tags.map(t=><span key={t} style={tagPill}>{t}</span>)}</div>
@@ -1310,10 +1318,26 @@ function KnowledgeBaseModal({knowledgeBase,setKnowledgeBase,days,origin,setDays,
         </div>
       )}
 
-      {/* Article Editor */}
-      {tab==='articles'&&editing&&(
+      {/* Article Reader (Preview) */}
+      {viewing&&!editing&&viewArticle&&(
         <div style={{flex:1,overflow:'auto',padding:'0 24px 20px'}}>
-          <button onClick={()=>setEditing(null)} style={{background:'none',border:'none',fontSize:13,color:'#c46b98',fontWeight:700,cursor:'pointer',padding:'0 0 12px',fontFamily:'inherit'}}>← 返回列表</button>
+          <button onClick={()=>setViewing(null)} style={{background:'none',border:'none',fontSize:13,color:'#c46b98',fontWeight:700,cursor:'pointer',padding:'0 0 12px',fontFamily:'inherit'}}>← 返回列表</button>
+          <h3 style={{fontSize:20,fontWeight:800,color:'#1a1a2e',marginBottom:8,lineHeight:1.3}}>{viewArticle.title}</h3>
+          <div style={{marginBottom:12}}>{viewArticle.tags.map(t=><span key={t} style={tagPill}>{t}</span>)}</div>
+          <div style={{fontSize:14,color:'#4a4a5a',lineHeight:1.8,whiteSpace:'pre-wrap',background:'#faf8f4',borderRadius:12,padding:'16px 20px',border:'1px solid #e8e4de'}}>
+            {viewArticle.content}
+          </div>
+          <div style={{display:'flex',gap:8,marginTop:14}}>
+            <button onClick={()=>setEditing({...viewArticle})} style={{...S.savBtn,flex:1}}>✏️ 编辑</button>
+            <button onClick={()=>handleDeleteArticle(viewArticle.id)} style={S.delBtn}>🗑️ 删除</button>
+          </div>
+        </div>
+      )}
+
+      {/* Article Editor */}
+      {editing&&(
+        <div style={{flex:1,overflow:'auto',padding:'0 24px 20px'}}>
+          <button onClick={()=>{setEditing(null);}} style={{background:'none',border:'none',fontSize:13,color:'#c46b98',fontWeight:700,cursor:'pointer',padding:'0 0 12px',fontFamily:'inherit'}}>← {viewing?'返回预览':'返回列表'}</button>
           <label style={S.fl}>标题</label>
           <input value={editing.title} onChange={e=>setEditing({...editing,title:e.target.value})} placeholder="文章标题" style={S.inp}/>
           <label style={S.fl}>标签 (逗号分隔)</label>
@@ -1324,37 +1348,6 @@ function KnowledgeBaseModal({knowledgeBase,setKnowledgeBase,days,origin,setDays,
             {editing.id&&<button onClick={()=>handleDeleteArticle(editing.id)} style={S.delBtn}>删除</button>}
             <button onClick={()=>setEditing(null)} style={S.canBtn}>取消</button>
             <button onClick={handleSaveArticle} style={{...S.savBtn,flex:1}}>保存</button>
-          </div>
-        </div>
-      )}
-
-      {/* AI Chat Tab */}
-      {tab==='ai'&&(
-        <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
-          <div style={{flex:1,overflow:'auto',padding:'0 24px 12px'}}>
-            {chatMsgs.length===0&&<div style={{textAlign:'center',padding:'40px 0',color:'#9ca3af',fontSize:14}}>
-              {GEMINI_KEY?'基于知识库内容回答你的旅行问题':'⚠️ 未配置 Gemini API Key\n请在 config.js 中设置 window.GEMINI_KEY'}
-            </div>}
-            {chatMsgs.map((m,i)=>(
-              <div key={i} style={{display:'flex',justifyContent:m.role==='user'?'flex-end':'flex-start',marginBottom:10}}>
-                <div style={{maxWidth:'85%',padding:'10px 14px',borderRadius:m.role==='user'?'14px 14px 4px 14px':'14px 14px 14px 4px',background:m.role==='user'?'linear-gradient(135deg,#c46b98,#e8a0bf)':'#fff',color:m.role==='user'?'#fff':'#1a1a2e',fontSize:14,lineHeight:1.6,border:m.role==='user'?'none':'1px solid #e8e4de',boxShadow:'0 1px 3px rgba(0,0,0,0.05)',whiteSpace:m.role==='user'?'pre-wrap':'normal'}}>
-                  {m.role==='ai'?(<div>
-                    {m.text&&renderMd(m.text,(id)=>{onClose();setTimeout(()=>onScrollToActivity&&onScrollToActivity(id),300);})}
-                    {m.functionCalls&&m.functionCalls.map((fc,ci)=>(<PreviewCard key={ci} fc={fc} days={days} onApply={()=>handleApplyPreview(i,ci)} onDismiss={()=>handleDismissPreview(i,ci)}/>))}
-                    {m.groundingSources&&m.groundingSources.length>0&&(<div style={{fontSize:11,color:'#9ca3af',marginTop:8,paddingTop:6,borderTop:'1px solid #f0ede8'}}>🔍 来源: {m.groundingSources.slice(0,3).map((s,si)=>(<a key={si} href={s.web?.uri} target="_blank" rel="noopener" style={{color:'#1a73a7',marginRight:8,textDecoration:'none'}}>{s.web?.title||'Link'}</a>))}</div>)}
-                  </div>):m.text}
-                  <div style={{fontSize:10,marginTop:4,opacity:0.6,textAlign:'right'}}>{m.time}</div>
-                </div>
-              </div>
-            ))}
-            {loading&&<div style={{display:'flex',justifyContent:'flex-start',marginBottom:10}}>
-              <div style={{padding:'10px 14px',borderRadius:'14px 14px 14px 4px',background:'#fff',border:'1px solid #e8e4de',fontSize:14,color:'#9ca3af'}}>思考中...</div>
-            </div>}
-            <div ref={chatEndRef}/>
-          </div>
-          <div style={{padding:'12px 24px 20px',borderTop:'1px solid #e8e4de',display:'flex',gap:8,flexShrink:0}}>
-            <input value={chatInput} onChange={e=>setChatInput(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();handleSendChat();}}} placeholder="问我关于旅行的问题..." style={{...S.inp,flex:1}} disabled={loading}/>
-            <button onClick={handleSendChat} disabled={loading||!chatInput.trim()} style={{...S.savBtn,padding:'10px 18px',opacity:loading||!chatInput.trim()?0.5:1}}>发送</button>
           </div>
         </div>
       )}
@@ -1656,13 +1649,13 @@ function App(){
     {dayM&&<DayDetailModal days={days} initialDayId={dayM} onClose={()=>setDayM(null)} onViewExp={act=>{setDayM(null);setViewE(act);}}/>}
     {editA&&<EditModal activity={editA} onSave={hSave} onDelete={hDel} onClose={()=>{setEditA(null);setEditD(null);}}/>}
     {showVersions&&<VersionHistoryModal onClose={()=>setShowVersions(false)} onRestore={(data)=>{setDays(data.days);if(data.origin)setOrigin(data.origin);if(data.knowledgeBase&&Array.isArray(data.knowledgeBase))setKnowledgeBase(data.knowledgeBase);}}/>}
-    {showKB&&<KnowledgeBaseModal knowledgeBase={knowledgeBase} setKnowledgeBase={setKnowledgeBase} days={days} origin={origin} setDays={setDays} onClose={()=>setShowKB(false)} onScrollToActivity={(id)=>{
-      // Expand the day containing this activity, then scroll to it
+    {showKB&&<KnowledgeBaseModal knowledgeBase={knowledgeBase} setKnowledgeBase={setKnowledgeBase} onClose={()=>setShowKB(false)}/>}
+    <AIChatBubble knowledgeBase={knowledgeBase} setKnowledgeBase={setKnowledgeBase} days={days} origin={origin} setDays={setDays} onScrollToActivity={(id)=>{
       const dayObj=days.find(d=>d.activities.some(a=>a.id===id));
       if(dayObj){setExp(p=>({...p,[dayObj.id]:true}));
         setTimeout(()=>{const el=document.getElementById('act-'+id);if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.style.boxShadow='0 0 0 3px #c46b98';el.style.transition='box-shadow 0.3s';setTimeout(()=>{el.style.boxShadow='';},3000);}},400);
       }
-    }}/>}
+    }}/>
   </div>);
 }
 
