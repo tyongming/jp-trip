@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exportDate": "2026-03-23T16:49:09.275Z",
+  "exportDate": "2026-03-23T17:07:37.432Z",
   "days": [
     {
       "id": 0,
@@ -195,14 +195,14 @@
         {
           "id": "1c",
           "type": "poi",
-          "name": "02:00 DiCE Kamata West Exit - Fully Booked Online ⚠️",
+          "name": "02:00 快活CLUB 蒲田西口店 (Kaikatsu CLUB) (Kaikatsu Club)",
           "category": "hotel",
           "time": "Night",
-          "la": 35.5632357,
-          "lo": 139.7156947,
-          "addr": "DiCE Kamata Station West Exit – Internet Cafe & Darts 日本〒144-0051 Tokyo, Ota City, Nishikamata, 7 Chome−3−3 Daigo Bldg., ５Ｆ",
-          "img": "https://lh3.googleusercontent.com/gps-cs-s/AHVAweqlB24XCIlBqqKJMqiBg_Bh5mjEIy5PuBJhQwxjC1z4vlI54lQc_TYTvoVPPyL9pk1Yu78jpdgNu7h0xRshoeTKwqcwmpLM1onRU6SaN5hqGDcHkT5W58fblPn2gUTSDoCJk3BkIWXrgKGm=w427-h240-k-no",
-          "notes": "(Note: Check for walk-in availability or call +81 3-6424-5822)\n\n务必选择「完全个室 (VIP Room)」。洗个热水澡，锁上门，在绝对私密的空间里沉沉睡去。\n💡 比酒店省钱，凌晨入住完美解决红眼航班问题",
+          "la": 35.5624028,
+          "lo": 139.7145253,
+          "addr": "Japan, 〒144-0051 Tokyo, Ota City, Nishikamata, 7-chōme−66−５ ミヤベビル 2・3・4F",
+          "img": "https://places.googleapis.com/v1/places/ChIJnaeCQ1JhGGARaU96nN6SKXY/photos/AU_ZVEFvJ3f1His6-XjHHkSzJbHw1ild1Dwvw2S8-Aq2FBzpVPzukirsxMvfCQj4zDBnaLzJg4VhMsv7BTCpv6voGt1bV-2GdifVVcdxMGSNjWJ0pfijDeg-LydlMoy5XPb11iGjPxzHLOkTqFr0FazRfzk9_GwoNQmcP4GJ1AdA0puIIC8xw7OaQ0bHsdj5q-KA-Z7O7WroekhnnJbF3mrgqGNsf7lDxhp4LXPNYdJniD0Y8djL5z-LyEB05_i5-xV5B8p0eUF27voLE8bo4CBaCz09zAzY6I4HTB6pNR3o6Qn_kg/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
+          "notes": "这是离蒲田西口最近的快活CLUB。建议选择「完全个室 (VIP Room)」。洗个热水澡，锁上门，在绝对私密的空间里沉沉睡去。\n💡 比酒店省钱，凌晨入住完美解决红眼航班问题。如果DiCE满员，这里是最好的备选。",
           "cost": "5000",
           "currency": "¥"
         },
