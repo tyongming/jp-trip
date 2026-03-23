@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exportDate": "2026-03-23T20:32:14.401Z",
+  "exportDate": "2026-03-23T20:34:08.678Z",
   "days": [
     {
       "id": 0,
@@ -161,6 +161,14 @@
           "notes": "⬜ Google Maps (下载离线地图)\n⬜ Suica App (iPhone可直接充值)\n⬜ Google Translate (下载日语离线包)\n⬜ Navitime / Yahoo乗換案内 (电车换乘)\n⬜ PayPay (日本移动支付，部分店家用)",
           "la": 40.005055,
           "lo": 140.97809
+        },
+        {
+          "category": "shopping",
+          "time": "Daytime",
+          "name": "准备旅行适配器 (插座转换器)",
+          "notes": "马来西亚是英式插头(Type G)，日本是美式双平脚(Type A)。务必购买一个“英转美”的转换插头，或者带一个支持多国插脚的万能转换器。\n💡 建议多带一个小型排插，方便同时给手机、相机、eSIM设备充电。",
+          "id": "0_1774298017892",
+          "type": "poi"
         }
       ]
     },
