@@ -55,7 +55,8 @@ const GITHUB_FILE='japan-trip-data.json';
 const GITHUB_BRANCH='data';
 const GITHUB_PAT=window.GITHUB_PAT||'';
 const GEMINI_KEY=window.GEMINI_KEY||'';
-const GEMINI_MODEL='gemini-2.5-flash';
+const GEMINI_MODEL=window.GEMINI_MODEL||'gemini-3.1-flash-lite-preview';
+const GEMINI_MODEL_SMART=window.GEMINI_MODEL_SMART||'gemini-3-flash-preview';
 
 async function githubEnsureBranch(){
   // Create 'data' branch from master if it doesn't exist
@@ -108,23 +109,149 @@ async function githubLoadVersion(sha){
   }catch(e){return null;}
 }
 
-// ═══ GEMINI AI — knowledge base Q&A ═══
-async function askAI(question,kb,chatHistory){
-  if(!GEMINI_KEY)return'⚠️ 未配置 Gemini API Key。请在 config.js 中设置 window.GEMINI_KEY';
+// ═══ GEMINI AI — Function Declarations for CRUD ═══
+const ACTIVITY_SCHEMA={type:"object",properties:{
+  name:{type:"string",description:"活动名称，建议包含时间如'14:30 中野Broadway'"},
+  category:{type:"string",enum:["flight","transport","hotel","sightseeing","food","shopping","anime","photo","nightlife"],description:"活动分类"},
+  time:{type:"string",enum:["Early Morning","Morning","Midday","Afternoon","Evening","Night","Late Night","Daytime"],description:"时间段"},
+  cost:{type:"string",description:"费用金额（纯数字）"},currency:{type:"string",enum:["¥","MYR","USD"]},
+  addr:{type:"string",description:"地址"},notes:{type:"string",description:"备注信息"},
+  from:{type:"string",description:"交通出发站"},to:{type:"string",description:"交通到达站"},
+  line:{type:"string",description:"交通路线详情"},directionsUrl:{type:"string",description:"Google Maps路线链接"},
+  transportCost:{type:"string",description:"交通费用（纯数字，日元）"},
+  la:{type:"number",description:"纬度"},lo:{type:"number",description:"经度"},
+  img:{type:"string",description:"图片URL"}
+},required:["name"]};
+
+const AI_TOOLS_CRUD=[
+  {functionDeclarations:[
+    {name:"add_activity",description:"添加一个新活动到指定日期。尽量填充完整信息（地址、费用、时间、分类、坐标等）。",parameters:{type:"object",properties:{dayId:{type:"integer",description:"目标日期的ID（如1代表Day 1）"},activity:ACTIVITY_SCHEMA},required:["dayId","activity"]}},
+    {name:"edit_activity",description:"编辑已有活动的指定字段。只传需要修改的字段。",parameters:{type:"object",properties:{activityId:{type:"string",description:"活动ID，如'1d'或'2a'"},updates:ACTIVITY_SCHEMA},required:["activityId"]}},
+    {name:"delete_activity",description:"删除一个活动",parameters:{type:"object",properties:{activityId:{type:"string",description:"要删除的活动ID"}},required:["activityId"]}},
+    {name:"reorder_activity",description:"移动活动到新位置",parameters:{type:"object",properties:{activityId:{type:"string",description:"活动ID"},newIndex:{type:"integer",description:"新的位置索引（从0开始）"}},required:["activityId","newIndex"]}},
+    {name:"save_to_kb",description:"保存一篇文章到知识库。用于用户分享旅行攻略、tips、规则等参考资料时。",parameters:{type:"object",properties:{title:{type:"string",description:"文章标题"},content:{type:"string",description:"文章内容（保留原始格式）"},tags:{type:"array",items:{type:"string"},description:"标签关键词，如['shopping','tax-free']"}},required:["title","content"]}},
+    {name:"edit_kb",description:"编辑知识库中已有文章",parameters:{type:"object",properties:{articleId:{type:"string",description:"文章ID"},title:{type:"string"},content:{type:"string"},tags:{type:"array",items:{type:"string"}}},required:["articleId"]}},
+    {name:"delete_kb",description:"删除知识库中的文章",parameters:{type:"object",properties:{articleId:{type:"string",description:"文章ID"}},required:["articleId"]}}
+  ]}
+];
+
+// ═══ GEMINI AI — knowledge base Q&A with CRUD + Grounding ═══
+async function askAI(question,kb,chatHistory,tripData){
+  if(!GEMINI_KEY)return{text:'⚠️ 未配置 Gemini API Key。请在 config.js 中设置 window.GEMINI_KEY',functionCalls:[],groundingMetadata:null};
   const kbContext=kb.length>0?kb.map(a=>`【${a.title}】\n${a.content}`).join('\n\n'):'（知识库为空）';
-  const systemText=`你是一个日本旅行助手。根据以下知识库内容回答用户问题。如果知识库中没有相关信息，请根据你的知识回答，但注明是通用建议。回答要简洁实用。\n\n=== 知识库 ===\n${kbContext}`;
+  let tripContext='（无行程数据）';
+  if(tripData&&tripData.days&&tripData.days.length>0){
+    tripContext=tripData.days.map(d=>{
+      const acts=d.activities.map(a=>{
+        let line=`  - [ID:${a.id}] ${a.name}`;
+        if(a.time)line+=` (${a.time})`;
+        if(a.cost)line+=` · 费用:${a.currency||'¥'}${a.cost}`;
+        if(a.transportCost)line+=` · 交通费:¥${a.transportCost}`;
+        if(a.addr)line+=` · 地址:${a.addr}`;
+        if(a.from&&a.to)line+=` · 路线:${a.from}→${a.to}`;
+        if(a.line)line+=` · 线路:${a.line}`;
+        if(a.notes)line+=`\n    备注:${a.notes.split('\n').slice(0,2).join(' | ')}`;
+        return line;
+      }).join('\n');
+      return`【Day ${d.id}: ${d.date} ${d.dow} · ${d.location}】\n${d.theme}\n${acts}`;
+    }).join('\n\n');
+    if(tripData.origin)tripContext=`出发地: ${tripData.origin.name} (${tripData.origin.la},${tripData.origin.lo})\n\n${tripContext}`;
+  }
+  const systemText=`你是一个日本旅行助手。你拥有用户的完整行程数据和知识库。
+
+重要规则：
+1. 当用户问到行程中已有的信息（费用、路线、时间等），必须优先引用行程数据中的原始数据，不要用你的通用知识替代。
+2. 引用行程数据时，请用 [[活动ID]] 格式标注活动（例如 [[1d]]），这样用户可以点击跳转到对应的活动卡片。
+3. 如果行程中没有相关信息，可以用通用知识回答，但注明"（通用建议）"。
+4. 回答要简洁实用，用中文回答。
+5. 当用户要求添加活动时，使用 add_activity function。注意：
+   - 根据已有活动的时间安排，选择合适的时间段(time)插入，不要随意放在最后
+   - 如果新活动和前一个活动之间需要交通，也要额外调用 add_activity 添加一个 transport 类型的活动，包含 from/to/line/cost 字段
+   - name 必须包含具体时间如 "13:00 一风堂拉面"
+   - 使用 reorder_activity 把新活动移到正确的位置
+6. 对于实时信息（当前天气、最新营业时间、当前价格），如果行程数据中没有，回复 [需要搜索] 标记，系统会自动用Google Search重新回答。
+7. 编辑活动时，updates 中只包含需要修改的字段。
+8. 活动ID格式为行程数据中 [ID:xxx] 的 xxx 部分。
+9. notes 字段风格参考已有数据，例如：
+   "在日本的第一碗正式拉面！一兰的独立隔间设计，安静且不被打扰。\n💡 歌舞伎町店24h营业，不用担心时间"
+   "务必选择「完全个室 (VIP Room)」。洗个热水澡，锁上门，在绝对私密的空间里沉沉睡去。\n💡 比酒店省钱，凌晨入住完美解决红眼航班问题"
+   写具体的、有温度的、有画面感的文字，不要写"建议提前确认"这种废话。
+
+=== 行程数据 ===
+${tripContext}
+
+=== 知识库 ===
+${kbContext}`;
   const contents=[];
-  if(chatHistory)chatHistory.forEach(m=>{contents.push({role:m.role==='user'?'user':'model',parts:[{text:m.text}]});});
+  if(chatHistory)chatHistory.forEach(m=>{
+    if(m.role==='user')contents.push({role:'user',parts:[{text:m.text}]});
+    else contents.push({role:'model',parts:[{text:m.text||'我对行程做了一些建议。'}]});
+  });
   contents.push({role:'user',parts:[{text:question}]});
   try{
     const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_KEY}`,{
       method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({system_instruction:{parts:[{text:systemText}]},contents,generationConfig:{maxOutputTokens:1024,temperature:0.7}})
+      body:JSON.stringify({system_instruction:{parts:[{text:systemText}]},contents,tools:AI_TOOLS_CRUD,generationConfig:{maxOutputTokens:2048,temperature:0.7}})
     });
-    if(!r.ok){const e=await r.text();return`⚠️ API错误 (${r.status}): ${e.slice(0,200)}`;}
+    if(!r.ok){const e=await r.text();return{text:`⚠️ API错误 (${r.status}): ${e.slice(0,200)}`,functionCalls:[],groundingMetadata:null};}
     const d=await r.json();
-    return d.candidates?.[0]?.content?.parts?.[0]?.text||'⚠️ 未收到回复';
-  }catch(e){return'⚠️ 网络错误: '+e.message;}
+    const candidate=d.candidates?.[0];
+    const parts=candidate?.content?.parts||[];
+    const text=parts.filter(p=>p.text).map(p=>p.text).join('\n');
+    const functionCalls=parts.filter(p=>p.functionCall);
+    const groundingMetadata=candidate?.groundingMetadata||null;
+    // Auto-enrich: if function calls have incomplete data (no addr/la/lo), use Google Search+Maps to fill in
+    if(functionCalls.length>0){
+      const enriched=[];
+      for(const fc of functionCalls){
+        const fn=fc.functionCall;
+        const act=fn.name==='add_activity'?fn.args?.activity:fn.name==='edit_activity'?fn.args?.updates:null;
+        if(act&&act.name&&(!act.addr||!act.la||!act.notes||act.notes.length<20)){
+          try{
+            // Step 1: Google Places API for accurate address, coords, photo
+            if(GOOGLE_PLACES_KEY&&(!act.addr||!act.la)){
+              const sq=act.name+(act.addr?', '+act.addr:', Japan');
+              const pr=await fetch('https://places.googleapis.com/v1/places:searchText',{method:'POST',headers:{'Content-Type':'application/json','X-Goog-Api-Key':GOOGLE_PLACES_KEY,'X-Goog-FieldMask':'places.displayName,places.formattedAddress,places.location,places.photos,places.googleMapsUri'},body:JSON.stringify({textQuery:sq,maxResultCount:1})});
+              if(pr.ok){const pd=await pr.json();const pl=pd.places?.[0];
+                if(pl){
+                  console.log('[Enrichment Places]',pl.displayName?.text,pl.formattedAddress);
+                  if(pl.formattedAddress)act.addr=pl.formattedAddress;
+                  if(pl.location){act.la=pl.location.latitude;act.lo=pl.location.longitude;}
+                  if(pl.displayName?.text&&!act.name.includes(pl.displayName.text))act.name=act.name+` (${pl.displayName.text})`;
+                  if(pl.photos?.[0]?.name&&!act.img)act.img=`https://places.googleapis.com/v1/${pl.photos[0].name}/media?maxHeightPx=400&maxWidthPx=800&key=${GOOGLE_PLACES_KEY}`;
+                }
+              }
+            }
+            // Step 2: Gemini + Search for travel-guide notes
+            if(!act.notes||act.notes.length<20){
+            const notePrompt='Write 3-4 lines of vivid travel notes in Chinese for: '+act.name+(act.addr?' at '+act.addr:'')+'. Write emotionally resonant notes with specific facts. Good examples from existing data: "在日本的第一碗正式拉面！一兰的独立隔间设计，安静且不被打扰。💡 歌舞伎町店24h营业" and "从新宿坐JR中央线只需5分钟！比秋叶原更深邃的二次元空间。💡 まんだらけ本店在此，绝版手办圣地". Include: signature item + price, one practical 💡 tip, one vivid sensory detail. Plain text only. No JSON, no markdown. No generic advice like 建议提前确认.';
+            const nr=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL_SMART}:generateContent?key=${GEMINI_KEY}`,{
+              method:'POST',headers:{'Content-Type':'application/json'},
+              body:JSON.stringify({contents:[{role:'user',parts:[{text:notePrompt}]}],tools:[{google_search:{}}],generationConfig:{maxOutputTokens:256,temperature:0.3}})
+            });
+            if(nr.ok){const nd=await nr.json();const nt=nd.candidates?.[0]?.content?.parts?.filter(p=>p.text).map(p=>p.text).join('\n')||'';
+                if(nt.length>10){act.notes=nt.replace(/```[\s\S]*?```/g,'').replace(/^\s*\n/gm,'').trim();console.log('[Enrichment notes]',act.notes);}
+              }
+            }
+          }catch(e2){console.warn('[Enrichment error]',e2);}
+        }
+        enriched.push(fc);
+      }
+      return{text,functionCalls:enriched,groundingMetadata};
+    }
+    // If no function calls but needs search (real-time data question)
+    if(/\[需要搜索\]|SEARCH_NEEDED/.test(text)){
+      try{
+        const r2=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL_SMART}:generateContent?key=${GEMINI_KEY}`,{
+          method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({system_instruction:{parts:[{text:systemText}]},contents,tools:[{google_search:{}},{google_maps:{}}],generationConfig:{maxOutputTokens:2048,temperature:0.7}})
+        });
+        if(r2.ok){const d2=await r2.json();const c2=d2.candidates?.[0];const p2=c2?.content?.parts||[];
+          return{text:p2.filter(p=>p.text).map(p=>p.text).join('\n'),functionCalls:[],groundingMetadata:c2?.groundingMetadata||null};}
+      }catch(e2){}
+    }
+    return{text,functionCalls,groundingMetadata};
+  }catch(e){return{text:'⚠️ 网络错误: '+e.message,functionCalls:[],groundingMetadata:null};}
 }
 
 function timeAgo(dateStr){
@@ -881,7 +1008,7 @@ function EditModal({activity,onSave,onClose,onDelete}){
 }
 
 function ActivityCard({act,onClick,index,dayId,onDragStart,onDragOver,onDrop,isDragOver}){const c=gc(act.category);const tl=act.type==="restaurant"?"Restaurant":act.type==="poi"?"Place":"Note";const cd=act.cost?`${act.currency||"¥"}${act.cost}`:"";
-  return(<div onClick={onClick} draggable onDragStart={e=>{e.dataTransfer.setData("text/plain",JSON.stringify({id:act.id,dayId,index}));e.currentTarget.style.opacity="0.4";if(onDragStart)onDragStart(act.id);}} onDragEnd={e=>{e.currentTarget.style.opacity="1";}} onDragOver={e=>{e.preventDefault();e.currentTarget.style.borderTop="3px solid #c46b98";if(onDragOver)onDragOver(index);}} onDragLeave={e=>{e.currentTarget.style.borderTop="";}} onDrop={e=>{e.preventDefault();e.currentTarget.style.borderTop="";try{const data=JSON.parse(e.dataTransfer.getData("text/plain"));if(onDrop)onDrop(data,index);}catch(err){}}} style={{...S.actCard,cursor:"grab",userSelect:"none"}} onMouseEnter={e=>{e.currentTarget.style.boxShadow="0 6px 20px rgba(0,0,0,0.07)";e.currentTarget.style.transform="translateY(-2px)";}} onMouseLeave={e=>{e.currentTarget.style.boxShadow="";e.currentTarget.style.transform="";}}>
+  return(<div id={"act-"+act.id} onClick={onClick} draggable onDragStart={e=>{e.dataTransfer.setData("text/plain",JSON.stringify({id:act.id,dayId,index}));e.currentTarget.style.opacity="0.4";if(onDragStart)onDragStart(act.id);}} onDragEnd={e=>{e.currentTarget.style.opacity="1";}} onDragOver={e=>{e.preventDefault();e.currentTarget.style.borderTop="3px solid #c46b98";if(onDragOver)onDragOver(index);}} onDragLeave={e=>{e.currentTarget.style.borderTop="";}} onDrop={e=>{e.preventDefault();e.currentTarget.style.borderTop="";try{const data=JSON.parse(e.dataTransfer.getData("text/plain"));if(onDrop)onDrop(data,index);}catch(err){}}} style={{...S.actCard,cursor:"grab",userSelect:"none"}} onMouseEnter={e=>{e.currentTarget.style.boxShadow="0 6px 20px rgba(0,0,0,0.07)";e.currentTarget.style.transform="translateY(-2px)";}} onMouseLeave={e=>{e.currentTarget.style.boxShadow="";e.currentTarget.style.transform="";}}>
     <div style={{display:"flex",gap:12,alignItems:"center"}}>
       <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,flexShrink:0,cursor:"grab",color:"#ccc",fontSize:10,padding:"0 2px"}} title="拖拽排序">⠿</div>
       {act.img?(<div style={{width:100,height:72,borderRadius:10,overflow:"hidden",flexShrink:0}}><img src={act.img} alt={act.name} style={{width:"100%",height:"100%",objectFit:"cover"}} loading="lazy"/></div>):(<div style={{width:36,height:36,borderRadius:"50%",background:c.bg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,flexShrink:0}}>{c.e}</div>)}
@@ -951,14 +1078,236 @@ function detectOrigin(days){
 }
 
 // ═══ KNOWLEDGE BASE MODAL ═══
-function KnowledgeBaseModal({knowledgeBase,setKnowledgeBase,onClose}){
-  const[tab,setTab]=useState('articles');
-  const[search,setSearch]=useState('');
-  const[editing,setEditing]=useState(null);// null=list, object=editing article
+// Simple markdown to React elements (bold, lists, activity links)
+function renderKBMarkdown(text){
+  if(!text)return null;
+  const lines=text.split('\n');const elements=[];let i=0;
+  while(i<lines.length){
+    const line=lines[i];
+    // Table detection
+    if(line.includes('|')&&line.trim().startsWith('|')){
+      const tableLines=[];
+      while(i<lines.length&&lines[i].includes('|')){tableLines.push(lines[i]);i++;}
+      const rows=tableLines.filter(l=>!l.match(/^\s*\|[\s\-:]+\|/)).map(l=>l.split('|').filter((_,ci,arr)=>ci>0&&ci<arr.length).map(c=>c.trim()));
+      if(rows.length>0){
+        elements.push(React.createElement('table',{key:'t'+i,style:{width:'100%',borderCollapse:'collapse',margin:'8px 0',fontSize:13}},
+          React.createElement('thead',null,React.createElement('tr',null,rows[0].map((c,ci)=>React.createElement('th',{key:ci,style:{padding:'6px 10px',background:'#f0ecf8',fontWeight:700,textAlign:'left',borderBottom:'2px solid #d4cce6',fontSize:12}},c)))),
+          React.createElement('tbody',null,rows.slice(1).map((r,ri)=>React.createElement('tr',{key:ri,style:{background:ri%2?'#faf8f4':'#fff'}},r.map((c,ci)=>React.createElement('td',{key:ci,style:{padding:'6px 10px',borderBottom:'1px solid #e8e4de'}},c)))))
+        ));
+      }
+      continue;
+    }
+    // Headings
+    if(line.match(/^###\s/))elements.push(React.createElement('h4',{key:i,style:{fontWeight:700,fontSize:15,margin:'12px 0 4px',color:'#1a1a2e'}},line.replace(/^###\s/,'')));
+    else if(line.match(/^##\s/))elements.push(React.createElement('h3',{key:i,style:{fontWeight:800,fontSize:17,margin:'14px 0 6px',color:'#1a1a2e'}},line.replace(/^##\s/,'')));
+    else if(line.match(/^#\s/))elements.push(React.createElement('h2',{key:i,style:{fontWeight:800,fontSize:19,margin:'16px 0 8px',color:'#1a1a2e'}},line.replace(/^#\s/,'')));
+    // Bullets
+    else if(line.match(/^[\-\*]\s/))elements.push(React.createElement('div',{key:i,style:{paddingLeft:16,position:'relative',marginBottom:2}},React.createElement('span',{style:{position:'absolute',left:0}},'•'),line.replace(/^[\-\*]\s/,'').replace(/\*\*(.+?)\*\*/g,'$1')));
+    // Numbered
+    else if(line.match(/^\d+[\.\)]\s/)){const m=line.match(/^(\d+)[\.\)]\s(.*)/);elements.push(React.createElement('div',{key:i,style:{paddingLeft:20,position:'relative',marginBottom:2}},React.createElement('span',{style:{position:'absolute',left:0,fontWeight:700,color:'#c46b98'}},m[1]+'.'),m[2].replace(/\*\*(.+?)\*\*/g,'$1')));}
+    // Bold line (starts with emoji or 💡)
+    else if(line.trim()==='')elements.push(React.createElement('div',{key:i,style:{height:8}}));
+    else{
+      // Inline bold
+      const parts=line.split(/(\*\*[^*]+\*\*)/g);
+      elements.push(React.createElement('div',{key:i,style:{marginBottom:2}},parts.map((p,pi)=>p.startsWith('**')&&p.endsWith('**')?React.createElement('strong',{key:pi},p.slice(2,-2)):p)));
+    }
+    i++;
+  }
+  return elements;
+}
+
+function renderMd(text,onActivityClick){
+  if(!text)return null;
+  return text.split('\n').map((line,i)=>{
+    if(line.match(/^###\s/))return React.createElement('div',{key:i,style:{fontWeight:700,fontSize:15,marginTop:8,marginBottom:4}},parseInline(line.replace(/^###\s/,''),onActivityClick));
+    if(line.match(/^##\s/))return React.createElement('div',{key:i,style:{fontWeight:800,fontSize:16,marginTop:10,marginBottom:4}},parseInline(line.replace(/^##\s/,''),onActivityClick));
+    if(line.match(/^[\-\*]\s/))return React.createElement('div',{key:i,style:{paddingLeft:12,position:'relative'}},React.createElement('span',{style:{position:'absolute',left:0}},'•'),parseInline(line.replace(/^[\-\*]\s/,''),onActivityClick));
+    const numMatch=line.match(/^(\d+)[\.\)]\s/);
+    if(numMatch)return React.createElement('div',{key:i,style:{paddingLeft:16,position:'relative'}},React.createElement('span',{style:{position:'absolute',left:0,fontWeight:600}},numMatch[1]+'.'),parseInline(line.replace(/^\d+[\.\)]\s/,''),onActivityClick));
+    if(!line.trim())return React.createElement('div',{key:i,style:{height:8}});
+    return React.createElement('div',{key:i},parseInline(line,onActivityClick));
+  });
+}
+function parseInline(text,onActivityClick){
+  // Split by [[activityId]] and **bold**
+  const parts=text.split(/(\[\[[^\]]+\]\]|\*\*[^*]+\*\*)/g);
+  if(parts.length===1)return text;
+  return parts.map((p,i)=>{
+    if(p.startsWith('[[')&&p.endsWith(']]')){
+      const id=p.slice(2,-2);
+      return React.createElement('button',{key:i,onClick:()=>onActivityClick&&onActivityClick(id),style:{display:'inline',padding:'1px 8px',borderRadius:6,background:'#f5dce8',color:'#c46b98',fontSize:12,fontWeight:700,border:'1px solid #e8a0bf',cursor:'pointer',fontFamily:'inherit',margin:'0 2px'}},'\u{1F4CD} '+id);
+    }
+    if(p.startsWith('**')&&p.endsWith('**'))return React.createElement('strong',{key:i},p.slice(2,-2));
+    return p;
+  });
+}
+
+function PreviewCard({fc,days,onApply,onDismiss}){
+  const{name:fnName,args}=fc.functionCall;
+  const isApplied=fc.applied;const isDismissed=fc.dismissed;
+  const btnRow=!isApplied&&!isDismissed&&(<div style={{display:'flex',gap:8,marginTop:10}}><button onClick={onApply} style={{flex:1,padding:'8px 14px',borderRadius:10,border:'none',background:'linear-gradient(135deg,#2d7a3a,#4ade80)',color:'#fff',fontWeight:700,fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>✅ 应用</button><button onClick={onDismiss} style={{flex:1,padding:'8px 14px',borderRadius:10,border:'1px solid #e8e4de',background:'#fff',color:'#6b7280',fontWeight:600,fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>❌ 取消</button></div>);
+  const status=isApplied?<div style={{color:'#2d7a3a',fontWeight:700,fontSize:12,marginTop:6}}>✅ 已应用到行程</div>:isDismissed?<div style={{color:'#9ca3af',fontWeight:700,fontSize:12,marginTop:6}}>已取消</div>:null;
+
+  if(fnName==='add_activity'){
+    const act=args.activity||{};const c=gc(act.category||'sightseeing');
+    const targetDay=days.find(d=>d.id===args.dayId);
+    return(<div style={{border:'2px solid #2d7a3a',borderRadius:12,padding:12,margin:'8px 0',background:'#f0faf0'}}>
+      <div style={{fontSize:11,fontWeight:700,color:'#2d7a3a',marginBottom:8}}>➕ 添加到 Day {args.dayId}{targetDay?` (${targetDay.date})`:''}</div>
+      <div style={{background:'#fff',borderRadius:10,padding:10,border:'1px solid #e8e4de'}}>
+        <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
+          <div style={{width:28,height:28,borderRadius:'50%',background:c.bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:14}}>{c.e}</div>
+          <div style={{flex:1}}>
+            <div style={{fontWeight:700,fontSize:14,color:'#1a1a2e'}}>{act.name}</div>
+            <div style={{fontSize:11,color:'#9ca3af'}}>{act.time&&<span>{act.time}</span>}{act.cost&&<span style={{color:'#c46b98',fontWeight:700,marginLeft:8}}>{act.currency||'¥'}{act.cost}</span>}</div>
+          </div>
+        </div>
+        {act.addr&&<div style={{fontSize:12,color:'#6b7280',marginTop:2}}>📍 {act.addr}</div>}
+        {act.from&&act.to&&<div style={{fontSize:12,color:'#6b7280',marginTop:2}}>🚃 {act.from} → {act.to}</div>}
+        {act.notes&&<div style={{fontSize:11,color:'#9ca3af',marginTop:4,lineHeight:1.4}}>{act.notes.split('\n').slice(0,3).join('\n')}</div>}
+      </div>
+      {btnRow}{status}
+    </div>);
+  }
+
+  if(fnName==='edit_activity'){
+    const orig=days.flatMap(d=>d.activities).find(a=>a.id===args.activityId);
+    const updates=args.updates||{};
+    return(<div style={{border:'2px solid #1a73a7',borderRadius:12,padding:12,margin:'8px 0',background:'#e8f4fd'}}>
+      <div style={{fontSize:11,fontWeight:700,color:'#1a73a7',marginBottom:8}}>✏️ 编辑: {orig?orig.name:args.activityId}</div>
+      <div style={{background:'#fff',borderRadius:10,padding:10,border:'1px solid #e8e4de'}}>
+        {Object.entries(updates).map(([k,v])=>(<div key={k} style={{fontSize:13,marginBottom:4}}>
+          <span style={{fontWeight:700,color:'#6b7280'}}>{k}: </span>
+          {orig&&orig[k]!=null&&<span style={{textDecoration:'line-through',color:'#dc2626',marginRight:6}}>{String(orig[k]).slice(0,50)}</span>}
+          <span style={{color:'#2d7a3a',fontWeight:600}}>{String(v).slice(0,80)}</span>
+        </div>))}
+      </div>
+      {btnRow}{status}
+    </div>);
+  }
+
+  if(fnName==='delete_activity'){
+    const act=days.flatMap(d=>d.activities).find(a=>a.id===args.activityId);
+    const c=act?gc(act.category):gc('sightseeing');
+    return(<div style={{border:'2px solid #dc2626',borderRadius:12,padding:12,margin:'8px 0',background:'#fef2f2'}}>
+      <div style={{fontSize:11,fontWeight:700,color:'#dc2626',marginBottom:8}}>🗑️ 删除活动</div>
+      <div style={{background:'#fff',borderRadius:10,padding:10,border:'1px solid #fecaca'}}>
+        <div style={{display:'flex',alignItems:'center',gap:8}}>
+          <div style={{width:28,height:28,borderRadius:'50%',background:c.bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:14}}>{c.e}</div>
+          <div style={{fontWeight:700,fontSize:14,color:'#1a1a2e'}}>{act?act.name:args.activityId}</div>
+        </div>
+      </div>
+      {btnRow}{status}
+    </div>);
+  }
+
+  if(fnName==='reorder_activity'){
+    return(<div style={{border:'2px solid #7c3aed',borderRadius:12,padding:12,margin:'8px 0',background:'#ede9fe'}}>
+      <div style={{fontSize:11,fontWeight:700,color:'#7c3aed',marginBottom:4}}>↕️ 移动活动 {args.activityId} 到位置 {args.newIndex}</div>
+      {btnRow}{status}
+    </div>);
+  }
+
+  if(fnName==='save_to_kb'){
+    return(<div style={{border:'2px solid #6b48a8',borderRadius:12,padding:12,margin:'8px 0',background:'#f0ecf8'}}>
+      <div style={{fontSize:11,fontWeight:700,color:'#6b48a8',marginBottom:8}}>📚 保存到知识库</div>
+      <div style={{background:'#fff',borderRadius:10,padding:10,border:'1px solid #e8e4de'}}>
+        <div style={{fontWeight:700,fontSize:15,color:'#1a1a2e',marginBottom:4}}>{args.title}</div>
+        <div style={{fontSize:12,color:'#6b7280',lineHeight:1.6,maxHeight:120,overflow:'auto',whiteSpace:'pre-wrap'}}>{(args.content||'').slice(0,300)}{(args.content||'').length>300?'...':''}</div>
+        {args.tags&&<div style={{marginTop:6}}>{args.tags.map(t=>React.createElement('span',{key:t,style:{display:'inline-block',padding:'2px 10px',borderRadius:100,background:'#f0ecf8',color:'#6b48a8',fontSize:11,fontWeight:600,marginRight:4}},t))}</div>}
+      </div>
+      {btnRow}{status}
+    </div>);
+  }
+
+  if(fnName==='delete_kb'){
+    return(<div style={{border:'2px solid #dc2626',borderRadius:12,padding:12,margin:'8px 0',background:'#fef2f2'}}>
+      <div style={{fontSize:11,fontWeight:700,color:'#dc2626',marginBottom:4}}>🗑️ 删除知识库文章: {args.articleId}</div>
+      {btnRow}{status}
+    </div>);
+  }
+
+  return(<div style={{border:'1px solid #e8e4de',borderRadius:12,padding:12,margin:'8px 0',background:'#faf8f4'}}>
+    <div style={{fontSize:12,color:'#6b7280'}}>未知操作: {fnName}</div>
+    {btnRow}{status}
+  </div>);
+}
+
+// ═══ Floating AI Chat Bubble ═══
+function AIChatBubble({knowledgeBase,setKnowledgeBase,days,origin,setDays,onScrollToActivity}){
+  const[open,setOpen]=useState(false);
   const[chatMsgs,setChatMsgs]=useState([]);
   const[chatInput,setChatInput]=useState('');
   const[loading,setLoading]=useState(false);
   const chatEndRef=useRef(null);
+
+  const handleSendChat=async()=>{
+    const q=chatInput.trim();if(!q)return;
+    const userMsg={role:'user',text:q,time:new Date().toLocaleTimeString()};
+    setChatMsgs(prev=>[...prev,userMsg]);setChatInput('');setLoading(true);
+    const history=chatMsgs.map(m=>({role:m.role==='user'?'user':'model',text:m.text||'I suggested changes.'}));
+    const result=await askAI(q,knowledgeBase,history,{days,origin});
+    const aiMsg={role:'ai',text:typeof result==='string'?result:(result.text||''),time:new Date().toLocaleTimeString(),
+      functionCalls:(typeof result==='object'&&result.functionCalls)||[],
+      groundingSources:(typeof result==='object'&&result.groundingMetadata?.groundingChunks)||[]};
+    setChatMsgs(prev=>[...prev,aiMsg]);setLoading(false);
+  };
+
+  const handleApplyPreview=(msgIdx,callIdx)=>{
+    const msg=chatMsgs[msgIdx];const fc=msg.functionCalls[callIdx];
+    const{name:fnName,args}=fc.functionCall;
+    if(fnName==='add_activity'){const{dayId,activity}=args;setDays(prev=>prev.map(d=>{if(d.id!==dayId)return d;return{...d,activities:[...d.activities,{...activity,id:`${dayId}_${Date.now()}`,type:activity.from?'note':'poi'}]};}));}
+    else if(fnName==='edit_activity'){const{activityId,updates}=args;setDays(prev=>prev.map(d=>({...d,activities:d.activities.map(a=>a.id===activityId?{...a,...updates}:a)})));}
+    else if(fnName==='delete_activity'){setDays(prev=>prev.map(d=>({...d,activities:d.activities.filter(a=>a.id!==args.activityId)})));}
+    else if(fnName==='reorder_activity'){setDays(prev=>{const nd=JSON.parse(JSON.stringify(prev));for(const d of nd){const idx=d.activities.findIndex(a=>a.id===args.activityId);if(idx>=0){const[item]=d.activities.splice(idx,1);d.activities.splice(Math.min(args.newIndex,d.activities.length),0,item);break;}}return nd;});}
+    else if(fnName==='save_to_kb'){setKnowledgeBase(prev=>[...prev,{id:'kb_'+Date.now(),title:args.title,content:args.content,tags:args.tags||[],createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()}]);}
+    else if(fnName==='edit_kb'){setKnowledgeBase(prev=>prev.map(a=>a.id===args.articleId?{...a,...(args.title?{title:args.title}:{}),...(args.content?{content:args.content}:{}),...(args.tags?{tags:args.tags}:{}),updatedAt:new Date().toISOString()}:a));}
+    else if(fnName==='delete_kb'){setKnowledgeBase(prev=>prev.filter(a=>a.id!==args.articleId));}
+    setChatMsgs(prev=>prev.map((m,i)=>{if(i!==msgIdx)return m;const nfc=[...m.functionCalls];nfc[callIdx]={...nfc[callIdx],applied:true};return{...m,functionCalls:nfc};}));
+  };
+  const handleDismissPreview=(msgIdx,callIdx)=>{setChatMsgs(prev=>prev.map((m,i)=>{if(i!==msgIdx)return m;const nfc=[...m.functionCalls];nfc[callIdx]={...nfc[callIdx],dismissed:true};return{...m,functionCalls:nfc};}));};
+
+  useEffect(()=>{chatEndRef.current?.scrollIntoView({behavior:'smooth'});},[chatMsgs,loading]);
+
+  if(!open)return(<button onClick={()=>setOpen(true)} style={{position:'fixed',bottom:24,right:24,width:56,height:56,borderRadius:'50%',background:'linear-gradient(135deg,#c46b98,#e8a0bf)',border:'none',boxShadow:'0 4px 20px rgba(196,107,152,0.4)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:24,color:'#fff',zIndex:999,transition:'transform 0.2s'}} onMouseEnter={e=>e.currentTarget.style.transform='scale(1.1)'} onMouseLeave={e=>e.currentTarget.style.transform='scale(1)'}>🤖</button>);
+
+  return(<div style={{position:'fixed',bottom:24,right:24,width:380,maxWidth:'calc(100vw - 32px)',height:520,maxHeight:'calc(100vh - 48px)',borderRadius:20,background:'#fff',boxShadow:'0 8px 40px rgba(0,0,0,0.15)',display:'flex',flexDirection:'column',zIndex:999,border:'1px solid #e8e4de',overflow:'hidden'}}>
+    <div style={{padding:'14px 18px',background:'linear-gradient(135deg,#1a1a2e,#2d2d4a)',display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}}>
+      <span style={{fontSize:15,fontWeight:700,color:'#fff'}}>🤖 AI 旅行助手</span>
+      <button onClick={()=>setOpen(false)} style={{background:'none',border:'none',fontSize:18,cursor:'pointer',color:'rgba(255,255,255,0.6)',padding:4}}>✕</button>
+    </div>
+    <div style={{flex:1,overflow:'auto',padding:'12px 14px'}}>
+      {chatMsgs.length===0&&<div style={{textAlign:'center',padding:'30px 0',color:'#9ca3af',fontSize:13}}>
+        {GEMINI_KEY?'问我任何旅行问题，或让我帮你添加/编辑活动':'⚠️ 未配置 Gemini API Key'}
+      </div>}
+      {chatMsgs.map((m,i)=>(
+        <div key={i} style={{display:'flex',justifyContent:m.role==='user'?'flex-end':'flex-start',marginBottom:8}}>
+          <div style={{maxWidth:'85%',padding:'8px 12px',borderRadius:m.role==='user'?'12px 12px 4px 12px':'12px 12px 12px 4px',background:m.role==='user'?'linear-gradient(135deg,#c46b98,#e8a0bf)':'#faf8f4',color:m.role==='user'?'#fff':'#1a1a2e',fontSize:13,lineHeight:1.5,border:m.role==='user'?'none':'1px solid #e8e4de',whiteSpace:m.role==='user'?'pre-wrap':'normal'}}>
+            {m.role==='ai'?(<div>
+              {m.text&&renderMd(m.text,(id)=>{setOpen(false);setTimeout(()=>onScrollToActivity&&onScrollToActivity(id),300);})}
+              {m.functionCalls&&m.functionCalls.map((fc,ci)=>(<PreviewCard key={ci} fc={fc} days={days} onApply={()=>handleApplyPreview(i,ci)} onDismiss={()=>handleDismissPreview(i,ci)}/>))}
+              {m.groundingSources&&m.groundingSources.length>0&&(<div style={{fontSize:10,color:'#9ca3af',marginTop:6,paddingTop:4,borderTop:'1px solid #f0ede8'}}>🔍 {m.groundingSources.slice(0,2).map((s,si)=>(<a key={si} href={s.web?.uri} target="_blank" rel="noopener" style={{color:'#1a73a7',marginRight:6,textDecoration:'none',fontSize:10}}>{s.web?.title||'Link'}</a>))}</div>)}
+            </div>):m.text}
+            <div style={{fontSize:9,marginTop:3,opacity:0.5,textAlign:'right'}}>{m.time}</div>
+          </div>
+        </div>
+      ))}
+      {loading&&<div style={{display:'flex',justifyContent:'flex-start',marginBottom:8}}>
+        <div style={{padding:'8px 12px',borderRadius:'12px 12px 12px 4px',background:'#faf8f4',border:'1px solid #e8e4de',fontSize:13,color:'#9ca3af'}}>思考中...</div>
+      </div>}
+      <div ref={chatEndRef}/>
+    </div>
+    <div style={{padding:'10px 14px',borderTop:'1px solid #e8e4de',display:'flex',gap:6,flexShrink:0}}>
+      <input value={chatInput} onChange={e=>setChatInput(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();handleSendChat();}}} placeholder="问我旅行问题..." style={{...S.inp,flex:1,fontSize:13,padding:'8px 12px'}} disabled={loading}/>
+      <button onClick={handleSendChat} disabled={loading||!chatInput.trim()} style={{...S.savBtn,padding:'8px 14px',fontSize:13,opacity:loading||!chatInput.trim()?0.5:1}}>发送</button>
+    </div>
+  </div>);
+}
+
+function KnowledgeBaseModal({knowledgeBase,setKnowledgeBase,onClose}){
+  const[search,setSearch]=useState('');
+  const[viewing,setViewing]=useState(null);// null=list, string=viewing article id
+  const[editing,setEditing]=useState(null);// null=not editing, object=editing article
 
   const filtered=useMemo(()=>{
     if(!search.trim())return knowledgeBase;
@@ -972,34 +1321,14 @@ function KnowledgeBaseModal({knowledgeBase,setKnowledgeBase,onClose}){
   const handleSaveArticle=()=>{
     if(!editing.title.trim())return alert('请输入标题');
     const now=new Date().toISOString();
-    if(editing.id){
-      setKnowledgeBase(prev=>prev.map(a=>a.id===editing.id?{...editing,updatedAt:now}:a));
-    }else{
-      setKnowledgeBase(prev=>[{...editing,id:'kb_'+Date.now(),createdAt:now,updatedAt:now},...prev]);
-    }
-    setEditing(null);
+    if(editing.id){setKnowledgeBase(prev=>prev.map(a=>a.id===editing.id?{...editing,updatedAt:now}:a));}
+    else{setKnowledgeBase(prev=>[{...editing,id:'kb_'+Date.now(),createdAt:now,updatedAt:now},...prev]);}
+    setEditing(null);setViewing(null);
   };
+  const handleDeleteArticle=(id)=>{if(!confirm('确定删除？'))return;setKnowledgeBase(prev=>prev.filter(a=>a.id!==id));setEditing(null);setViewing(null);};
 
-  const handleDeleteArticle=(id)=>{
-    if(!confirm('确定删除这篇文章？'))return;
-    setKnowledgeBase(prev=>prev.filter(a=>a.id!==id));
-    setEditing(null);
-  };
-
-  const handleSendChat=async()=>{
-    const q=chatInput.trim();if(!q)return;
-    const userMsg={role:'user',text:q,time:new Date().toLocaleTimeString()};
-    setChatMsgs(prev=>[...prev,userMsg]);setChatInput('');setLoading(true);
-    const history=chatMsgs.map(m=>({role:m.role,text:m.text}));
-    const answer=await askAI(q,knowledgeBase,history);
-    setChatMsgs(prev=>[...prev,{role:'ai',text:answer,time:new Date().toLocaleTimeString()}]);
-    setLoading(false);
-  };
-
-  useEffect(()=>{chatEndRef.current?.scrollIntoView({behavior:'smooth'});},[chatMsgs,loading]);
-
-  const tabStyle=(t)=>({padding:'8px 20px',borderRadius:100,border:'none',background:tab===t?'linear-gradient(135deg,#c46b98,#e8a0bf)':'transparent',color:tab===t?'#fff':'#6b7280',fontWeight:700,fontSize:13,cursor:'pointer',fontFamily:'inherit',transition:'all 0.15s'});
   const tagPill={display:'inline-block',padding:'2px 10px',borderRadius:100,background:'#f0ecf8',color:'#6b48a8',fontSize:11,fontWeight:600,marginRight:4,marginBottom:4};
+  const viewArticle=viewing?knowledgeBase.find(a=>a.id===viewing):null;
 
   return(<div style={S.overlay} onClick={onClose}>
     <div style={{...S.modal,maxWidth:900,width:'95vw',height:window.innerWidth>=768?'80vh':'85vh',maxHeight:'90vh',display:'flex',flexDirection:'column'}} onClick={e=>e.stopPropagation()}>
@@ -1015,8 +1344,8 @@ function KnowledgeBaseModal({knowledgeBase,setKnowledgeBase,onClose}){
         </div>
       </div>
 
-      {/* Articles Tab */}
-      {tab==='articles'&&!editing&&(
+      {/* Article List */}
+      {!viewing&&!editing&&(
         <div style={{flex:1,overflow:'auto',padding:'0 24px 20px'}}>
           <div style={{display:'flex',gap:8,marginBottom:14}}>
             <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="🔍 搜索文章..." style={{...S.inp,flex:1,padding:'12px 16px',fontSize:15}}/>
@@ -1025,7 +1354,7 @@ function KnowledgeBaseModal({knowledgeBase,setKnowledgeBase,onClose}){
           {filtered.length===0&&<div style={{textAlign:'center',padding:'60px 0',color:'#9ca3af',fontSize:15}}>{knowledgeBase.length===0?<><div style={{fontSize:32,marginBottom:12}}>📝</div><div>还没有文章，点击 + 新建</div></>:'未找到匹配的文章'}</div>}
           <div style={{display:'grid',gridTemplateColumns:window.innerWidth>=768?'repeat(2, 1fr)':'1fr',gap:12}}>
           {filtered.map(a=>(
-            <div key={a.id} onClick={()=>setEditing({...a})} style={{...S.actCard,marginBottom:0,cursor:'pointer',transition:'all 0.15s',borderRadius:14}}>
+            <div key={a.id} onClick={()=>setViewing(a.id)} style={{...S.actCard,marginBottom:0,cursor:'pointer',transition:'all 0.15s',borderRadius:14}}>
               <div style={{fontWeight:700,fontSize:15,color:'#1a1a2e',marginBottom:6}}>{a.title}</div>
               <div style={{fontSize:13,color:'#6b7280',marginBottom:8,lineHeight:1.6}}>{a.content.slice(0,150)}{a.content.length>150?'...':''}</div>
               <div>{a.tags.map(t=><span key={t} style={tagPill}>{t}</span>)}</div>
@@ -1036,10 +1365,26 @@ function KnowledgeBaseModal({knowledgeBase,setKnowledgeBase,onClose}){
         </div>
       )}
 
-      {/* Article Editor */}
-      {tab==='articles'&&editing&&(
+      {/* Article Reader (Preview) */}
+      {viewing&&!editing&&viewArticle&&(
         <div style={{flex:1,overflow:'auto',padding:'0 24px 20px'}}>
-          <button onClick={()=>setEditing(null)} style={{background:'none',border:'none',fontSize:14,color:'#c46b98',fontWeight:700,cursor:'pointer',padding:'0 0 14px',fontFamily:'inherit'}}>← 返回列表</button>
+          <button onClick={()=>setViewing(null)} style={{background:'none',border:'none',fontSize:14,color:'#c46b98',fontWeight:700,cursor:'pointer',padding:'0 0 14px',fontFamily:'inherit'}}>← 返回列表</button>
+          <h3 style={{fontSize:20,fontWeight:800,color:'#1a1a2e',marginBottom:8,lineHeight:1.3}}>{viewArticle.title}</h3>
+          <div style={{marginBottom:12}}>{viewArticle.tags.map(t=><span key={t} style={tagPill}>{t}</span>)}</div>
+          <div style={{fontSize:14,color:'#4a4a5a',lineHeight:1.8,background:'#faf8f4',borderRadius:12,padding:'16px 20px',border:'1px solid #e8e4de'}}>
+            {renderKBMarkdown(viewArticle.content)}
+          </div>
+          <div style={{display:'flex',gap:8,marginTop:14}}>
+            <button onClick={()=>setEditing({...viewArticle})} style={{...S.savBtn,flex:1}}>✏️ 编辑</button>
+            <button onClick={()=>handleDeleteArticle(viewArticle.id)} style={S.delBtn}>🗑️ 删除</button>
+          </div>
+        </div>
+      )}
+
+      {/* Article Editor */}
+      {editing&&(
+        <div style={{flex:1,overflow:'auto',padding:'0 24px 20px'}}>
+          <button onClick={()=>{setEditing(null);}} style={{background:'none',border:'none',fontSize:14,color:'#c46b98',fontWeight:700,cursor:'pointer',padding:'0 0 14px',fontFamily:'inherit'}}>← {viewing?'返回预览':'返回列表'}</button>
           <div style={{display:window.innerWidth>=768?'grid':'block',gridTemplateColumns:'1fr 1fr',gap:16}}>
             <div>
               <label style={S.fl}>标题</label>
@@ -1398,6 +1743,12 @@ function App(){
     {editA&&<EditModal activity={editA} onSave={hSave} onDelete={hDel} onClose={()=>{setEditA(null);setEditD(null);}}/>}
     {showVersions&&<VersionHistoryModal onClose={()=>setShowVersions(false)} onRestore={(data)=>{setDays(data.days);if(data.origin)setOrigin(data.origin);if(data.knowledgeBase&&Array.isArray(data.knowledgeBase))setKnowledgeBase(data.knowledgeBase);}}/>}
     {showKB&&<KnowledgeBaseModal knowledgeBase={knowledgeBase} setKnowledgeBase={setKnowledgeBase} onClose={()=>setShowKB(false)}/>}
+    <AIChatBubble knowledgeBase={knowledgeBase} setKnowledgeBase={setKnowledgeBase} days={days} origin={origin} setDays={setDays} onScrollToActivity={(id)=>{
+      const dayObj=days.find(d=>d.activities.some(a=>a.id===id));
+      if(dayObj){setExp(p=>({...p,[dayObj.id]:true}));
+        setTimeout(()=>{const el=document.getElementById('act-'+id);if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.style.boxShadow='0 0 0 3px #c46b98';el.style.transition='box-shadow 0.3s';setTimeout(()=>{el.style.boxShadow='';},3000);}},400);
+      }
+    }}/>
   </div>);
 }
 
