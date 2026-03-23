@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exportDate": "2026-03-23T20:00:54.501Z",
+  "exportDate": "2026-03-23T20:03:01.567Z",
   "days": [
     {
       "id": 0,
@@ -360,8 +360,8 @@
       "id": 2,
       "date": "Apr 12",
       "dow": "Sun",
-      "location": "Kamakura",
-      "theme": "镰仓海边 · Yorushika式的极致留白",
+      "location": "新宿 → 镰仓 → 富士山 → 新宿",
+      "theme": "镰仓海边与富士山自驾一日游 (公路片)",
       "weather": "17°C ☀️",
       "hotelIdx": 0,
       "activities": [
@@ -467,22 +467,6 @@
           "type": "poi"
         },
         {
-          "id": "2d",
-          "type": "poi",
-          "name": "江之岛 日落",
-          "category": "photo",
-          "time": "Evening",
-          "la": 35.3005,
-          "lo": 139.481,
-          "addr": "Enoshima, Fujisawa",
-          "img": "https://places.googleapis.com/v1/places/ChIJcbT_oOZOGGARFHp30PfDRyY/photos/ATCDNfXakQ-0f3wBxCtn8e_Ud1YxRFfFP7dlgQNTg6WdRQm9STdR51JNXW_sVTPIV5L3D_h83UlC6_sYTgP2K2WOBdeyex4WnCwoteXP5DBKn37vtP1EAPzDXVgf3i-9Cq1wTx1twVCSFtaryUfL92bQN13R9-765GOQHRl58E-Xl0bRKFh5nCEj7ta-hao3W2XQAWcokEsegAOkLNBwIbdkL0NO95xthtbBrx8zC0LuofIKu_g1TcKtRR-Qt2gVVt-7RMS92Q8xaOMNDzRsi1zepm1IV4wT9AZFCRB-odKNLDeejZ9Y3VwRAjepTC7zS0PUoUU7uw-IPppB4G1L_vAc_322gpq2kia_wuW4LnpXA4YhNrDFMxuk5MpYfZqQbmbUutMDHg8l6Qwy4bTtE7moF4FHWHeweiK589MF98XAfxo/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
-          "notes": "在海边看富士山的剪影与日落，最美的公路片结尾感。",
-          "cost": "1500",
-          "currency": "¥",
-          "rating": 4.5,
-          "reviews": 266
-        },
-        {
           "cost": "3000",
           "time": "Night",
           "currency": "¥",
@@ -495,111 +479,93 @@
           "notes": "霓虹灯影在挡风玻璃上流转",
           "id": "2_1774286357224",
           "type": "poi"
-        }
-      ]
-    },
-    {
-      "id": 3,
-      "date": "Apr 13",
-      "dow": "Mon",
-      "location": "Mt. Fuji",
-      "theme": "单日公路片 · 富士山自驾与巡礼",
-      "weather": "15°C 🌤️",
-      "hotelIdx": 0,
-      "activities": [
+        },
         {
-          "cost": "18000",
-          "notes": "清晨的新宿街头还带着微凉，",
-          "time": "Morning",
           "currency": "¥",
-          "addr": "Japan, 〒160-0022 Tokyo, Shinjuku City, Shinjuku, 5-chōme−6−１ SHINJUKU YAWARAGI BUILDING",
-          "name": "08:30 新宿 Nippon Rent-A-Car 提车 (Nippon Rent-a-car)",
+          "time": "Morning",
+          "name": "08:30 新宿 Nippon Rent-A-Car 提车",
+          "cost": "18000",
           "category": "transport",
-          "la": 35.691859099999995,
-          "lo": 139.7096866,
-          "img": "https://places.googleapis.com/v1/places/ChIJ2VfcI92MGGARFoxqkwZsgFs/photos/AU_ZVEGVWDKem3rLsnhrK2wxeAzcAoh8qMJYSqJuYXCiVikKoA-5Mj13ggjFMa-QTksLZLr40FmhIr1uhz7Zkc9AA8QBIhSj-VSg07zk4acIusHnKdC3-6c4xVWmVmw2VLOOvEeEMjKrju2TEiOhH79NitZRRrPcvOYeeEbaP9f7uV9SzL7AU2777PVkTBaVHjKiyPdCNC-Eb25X5xX4APLM0Wj6Y7f5nTp5U97vH6g0xg_y8ixKl_T3A4k51MX8qoxFE5n-qroRron4UEfaW_Ob8yZWpykLccEyIUS0ZhIyYarGIeUSqDa0CmOj5WjMRvQHkePt9DnO1rvm6fY4S_DlEsnrQg4zDEdDXdhc7XJp8cLaXvWbnzFUVhRt581BFBiEKxTmyXv_Mg57n77xDV2bSlhbZmQYt1WQn3t1Lf2he8ii0nmU6E19e5KjoFMhXWhd/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
-          "id": "3_1774286290650",
+          "id": "2_bulk_1774296150562_0",
           "type": "poi"
         },
         {
-          "id": "3c",
-          "type": "poi",
-          "name": "新倉山浅間公園 · 忠靈塔",
-          "category": "photo",
-          "time": "Afternoon",
-          "rating": 4.7,
-          "reviews": 5364,
-          "la": 35.5013,
-          "lo": 138.8014,
-          "addr": "Fujiyoshida, Yamanashi",
-          "img": "https://places.googleapis.com/v1/places/ChIJtStN-zpnGWARZnuIn4LJI4g/photos/ATCDNfUeIig7EQAhNe2dCd7t_uVOpNIDbP4jhRvT6NObXymyjzUBgbwhRKwSZTXap3yOAhKk7bij62MuwAiaW_9mIZZbJyB3geaH722I0hj9HgLCwQw0WGT6IY981XFtWoK4KEZkVJoqI0h9tCThhaI6Z7xGC2sGWCa_9EzGYZcPNSS6a4I5dcEm2OWvLF4PZ2Snb4NaJlvNj03PQpLTeHNqkXliNgXCehhyPoGDtdHdXYdxP9rP9qwFguqnbyflg6WlXuGLCh5WhHkbsiPIeGQxH-nyhWuuAW0A6oB6dYKaAZvg3x0jqm0aIBD7YiW_vPJ3B3TJ4SJEhk-Cm3OECbXcCjw2XMf_ud_mRQEnOWXc0PvLMz0-XhLRQpYZpant-KDMpvrwpsLGGtPC9bINKPDTdFReezqSgofFsvaAWHC-1_22LbrU/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
-          "notes": "经典的富士山与五重塔构图。",
-          "cost": "0",
-          "currency": "¥"
-        },
-        {
-          "id": "3a",
-          "type": "note",
-          "name": "09:00 自驾出发前往富士山",
-          "category": "transport",
+          "name": "09:00 驾车前往镰仓 (约1.5小时)",
           "time": "Morning",
-          "cost": "18000",
           "currency": "¥",
-          "notes": "新宿出发，经中央自动车道前往富士五湖区域。",
-          "la": 35.713358,
-          "lo": 139.705053,
-          "img": "https://places.googleapis.com/v1/places/ChIJtRk4-AmNGGARVD_Qf-YvyVk/photos/ATCDNfVVAanzPIod3gqwBc5AVoRE0f5yA14kRo2vG21zCMwBnZWtCv3eZ8QVsD1-_JJ4gvqixGWoiFYMLSdTA6zqnauKgF2Q67INswaknqgkXzPsjlc81LdFwVRACv77in3I3AW4q-TIhwiXToKrkMWu_IofLUmWUZxhCVHY7O3PpfjFxPDYP7nqYCTdpGTh3wWctKkh8qRXcb4DZWHujPMQZSV0M_S-l5j5oZU8fbHUHT6jA-vU0L4BWVe4r_mp-DLCTpCUO8L2ZQ5Jy3t86_pMZ220B0yTv4pv0ogNRNgDdi-qj5HbSNcRB3GyTqrB_5_307vb5esRPiVYDY3bHN49nLvNR6lUy_E1on9p5cnYXhoaYDN3TfMgZmg-55sJ0Hjjhi8YE-RNa4hFvi8EIhJG4N90OKEkj1jpQf8N8_yAznd8j7I/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
-          "rating": 4.1,
-          "reviews": 178,
-          "addr": "1-chōme-2-12 Takadanobaba, Shinjuku City, Tokyo 169-0075, Japan"
-        },
-        {
-          "id": "3d",
-          "type": "poi",
-          "name": "山中湖 红富士之汤",
-          "category": "sightseeing",
-          "time": "Evening",
-          "la": 35.4373,
-          "lo": 138.855,
-          "addr": "Yamanakako, Yamanashi",
-          "notes": "返程前泡个绝景温泉，洗净自驾的疲劳。",
-          "cost": "900",
-          "currency": "¥",
-          "img": "https://places.googleapis.com/v1/places/ChIJU2ZNcq5lGWARpuCLQW4dl7g/photos/ATCDNfW9jHQrrtCK3d84MFR7GqNGAGDKTqN5SVaO8mLKG7qfvSUSUXIsmuxpJGTtvWL1edOI-RTlcy9L2oPIkQduFbwDB9N3I5HZJyEiI-jZ9UK895__zI2h4C75m89M8oGQsbiGxd_fGFKO1s6N16wpJoCrL8vdB_qOj2aIPbSHANVqLu456sITnoHckgym52bbmDZNF4q2xl-znqdLWVw7mR4Cy5wccewW5WdDb4kMVRnwOiWn8qIMpK8A8BVB8KxLb732R360zn8lNbaJFCapo9skN51OgPREs-sY9s3KhmUIOLIqCCe4FRPuJH4aIoTZ4lSLaRk_8gLOfjJ6J5QSWt8tw8-ia1F2EhUNBAtFtOl6tBg6Hc2DfG6r57ezSeTYGiBQ2dYPT2B8LdxPmWjSO-Zpu6B1PGlldxWD9jYChaDbeGZm/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
-          "rating": 4,
-          "reviews": 3837
-        },
-        {
-          "id": "3b",
-          "type": "poi",
-          "name": "Lawson 富士河口湖町役場前店",
-          "category": "photo",
-          "time": "Midday",
-          "la": 35.5063,
-          "lo": 138.7594,
-          "addr": "1395-1 Funatsu, Fujikawaguchiko",
-          "img": "https://places.googleapis.com/v1/places/ChIJT9mAeNRfGWARX5ASHpq0nxQ/photos/ATCDNfVzI8Fy25qpzZ2VzYT9ttQ_Um33yMWhiWDgzAfghjnULSFP4hMe1T00ZVN1wKXii0RashVOmLKrOimzNucRl5hAL3qqqTG65vWV04QC4Y2ccteSlWWYk1iQfZiHY6UfuNsz4ZcRNykojUShWMi4joB9yFEAHXe78P2HA4B6vlladltdTsrCqTsFxdoNaZkVZn_ajlIZYgiZgmTzeZMdwRR35FrSy4fLJD6su9PNGm1Z9x0_fxwqg9HHacMvirzuibl3t8hCNXspPMUCnQRYUgkrII04CP3EjunvsgWdP2zsAdAf_wruzkhXBHyPMaplLJYiI7yJ7Wp_p3QZhhkMXPVAXfeVKZ-hzD2dtJ3ku5xoTF-NzhDeFzjz6bvNmAb9WVZ1zAoJg4DPhwv6qHrUpJKjwWjer8NwFp778BKcnzZ2NMfn/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
-          "notes": "自驾游打卡。理性工业设计与自然雪山的视觉碰撞。",
-          "cost": "1000",
-          "currency": "¥",
-          "rating": 4,
-          "reviews": 337
-        },
-        {
-          "id": "3e",
-          "type": "note",
-          "name": "沿着中央道开回新宿还车",
+          "from": "新宿",
           "category": "transport",
-          "time": "Night",
-          "cost": "3000",
+          "to": "镰仓高校前站",
+          "cost": "2000",
+          "id": "2_bulk_1774296150562_1",
+          "type": "note"
+        },
+        {
+          "cost": "0",
+          "category": "sightseeing",
           "currency": "¥",
-          "notes": "油费预估。夜晚的高速公路也是很好的冥想空间。",
-          "la": 35.607261,
-          "lo": 140.115991,
-          "img": "https://places.googleapis.com/v1/places/ChIJH7qx1tCMGGAR1f2s7PGhMhw/photos/ATCDNfWGGizf2nqDOEgaNztmcA0FmR4UCMBySh0SC-JuijqpWN1SeXysPge2wc5R1YHcsIGdQKSd2u2usjRqGDP6xD4V_BNPqFJf3WgV13WUtyZNCxO7QhRxCq-T-W8Vx_JDHYpQkcFpU7rq9LKccc9xxVIer6JxXO2eIV95aZJvt6l8rJaCWeX74nYokmHqIxOkbAowBNawKWi-Qum-s6vt4pImu7QcLs2kK2k2-ajMDVQvFlm40B44znQ3jARf9Mjd5ojiWDOn_7y2x4cXVfwFpO6uh9o132lWxziJbWH36vlmgJ-eS_-VjyZcLmKCeERmpJzqaaFsKserrqONFjTKLD_SXFVUO5l4ol2myGjiasf5fhIwOX_qETeBudQMhmgtFriXlNmr1tL2iy6dBzcAxNETx7Fsi8syITMPWxTyh45u6w/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
-          "rating": 3.8,
-          "reviews": 8380,
-          "addr": "3-chōme-38-1 Shinjuku, Shinjuku City, Tokyo 160-0022, Japan"
+          "time": "Morning",
+          "name": "10:30 镰仓高校前站 & 七里滨海岸线",
+          "id": "2_bulk_1774296150562_2",
+          "type": "poi"
+        },
+        {
+          "time": "Midday",
+          "currency": "¥",
+          "name": "12:30 驾车前往富士山区域 (约2.5小时)",
+          "from": "镰仓",
+          "to": "新仓山浅间公园",
+          "cost": "3000",
+          "category": "transport",
+          "id": "2_bulk_1774296150562_3",
+          "type": "note"
+        },
+        {
+          "cost": "0",
+          "category": "sightseeing",
+          "currency": "¥",
+          "time": "Afternoon",
+          "name": "15:00 新仓山浅间公园 · 忠灵塔",
+          "id": "2_bulk_1774296150562_4",
+          "type": "poi"
+        },
+        {
+          "cost": "1000",
+          "category": "food",
+          "time": "Afternoon",
+          "currency": "¥",
+          "name": "16:30 Lawson 富士河口湖町役场前店 (打卡+补给)",
+          "id": "2_bulk_1774296150562_5",
+          "type": "poi"
+        },
+        {
+          "time": "Evening",
+          "currency": "¥",
+          "name": "17:30 山中湖 红富士之汤 (泡汤看富士山)",
+          "cost": "900",
+          "category": "nightlife",
+          "id": "2_bulk_1774296150562_6",
+          "type": "poi"
+        },
+        {
+          "from": "山中湖",
+          "category": "transport",
+          "cost": "3000",
+          "to": "新宿站",
+          "name": "19:00 驾车返回新宿 (约2小时)",
+          "time": "Evening",
+          "currency": "¥",
+          "id": "2_bulk_1774296150562_7",
+          "type": "note"
+        },
+        {
+          "currency": "¥",
+          "time": "Night",
+          "name": "21:00 新宿还车",
+          "cost": "0",
+          "category": "transport",
+          "id": "2_bulk_1774296150562_8",
+          "type": "poi"
         }
       ]
     },
