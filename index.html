@@ -129,6 +129,12 @@ const AI_TOOLS_CRUD=[
     {name:"edit_activity",description:"编辑已有活动的指定字段。只传需要修改的字段。",parameters:{type:"object",properties:{activityId:{type:"string",description:"活动ID，如'1d'或'2a'"},updates:ACTIVITY_SCHEMA},required:["activityId"]}},
     {name:"delete_activity",description:"删除一个活动",parameters:{type:"object",properties:{activityId:{type:"string",description:"要删除的活动ID"}},required:["activityId"]}},
     {name:"reorder_activity",description:"移动活动到新位置",parameters:{type:"object",properties:{activityId:{type:"string",description:"活动ID"},newIndex:{type:"integer",description:"新的位置索引（从0开始）"}},required:["activityId","newIndex"]}},
+    {name:"add_day",description:"添加一个新的日期到行程中",parameters:{type:"object",properties:{id:{type:"integer",description:"日期ID（如8代表Day 8）"},date:{type:"string",description:"日期，如'Apr 18'"},dow:{type:"string",description:"星期几，如'Fri'"},location:{type:"string",description:"当天地点，如'Narita → Singapore'"},theme:{type:"string",description:"当天主题"},weather:{type:"string",description:"天气，如'15°C ☀️'"},activities:{type:"array",items:{type:"object"},description:"活动列表（可选，也可后续添加）"}},required:["id","date","dow","location","theme"]}},
+    {name:"edit_day",description:"编辑日期的元信息（主题、地点、天气等），不修改活动",parameters:{type:"object",properties:{dayId:{type:"integer",description:"日期ID"},updates:{type:"object",properties:{date:{type:"string"},dow:{type:"string"},location:{type:"string"},theme:{type:"string"},weather:{type:"string"}}}},required:["dayId","updates"]}},
+    {name:"delete_day",description:"删除整个日期及其所有活动",parameters:{type:"object",properties:{dayId:{type:"integer",description:"要删除的日期ID"}},required:["dayId"]}},
+    {name:"move_activity",description:"将活动从一天移到另一天",parameters:{type:"object",properties:{activityId:{type:"string",description:"活动ID"},targetDayId:{type:"integer",description:"目标日期ID"},targetIndex:{type:"integer",description:"目标位置索引（从0开始）"}},required:["activityId","targetDayId"]}},
+    {name:"edit_origin",description:"修改出发地",parameters:{type:"object",properties:{name:{type:"string",description:"出发地名称，如'吉隆坡'"},la:{type:"number",description:"纬度"},lo:{type:"number",description:"经度"}},required:["name"]}},
+    {name:"bulk_add_activities",description:"批量添加多个活动到指定日期（用于规划整天行程）",parameters:{type:"object",properties:{dayId:{type:"integer",description:"目标日期ID"},activities:{type:"array",items:{type:"object"},description:"活动列表"}},required:["dayId","activities"]}},
     {name:"save_to_kb",description:"保存一篇文章到知识库。用于用户分享旅行攻略、tips、规则等参考资料时。",parameters:{type:"object",properties:{title:{type:"string",description:"文章标题"},content:{type:"string",description:"文章内容（保留原始格式）"},tags:{type:"array",items:{type:"string"},description:"标签关键词，如['shopping','tax-free']"}},required:["title","content"]}},
     {name:"edit_kb",description:"编辑知识库中已有文章",parameters:{type:"object",properties:{articleId:{type:"string",description:"文章ID"},title:{type:"string"},content:{type:"string"},tags:{type:"array",items:{type:"string"}}},required:["articleId"]}},
     {name:"delete_kb",description:"删除知识库中的文章",parameters:{type:"object",properties:{articleId:{type:"string",description:"文章ID"}},required:["articleId"]}}
@@ -1227,6 +1233,88 @@ function PreviewCard({fc,days,onApply,onDismiss}){
     </div>);
   }
 
+  if(fnName==='add_day'){
+    return(<div style={{border:'2px solid #2d7a3a',borderRadius:12,padding:12,margin:'8px 0',background:'#f0faf0'}}>
+      <div style={{fontSize:11,fontWeight:700,color:'#2d7a3a',marginBottom:8}}>📅 添加新日期</div>
+      <div style={{background:'#fff',borderRadius:10,padding:10,border:'1px solid #e8e4de'}}>
+        <div style={{fontWeight:700,fontSize:15,color:'#1a1a2e'}}>Day {args.id}: {args.dow}, {args.date}</div>
+        <div style={{fontSize:12,color:'#6b7280',marginTop:2}}>📍 {args.location}</div>
+        <div style={{fontSize:12,color:'#9ca3af',marginTop:2}}>{args.theme}</div>
+        {args.weather&&<div style={{fontSize:11,color:'#9ca3af',marginTop:2}}>{args.weather}</div>}
+        {args.activities&&args.activities.length>0&&<div style={{fontSize:11,color:'#6b7280',marginTop:4}}>{args.activities.length} 个活动</div>}
+      </div>
+      {btnRow}{status}
+    </div>);
+  }
+
+  if(fnName==='edit_day'){
+    const day=days.find(d=>d.id===args.dayId);
+    return(<div style={{border:'2px solid #1a73a7',borderRadius:12,padding:12,margin:'8px 0',background:'#e8f4fd'}}>
+      <div style={{fontSize:11,fontWeight:700,color:'#1a73a7',marginBottom:8}}>✏️ 编辑 Day {args.dayId}{day?` (${day.date})`:''}</div>
+      <div style={{background:'#fff',borderRadius:10,padding:10,border:'1px solid #e8e4de'}}>
+        {Object.entries(args.updates||{}).map(([k,v])=>(<div key={k} style={{fontSize:13,marginBottom:4}}>
+          <span style={{fontWeight:700,color:'#6b7280'}}>{k}: </span>
+          {day&&day[k]&&<span style={{textDecoration:'line-through',color:'#dc2626',marginRight:6}}>{String(day[k]).slice(0,50)}</span>}
+          <span style={{color:'#2d7a3a',fontWeight:600}}>{String(v).slice(0,80)}</span>
+        </div>))}
+      </div>
+      {btnRow}{status}
+    </div>);
+  }
+
+  if(fnName==='delete_day'){
+    const day=days.find(d=>d.id===args.dayId);
+    return(<div style={{border:'2px solid #dc2626',borderRadius:12,padding:12,margin:'8px 0',background:'#fef2f2'}}>
+      <div style={{fontSize:11,fontWeight:700,color:'#dc2626',marginBottom:8}}>🗑️ 删除整天</div>
+      <div style={{background:'#fff',borderRadius:10,padding:10,border:'1px solid #fecaca'}}>
+        <div style={{fontWeight:700,fontSize:14}}>Day {args.dayId}{day?`: ${day.date} · ${day.location}`:''}</div>
+        {day&&<div style={{fontSize:12,color:'#dc2626',marginTop:2}}>⚠️ 将删除 {day.activities.length} 个活动</div>}
+      </div>
+      {btnRow}{status}
+    </div>);
+  }
+
+  if(fnName==='move_activity'){
+    const act=days.flatMap(d=>d.activities).find(a=>a.id===args.activityId);
+    const targetDay=days.find(d=>d.id===args.targetDayId);
+    return(<div style={{border:'2px solid #7c3aed',borderRadius:12,padding:12,margin:'8px 0',background:'#ede9fe'}}>
+      <div style={{fontSize:11,fontWeight:700,color:'#7c3aed',marginBottom:8}}>↗️ 移动活动到其他日期</div>
+      <div style={{background:'#fff',borderRadius:10,padding:10,border:'1px solid #e8e4de'}}>
+        <div style={{fontWeight:700,fontSize:14}}>{act?act.name:args.activityId}</div>
+        <div style={{fontSize:12,color:'#7c3aed',marginTop:4}}>→ Day {args.targetDayId}{targetDay?` (${targetDay.date})`:''}{args.targetIndex!=null?` · 位置 ${args.targetIndex}`:''}</div>
+      </div>
+      {btnRow}{status}
+    </div>);
+  }
+
+  if(fnName==='edit_origin'){
+    return(<div style={{border:'2px solid #c27019',borderRadius:12,padding:12,margin:'8px 0',background:'#fef3e2'}}>
+      <div style={{fontSize:11,fontWeight:700,color:'#c27019',marginBottom:8}}>🏠 修改出发地</div>
+      <div style={{background:'#fff',borderRadius:10,padding:10,border:'1px solid #e8e4de'}}>
+        <div style={{fontWeight:700,fontSize:14}}>{args.name}</div>
+        {args.la&&args.lo&&<div style={{fontSize:11,color:'#9ca3af',marginTop:2}}>📍 {args.la}, {args.lo}</div>}
+      </div>
+      {btnRow}{status}
+    </div>);
+  }
+
+  if(fnName==='bulk_add_activities'){
+    const targetDay=days.find(d=>d.id===args.dayId);
+    const acts=args.activities||[];
+    return(<div style={{border:'2px solid #2d7a3a',borderRadius:12,padding:12,margin:'8px 0',background:'#f0faf0'}}>
+      <div style={{fontSize:11,fontWeight:700,color:'#2d7a3a',marginBottom:8}}>📋 批量添加 {acts.length} 个活动到 Day {args.dayId}{targetDay?` (${targetDay.date})`:''}</div>
+      <div style={{maxHeight:200,overflow:'auto'}}>{acts.map((a,i)=>{const c=gc(a.category||'sightseeing');return(<div key={i} style={{background:'#fff',borderRadius:8,padding:8,border:'1px solid #e8e4de',marginBottom:4}}>
+        <div style={{display:'flex',alignItems:'center',gap:6}}>
+          <span style={{fontSize:14}}>{c.e}</span>
+          <span style={{fontWeight:700,fontSize:13,flex:1}}>{a.name}</span>
+          {a.cost&&<span style={{fontSize:12,color:'#c46b98',fontWeight:700}}>{a.currency||'¥'}{a.cost}</span>}
+        </div>
+        {a.addr&&<div style={{fontSize:11,color:'#6b7280',marginTop:2}}>📍 {a.addr}</div>}
+      </div>);})}</div>
+      {btnRow}{status}
+    </div>);
+  }
+
   return(<div style={{border:'1px solid #e8e4de',borderRadius:12,padding:12,margin:'8px 0',background:'#faf8f4'}}>
     <div style={{fontSize:12,color:'#6b7280'}}>未知操作: {fnName}</div>
     {btnRow}{status}
@@ -1234,7 +1322,7 @@ function PreviewCard({fc,days,onApply,onDismiss}){
 }
 
 // ═══ Floating AI Chat Bubble ═══
-function AIChatBubble({knowledgeBase,setKnowledgeBase,days,origin,setDays,onScrollToActivity}){
+function AIChatBubble({knowledgeBase,setKnowledgeBase,days,origin,setDays,setOrigin,setExp,onScrollToActivity}){
   const[open,setOpen]=useState(false);
   const[chatMsgs,setChatMsgs]=useState([]);
   const[chatInput,setChatInput]=useState('');
@@ -1260,6 +1348,12 @@ function AIChatBubble({knowledgeBase,setKnowledgeBase,days,origin,setDays,onScro
     else if(fnName==='edit_activity'){const{activityId,updates}=args;setDays(prev=>prev.map(d=>({...d,activities:d.activities.map(a=>a.id===activityId?{...a,...updates}:a)})));}
     else if(fnName==='delete_activity'){setDays(prev=>prev.map(d=>({...d,activities:d.activities.filter(a=>a.id!==args.activityId)})));}
     else if(fnName==='reorder_activity'){setDays(prev=>{const nd=JSON.parse(JSON.stringify(prev));for(const d of nd){const idx=d.activities.findIndex(a=>a.id===args.activityId);if(idx>=0){const[item]=d.activities.splice(idx,1);d.activities.splice(Math.min(args.newIndex,d.activities.length),0,item);break;}}return nd;});}
+    else if(fnName==='add_day'){setDays(prev=>{const nd=[...prev,{id:args.id,date:args.date,dow:args.dow,location:args.location,theme:args.theme,weather:args.weather||'',activities:args.activities||[]}];nd.sort((a,b)=>a.id-b.id);return nd;});setExp(prev=>({...prev,[args.id]:true}));}
+    else if(fnName==='edit_day'){setDays(prev=>prev.map(d=>d.id===args.dayId?{...d,...args.updates}:d));}
+    else if(fnName==='delete_day'){setDays(prev=>prev.filter(d=>d.id!==args.dayId));}
+    else if(fnName==='move_activity'){setDays(prev=>{const nd=JSON.parse(JSON.stringify(prev));let movedAct=null;for(const d of nd){const idx=d.activities.findIndex(a=>a.id===args.activityId);if(idx>=0){[movedAct]=d.activities.splice(idx,1);break;}}if(movedAct){const td=nd.find(d=>d.id===args.targetDayId);if(td){const ti=args.targetIndex!=null?Math.min(args.targetIndex,td.activities.length):td.activities.length;td.activities.splice(ti,0,movedAct);}}return nd;});}
+    else if(fnName==='edit_origin'){setOrigin({name:args.name,la:args.la||0,lo:args.lo||0});}
+    else if(fnName==='bulk_add_activities'){setDays(prev=>prev.map(d=>{if(d.id!==args.dayId)return d;const newActs=(args.activities||[]).map((a,i)=>({...a,id:`${args.dayId}_bulk_${Date.now()}_${i}`,type:a.from?'note':'poi'}));return{...d,activities:[...d.activities,...newActs]};}));setExp(prev=>({...prev,[args.dayId]:true}));}
     else if(fnName==='save_to_kb'){setKnowledgeBase(prev=>[...prev,{id:'kb_'+Date.now(),title:args.title,content:args.content,tags:args.tags||[],createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()}]);}
     else if(fnName==='edit_kb'){setKnowledgeBase(prev=>prev.map(a=>a.id===args.articleId?{...a,...(args.title?{title:args.title}:{}),...(args.content?{content:args.content}:{}),...(args.tags?{tags:args.tags}:{}),updatedAt:new Date().toISOString()}:a));}
     else if(fnName==='delete_kb'){setKnowledgeBase(prev=>prev.filter(a=>a.id!==args.articleId));}
@@ -1743,7 +1837,7 @@ function App(){
     {editA&&<EditModal activity={editA} onSave={hSave} onDelete={hDel} onClose={()=>{setEditA(null);setEditD(null);}}/>}
     {showVersions&&<VersionHistoryModal onClose={()=>setShowVersions(false)} onRestore={(data)=>{setDays(data.days);if(data.origin)setOrigin(data.origin);if(data.knowledgeBase&&Array.isArray(data.knowledgeBase))setKnowledgeBase(data.knowledgeBase);}}/>}
     {showKB&&<KnowledgeBaseModal knowledgeBase={knowledgeBase} setKnowledgeBase={setKnowledgeBase} onClose={()=>setShowKB(false)}/>}
-    <AIChatBubble knowledgeBase={knowledgeBase} setKnowledgeBase={setKnowledgeBase} days={days} origin={origin} setDays={setDays} onScrollToActivity={(id)=>{
+    <AIChatBubble knowledgeBase={knowledgeBase} setKnowledgeBase={setKnowledgeBase} days={days} origin={origin} setDays={setDays} setOrigin={setOrigin} setExp={setExp} onScrollToActivity={(id)=>{
       const dayObj=days.find(d=>d.activities.some(a=>a.id===id));
       if(dayObj){setExp(p=>({...p,[dayObj.id]:true}));
         setTimeout(()=>{const el=document.getElementById('act-'+id);if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.style.boxShadow='0 0 0 3px #c46b98';el.style.transition='box-shadow 0.3s';setTimeout(()=>{el.style.boxShadow='';},3000);}},400);
