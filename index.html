@@ -188,7 +188,11 @@ async function askAI(question,kb,chatHistory,tripData){
    - time 字段必须填写对应的时间段枚举值（如 Midday, Morning 等），这是必填字段！
    - 使用 reorder_activity 把新活动移到正确的位置
 6. 对于实时信息（当前天气、最新营业时间、当前价格），如果行程数据中没有，回复 [需要搜索] 标记，系统会自动用Google Search重新回答。
-7. 编辑活动时，updates 中只包含需要修改的字段。
+7. 编辑活动时，updates 中只包含用户明确要求修改的字段。⚠️ 绝对禁止：
+   - 不要修改用户没有提到的字段！如果用户只说"调整顺序"，那就只用 reorder_activity，不要碰 name/notes/addr 等任何字段
+   - 不要"改善"或"重写"已有的 notes/name 内容，即使你觉得可以写得更好
+   - reorder_activity 只移动位置，不改变活动内容
+   - 如果用户说"不要改备注"，那 updates 里绝对不能包含 notes 字段
 8. 活动ID格式为行程数据中 [ID:xxx] 的 xxx 部分。
 9. notes 字段风格参考已有数据，例如：
    "在日本的第一碗正式拉面！一兰的独立隔间设计，安静且不被打扰。\n💡 歌舞伎町店24h营业，不用担心时间"
