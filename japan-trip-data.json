@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exportDate": "2026-03-23T17:16:14.000Z",
+  "exportDate": "2026-03-23T17:18:55.625Z",
   "days": [
     {
       "id": 0,
@@ -439,22 +439,6 @@
       "hotelIdx": 0,
       "activities": [
         {
-          "id": "3a",
-          "type": "note",
-          "name": "新宿提车：出发！",
-          "category": "transport",
-          "time": "Morning",
-          "cost": "18000",
-          "currency": "¥",
-          "notes": "包含一日租车费与过路费预估。同城还车极其划算且从容。",
-          "la": 35.713358,
-          "lo": 139.705053,
-          "img": "https://places.googleapis.com/v1/places/ChIJtRk4-AmNGGARVD_Qf-YvyVk/photos/ATCDNfVVAanzPIod3gqwBc5AVoRE0f5yA14kRo2vG21zCMwBnZWtCv3eZ8QVsD1-_JJ4gvqixGWoiFYMLSdTA6zqnauKgF2Q67INswaknqgkXzPsjlc81LdFwVRACv77in3I3AW4q-TIhwiXToKrkMWu_IofLUmWUZxhCVHY7O3PpfjFxPDYP7nqYCTdpGTh3wWctKkh8qRXcb4DZWHujPMQZSV0M_S-l5j5oZU8fbHUHT6jA-vU0L4BWVe4r_mp-DLCTpCUO8L2ZQ5Jy3t86_pMZ220B0yTv4pv0ogNRNgDdi-qj5HbSNcRB3GyTqrB_5_307vb5esRPiVYDY3bHN49nLvNR6lUy_E1on9p5cnYXhoaYDN3TfMgZmg-55sJ0Hjjhi8YE-RNa4hFvi8EIhJG4N90OKEkj1jpQf8N8_yAznd8j7I/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
-          "rating": 4.1,
-          "reviews": 178,
-          "addr": "1-chōme-2-12 Takadanobaba, Shinjuku City, Tokyo 169-0075, Japan"
-        },
-        {
           "id": "3c",
           "type": "poi",
           "name": "新倉山浅間公園 · 忠靈塔",
@@ -469,6 +453,22 @@
           "notes": "经典的富士山与五重塔构图。",
           "cost": "0",
           "currency": "¥"
+        },
+        {
+          "id": "3a",
+          "type": "note",
+          "name": "09:00 自驾出发前往富士山",
+          "category": "transport",
+          "time": "Morning",
+          "cost": "18000",
+          "currency": "¥",
+          "notes": "新宿出发，经中央自动车道前往富士五湖区域。",
+          "la": 35.713358,
+          "lo": 139.705053,
+          "img": "https://places.googleapis.com/v1/places/ChIJtRk4-AmNGGARVD_Qf-YvyVk/photos/ATCDNfVVAanzPIod3gqwBc5AVoRE0f5yA14kRo2vG21zCMwBnZWtCv3eZ8QVsD1-_JJ4gvqixGWoiFYMLSdTA6zqnauKgF2Q67INswaknqgkXzPsjlc81LdFwVRACv77in3I3AW4q-TIhwiXToKrkMWu_IofLUmWUZxhCVHY7O3PpfjFxPDYP7nqYCTdpGTh3wWctKkh8qRXcb4DZWHujPMQZSV0M_S-l5j5oZU8fbHUHT6jA-vU0L4BWVe4r_mp-DLCTpCUO8L2ZQ5Jy3t86_pMZ220B0yTv4pv0ogNRNgDdi-qj5HbSNcRB3GyTqrB_5_307vb5esRPiVYDY3bHN49nLvNR6lUy_E1on9p5cnYXhoaYDN3TfMgZmg-55sJ0Hjjhi8YE-RNa4hFvi8EIhJG4N90OKEkj1jpQf8N8_yAznd8j7I/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
+          "rating": 4.1,
+          "reviews": 178,
+          "addr": "1-chōme-2-12 Takadanobaba, Shinjuku City, Tokyo 169-0075, Japan"
         },
         {
           "id": "3d",
@@ -517,6 +517,20 @@
           "rating": 3.8,
           "reviews": 8380,
           "addr": "3-chōme-38-1 Shinjuku, Shinjuku City, Tokyo 160-0022, Japan"
+        },
+        {
+          "cost": "18000",
+          "notes": "富士山自驾一日游，从这里出发！确保带好国际驾照(IDP)和护照。",
+          "time": "Morning",
+          "currency": "¥",
+          "addr": "Japan, 〒169-0075 Tokyo, Shinjuku City, Takadanobaba, 4-chōme−9−１２ 日新西北ビル",
+          "name": "08:30 新宿 Nippon Rent-A-Car 提车 (Nippon Rent-a-car)",
+          "category": "transport",
+          "la": 35.7134664,
+          "lo": 139.70298409999998,
+          "img": "https://places.googleapis.com/v1/places/ChIJAUmnTDiNGGARXpkKw3fDgDk/photos/AU_ZVEEPfrr-DTe55HyKCmoRBRi-uSEDaEz5guxdRkiqoT8p88vZi-ALRKbJqvYkaPhmiZBk7EtUeN-IBD6OTfg6EVLNyNf03o5v9SEG2UolFFtjRH7ooFcqJr7HPqIG9tdjvFoFE0fpUWg2U8v6mJj7GRAilWaFftdqyXM7U1oOeowQO1R2g5ZLXOjvR--cYxZgJWJrZOu7Fzw1qGLndWDOB0vBjI1GM-guY-CdbUcNEUT8R6jsieY8qFL9OvEyXswoS2X7HYUgglTFPIQlgvcgj3G0VU6fBYZodEmJTHv5_AHCug/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
+          "id": "3_1774286290650",
+          "type": "poi"
         }
       ]
     },
