@@ -188,8 +188,43 @@ ${kbContext}`;
     const text=parts.filter(p=>p.text).map(p=>p.text).join('\n');
     const functionCalls=parts.filter(p=>p.functionCall);
     const groundingMetadata=candidate?.groundingMetadata||null;
-    // If AI suggests searching (no function calls, text hints at needing real-time data)
-    if(!functionCalls.length&&/\[需要搜索\]|SEARCH_NEEDED/.test(text)){
+    // Auto-enrich: if function calls have incomplete data (no addr/la/lo), use Google Search+Maps to fill in
+    if(functionCalls.length>0){
+      const enriched=[];
+      for(const fc of functionCalls){
+        const fn=fc.functionCall;
+        const act=fn.name==='add_activity'?fn.args?.activity:fn.name==='edit_activity'?fn.args?.updates:null;
+        if(act&&act.name&&(!act.addr||!act.la)){
+          try{
+            const searchQ=`${act.name} ${act.addr||''} Japan exact address location coordinates opening hours`;
+            const r2=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_KEY}`,{
+              method:'POST',headers:{'Content-Type':'application/json'},
+              body:JSON.stringify({contents:[{role:'user',parts:[{text:`Search for: ${act.name}${act.addr?' near '+act.addr:' Japan'}.\nReturn ONLY a JSON object with these fields:\n- addr: full Japanese address\n- la: latitude (number)\n- lo: longitude (number)\n- notes: 2-3 lines of useful info in Chinese including: signature dish/recommendation, opening hours, average cost, tips. Write in the style of a travel guide, use emoji. Do NOT include generic advice like "请确认地址".\n- img: Google Maps photo URL if available\nNo other text, just the JSON object.`}]}],tools:[{google_search:{}},{google_maps:{}}],generationConfig:{maxOutputTokens:512,temperature:0.2}})
+            });
+            if(r2.ok){
+              const d2=await r2.json();const p2=d2.candidates?.[0]?.content?.parts||[];
+              const searchText=p2.filter(p=>p.text).map(p=>p.text).join('\n');
+              // Try to extract JSON from response
+              const jsonMatch=searchText.match(/\{[\s\S]*?\}/);
+              if(jsonMatch){
+                try{
+                  const enrichData=JSON.parse(jsonMatch[0]);
+                  if(enrichData.addr)act.addr=enrichData.addr;
+                  if(enrichData.la)act.la=parseFloat(enrichData.la);
+                  if(enrichData.lo)act.lo=parseFloat(enrichData.lo);
+                  if(enrichData.notes)act.notes=enrichData.notes;
+                  if(enrichData.img&&!act.img)act.img=enrichData.img;
+                }catch(pe){}
+              }
+            }
+          }catch(e2){/* enrichment failed, use original data */}
+        }
+        enriched.push(fc);
+      }
+      return{text,functionCalls:enriched,groundingMetadata};
+    }
+    // If no function calls but needs search (real-time data question)
+    if(/\[需要搜索\]|SEARCH_NEEDED/.test(text)){
       try{
         const r2=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_KEY}`,{
           method:'POST',headers:{'Content-Type':'application/json'},
