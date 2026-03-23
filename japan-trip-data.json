@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exportDate": "2026-03-23T04:36:27.991Z",
+  "exportDate": "2026-03-23T04:38:03.705Z",
   "days": [
     {
       "id": 0,
@@ -146,9 +146,11 @@
           "name": "📲 必装APP",
           "category": "sightseeing",
           "time": "Daytime",
-          "cost": "0",
+          "cost": "",
           "currency": "MYR",
-          "notes": "⬜ Google Maps (下载离线地图)\n⬜ Suica App (iPhone可直接充值)\n⬜ Google Translate (下载日语离线包)\n⬜ Navitime / Yahoo乗換案内 (电车换乘)\n⬜ PayPay (日本移动支付，部分店家用)"
+          "notes": "⬜ Google Maps (下载离线地图)\n⬜ Suica App (iPhone可直接充值)\n⬜ Google Translate (下载日语离线包)\n⬜ Navitime / Yahoo乗換案内 (电车换乘)\n⬜ PayPay (日本移动支付，部分店家用)",
+          "la": 40.005055,
+          "lo": 140.97809
         }
       ]
     },
