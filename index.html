@@ -109,10 +109,28 @@ async function githubLoadVersion(sha){
 }
 
 // ═══ GEMINI AI — knowledge base Q&A ═══
-async function askAI(question,kb,chatHistory){
+async function askAI(question,kb,chatHistory,tripData){
   if(!GEMINI_KEY)return'⚠️ 未配置 Gemini API Key。请在 config.js 中设置 window.GEMINI_KEY';
   const kbContext=kb.length>0?kb.map(a=>`【${a.title}】\n${a.content}`).join('\n\n'):'（知识库为空）';
-  const systemText=`你是一个日本旅行助手。根据以下知识库内容回答用户问题。如果知识库中没有相关信息，请根据你的知识回答，但注明是通用建议。回答要简洁实用。\n\n=== 知识库 ===\n${kbContext}`;
+  // Build trip itinerary context
+  let tripContext='（无行程数据）';
+  if(tripData&&tripData.days&&tripData.days.length>0){
+    tripContext=tripData.days.map(d=>{
+      const acts=d.activities.map(a=>{
+        let line=`  - ${a.name}`;
+        if(a.time)line+=` (${a.time})`;
+        if(a.cost)line+=` · ${a.currency||'¥'}${a.cost}`;
+        if(a.addr)line+=` · ${a.addr}`;
+        if(a.from&&a.to)line+=` · ${a.from}→${a.to}`;
+        if(a.line)line+=` · ${a.line}`;
+        if(a.notes)line+=`\n    ${a.notes.split('\n')[0]}`;
+        return line;
+      }).join('\n');
+      return`【Day ${d.id}: ${d.date} ${d.dow} · ${d.location}】\n${d.theme}\n${acts}`;
+    }).join('\n\n');
+    if(tripData.origin)tripContext=`出发地: ${tripData.origin.name} (${tripData.origin.la},${tripData.origin.lo})\n\n${tripContext}`;
+  }
+  const systemText=`你是一个日本旅行助手。你拥有用户的完整行程数据和知识库。请根据这些信息回答问题。如果知识库和行程中没有相关信息，请根据你的日本旅行知识回答，但注明是通用建议。回答要简洁实用，用中文回答。\n\n=== 行程数据 ===\n${tripContext}\n\n=== 知识库 ===\n${kbContext}`;
   const contents=[];
   if(chatHistory)chatHistory.forEach(m=>{contents.push({role:m.role==='user'?'user':'model',parts:[{text:m.text}]});});
   contents.push({role:'user',parts:[{text:question}]});
@@ -951,7 +969,31 @@ function detectOrigin(days){
 }
 
 // ═══ KNOWLEDGE BASE MODAL ═══
-function KnowledgeBaseModal({knowledgeBase,setKnowledgeBase,onClose}){
+// Simple markdown to React elements (bold, lists, code, line breaks)
+function renderMd(text){
+  if(!text)return null;
+  return text.split('\n').map((line,i)=>{
+    // Heading ### → bold larger
+    if(line.match(/^###\s/))return React.createElement('div',{key:i,style:{fontWeight:700,fontSize:15,marginTop:8,marginBottom:4}},line.replace(/^###\s/,''));
+    if(line.match(/^##\s/))return React.createElement('div',{key:i,style:{fontWeight:800,fontSize:16,marginTop:10,marginBottom:4}},line.replace(/^##\s/,''));
+    // Bullet list
+    if(line.match(/^[\-\*]\s/))return React.createElement('div',{key:i,style:{paddingLeft:12,position:'relative'}},React.createElement('span',{style:{position:'absolute',left:0}},'•'),parseBold(line.replace(/^[\-\*]\s/,'')));
+    // Numbered list
+    const numMatch=line.match(/^(\d+)[\.\)]\s/);
+    if(numMatch)return React.createElement('div',{key:i,style:{paddingLeft:16,position:'relative'}},React.createElement('span',{style:{position:'absolute',left:0,fontWeight:600}},numMatch[1]+'.'),parseBold(line.replace(/^\d+[\.\)]\s/,'')));
+    // Empty line
+    if(!line.trim())return React.createElement('div',{key:i,style:{height:8}});
+    // Regular line with bold parsing
+    return React.createElement('div',{key:i},parseBold(line));
+  });
+}
+function parseBold(text){
+  const parts=text.split(/(\*\*[^*]+\*\*)/g);
+  if(parts.length===1)return text;
+  return parts.map((p,i)=>p.startsWith('**')&&p.endsWith('**')?React.createElement('strong',{key:i},p.slice(2,-2)):p);
+}
+
+function KnowledgeBaseModal({knowledgeBase,setKnowledgeBase,days,origin,onClose}){
   const[tab,setTab]=useState('articles');
   const[search,setSearch]=useState('');
   const[editing,setEditing]=useState(null);// null=list, object=editing article
@@ -991,7 +1033,7 @@ function KnowledgeBaseModal({knowledgeBase,setKnowledgeBase,onClose}){
     const userMsg={role:'user',text:q,time:new Date().toLocaleTimeString()};
     setChatMsgs(prev=>[...prev,userMsg]);setChatInput('');setLoading(true);
     const history=chatMsgs.map(m=>({role:m.role,text:m.text}));
-    const answer=await askAI(q,knowledgeBase,history);
+    const answer=await askAI(q,knowledgeBase,history,{days,origin});
     setChatMsgs(prev=>[...prev,{role:'ai',text:answer,time:new Date().toLocaleTimeString()}]);
     setLoading(false);
   };
@@ -1061,8 +1103,8 @@ function KnowledgeBaseModal({knowledgeBase,setKnowledgeBase,onClose}){
             </div>}
             {chatMsgs.map((m,i)=>(
               <div key={i} style={{display:'flex',justifyContent:m.role==='user'?'flex-end':'flex-start',marginBottom:10}}>
-                <div style={{maxWidth:'80%',padding:'10px 14px',borderRadius:m.role==='user'?'14px 14px 4px 14px':'14px 14px 14px 4px',background:m.role==='user'?'linear-gradient(135deg,#c46b98,#e8a0bf)':'#fff',color:m.role==='user'?'#fff':'#1a1a2e',fontSize:14,lineHeight:1.6,border:m.role==='user'?'none':'1px solid #e8e4de',boxShadow:'0 1px 3px rgba(0,0,0,0.05)',whiteSpace:'pre-wrap'}}>
-                  {m.text}
+                <div style={{maxWidth:'80%',padding:'10px 14px',borderRadius:m.role==='user'?'14px 14px 4px 14px':'14px 14px 14px 4px',background:m.role==='user'?'linear-gradient(135deg,#c46b98,#e8a0bf)':'#fff',color:m.role==='user'?'#fff':'#1a1a2e',fontSize:14,lineHeight:1.6,border:m.role==='user'?'none':'1px solid #e8e4de',boxShadow:'0 1px 3px rgba(0,0,0,0.05)',whiteSpace:m.role==='user'?'pre-wrap':'normal'}}>
+                  {m.role==='ai'?renderMd(m.text):m.text}
                   <div style={{fontSize:10,marginTop:4,opacity:0.6,textAlign:'right'}}>{m.time}</div>
                 </div>
               </div>
@@ -1376,7 +1418,7 @@ function App(){
     {dayM&&<DayDetailModal days={days} initialDayId={dayM} onClose={()=>setDayM(null)} onViewExp={act=>{setDayM(null);setViewE(act);}}/>}
     {editA&&<EditModal activity={editA} onSave={hSave} onDelete={hDel} onClose={()=>{setEditA(null);setEditD(null);}}/>}
     {showVersions&&<VersionHistoryModal onClose={()=>setShowVersions(false)} onRestore={(data)=>{setDays(data.days);if(data.origin)setOrigin(data.origin);if(data.knowledgeBase&&Array.isArray(data.knowledgeBase))setKnowledgeBase(data.knowledgeBase);}}/>}
-    {showKB&&<KnowledgeBaseModal knowledgeBase={knowledgeBase} setKnowledgeBase={setKnowledgeBase} onClose={()=>setShowKB(false)}/>}
+    {showKB&&<KnowledgeBaseModal knowledgeBase={knowledgeBase} setKnowledgeBase={setKnowledgeBase} days={days} origin={origin} onClose={()=>setShowKB(false)}/>}
   </div>);
 }
 
