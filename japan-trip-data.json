@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exportDate": "2026-03-23T19:46:10.768Z",
+  "exportDate": "2026-03-23T19:47:22.610Z",
   "days": [
     {
       "id": 0,
@@ -62,8 +62,8 @@
           "cost": "？",
           "currency": "¥",
           "notes": "Apr 13 富士山自驾一日游\n⬜ 预订租车 (Times/Toyota/Nippon Rent-A-Car)\n⬜ 确认新宿取车+还车地点\n⬜ 确认包含免责补偿险 (CDW)\n⬜ 准备好IDP + 护照 + 信用卡\n💡 同城还车无附加费，非常划算",
-          "addr": "169 Kaki Bukit Ave 1, Shun Li Industrial Park, 新加坡 416019",
-          "img": "https://places.googleapis.com/v1/places/ChIJN2va8uIX2jERTEhn1eyUl5Q/photos/AU_ZVEHWnl4QllToIOIjXE1VsGfFCYpXVtHj5ewiWLVuU6SoJBInkrZ6iE35MPW6_jL8WzfILBc6KmVDNlNfpfKGfLA-i1v5UVlCQtrEE1FTsAU3pOEeqrZDRNsJe4VUO6FCveCQqCBV7t7mbj5V1P1W5p8-aEy6kYWmDPstYf5xwCpb1Q9sPcOEYv0gWrqZZHC8Uy-lR2a_L2FtUUJ4p5lp4P59BBHIlG407pFd_eAl3HLCsF0fESfzmYDpjdaXcSvwl8pLNcsJ5zuu9GOZkC5BlJGcBX6l8PSGH3j1vztvjWvu-6dsik5VNA-GivIxSDhQujxnhS4dUVRhqpYFfxzQpgz0PtyBdg6fpWlMW1FNRvTDMqw5k0p14CWPB0zkvrXPNwlFmXvY8M-_ibrJ9io4Shz_e8F7igtarYSgqsQgld3Cng/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
+          "addr": "",
+          "img": "",
           "la": 1.312543,
           "lo": 103.929244
         },
@@ -76,8 +76,8 @@
           "cost": "",
           "currency": "MYR",
           "notes": "⬜ 护照有效期 > 6个月 (至少到 Oct 2026)\n⬜ 马来西亚护照免签90天 ✅\n⬜ 护照复印件 (电子版+纸质)\n⬜ 2寸白底证件照备用",
-          "img": "https://places.googleapis.com/v1/places/ChIJ2SeRlsAABDQRwIwx74LPT6I/photos/AU_ZVEH2BrICaWdlIRrbSy0khsRJrLXfJHqGawgJkb9OliLfbDdOTipFA1dgJP1VoxAG440LmL5U1cxrpX1L_dVeFU7HceVCrP0yGwUr9vkBF7xtfmDzGiDbnBPZJBt0wiTHU_zJFzRq-IWbArn7GOldD6IIC8WKE0E5fqpgFPDYwlSdpshHF5EjjbH7MoJiPBu3KafCcy6pnQBDtlC1AJ9lAXI98tDtXx5W5-PaZaaaew265_Mo0OloqzJ9ooySr8-huQ-qAKZSr9_Fguiu_FeH6lE0EfU3aOYGTDLWNYkwLwb0Yg/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
-          "addr": "香港灣仔港灣道28號灣景中心大廈3層304舖位",
+          "img": "",
+          "addr": "",
           "la": 36.591907,
           "lo": 140.372803
         },
@@ -122,8 +122,8 @@
           "notes": "出发前在 vjw.digital.go.jp 完成!\n⬜ 注册账号\n⬜ 填写个人信息 + 护照资料\n⬜ 填写入境审查 (Immigration)\n⬜ 填写海关申报 (Customs)\n⬜ 生成QR码 → 截图保存到手机!\n⬜ 同行朋友也要各自填写\n⚠️ 到达HND后直接扫QR码过关，省大量排队时间\n💡 建议出发前3天内填写 (太早填会过期)",
           "la": 35.704352,
           "lo": 139.544123,
-          "img": "https://places.googleapis.com/v1/places/ChIJ5aLUE13pGGARTWkUmsjb4wE/photos/ATCDNfW8eQwxe1dRWtNWG4wWk0TWygzymFsjzHQfAyUyvvaYh71E0GtdxnhXPaiRZzdTf_dAyPq6mAuUWRK5DX6LEgFUf7G2rX_DooJ_gxlHL8jwV4TBH5VQekqKqkeTwqMliYhzjH6oKHIzakfFPJ39hnY88RzZQu0pvWFEqx6qEvpE1KKSpzHEYN6dzEvb20vQSAFilynerJZT6kC3YtGyP8zHidmSmOvNlYYrOfgLUUL9iGdYgCIs4T6P7sloNCaDznWuFqIRfbrOXxEwTo8NlGpVylnCMX6P5lPuXpVMatAUqw/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
-          "addr": "2-chōme-34-25 Mihara, Asaka, Saitama 351-0025日本"
+          "img": "",
+          "addr": ""
         },
         {
           "id": "0_tickets",
