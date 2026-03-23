@@ -54,6 +54,8 @@ const GITHUB_REPO='tyongming/jp-trip';
 const GITHUB_FILE='japan-trip-data.json';
 const GITHUB_BRANCH='data';
 const GITHUB_PAT=window.GITHUB_PAT||'';
+const GEMINI_KEY=window.GEMINI_KEY||'';
+const GEMINI_MODEL='gemini-2.5-flash';
 
 async function githubEnsureBranch(){
   // Create 'data' branch from master if it doesn't exist
@@ -69,11 +71,11 @@ async function githubEnsureBranch(){
   }catch(e){return false;}
 }
 
-async function githubSave(days,origin){
+async function githubSave(days,origin,knowledgeBase){
   if(!GITHUB_PAT)return{ok:false,reason:'no_pat'};
   try{
     await githubEnsureBranch();
-    const content=btoa(unescape(encodeURIComponent(JSON.stringify({version:1,exportDate:new Date().toISOString(),days,origin},null,2))));
+    const content=btoa(unescape(encodeURIComponent(JSON.stringify({version:1,exportDate:new Date().toISOString(),days,origin,knowledgeBase:knowledgeBase||[]},null,2))));
     // Get current file SHA on data branch
     let sha='';
     try{
@@ -104,6 +106,25 @@ async function githubLoadVersion(sha){
     const d=await r.json();
     return JSON.parse(decodeURIComponent(escape(atob(d.content))));
   }catch(e){return null;}
+}
+
+// ═══ GEMINI AI — knowledge base Q&A ═══
+async function askAI(question,kb,chatHistory){
+  if(!GEMINI_KEY)return'⚠️ 未配置 Gemini API Key。请在 config.js 中设置 window.GEMINI_KEY';
+  const kbContext=kb.length>0?kb.map(a=>`【${a.title}】\n${a.content}`).join('\n\n'):'（知识库为空）';
+  const systemText=`你是一个日本旅行助手。根据以下知识库内容回答用户问题。如果知识库中没有相关信息，请根据你的知识回答，但注明是通用建议。回答要简洁实用。\n\n=== 知识库 ===\n${kbContext}`;
+  const contents=[];
+  if(chatHistory)chatHistory.forEach(m=>{contents.push({role:m.role==='user'?'user':'model',parts:[{text:m.text}]});});
+  contents.push({role:'user',parts:[{text:question}]});
+  try{
+    const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_KEY}`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({system_instruction:{parts:[{text:systemText}]},contents,generationConfig:{maxOutputTokens:1024,temperature:0.7}})
+    });
+    if(!r.ok){const e=await r.text();return`⚠️ API错误 (${r.status}): ${e.slice(0,200)}`;}
+    const d=await r.json();
+    return d.candidates?.[0]?.content?.parts?.[0]?.text||'⚠️ 未收到回复';
+  }catch(e){return'⚠️ 网络错误: '+e.message;}
 }
 
 function timeAgo(dateStr){
@@ -929,6 +950,138 @@ function detectOrigin(days){
   return null;
 }
 
+// ═══ KNOWLEDGE BASE MODAL ═══
+function KnowledgeBaseModal({knowledgeBase,setKnowledgeBase,onClose}){
+  const[tab,setTab]=useState('articles');
+  const[search,setSearch]=useState('');
+  const[editing,setEditing]=useState(null);// null=list, object=editing article
+  const[chatMsgs,setChatMsgs]=useState([]);
+  const[chatInput,setChatInput]=useState('');
+  const[loading,setLoading]=useState(false);
+  const chatEndRef=useRef(null);
+
+  const filtered=useMemo(()=>{
+    if(!search.trim())return knowledgeBase;
+    const terms=search.toLowerCase().split(/\s+/);
+    return knowledgeBase.filter(a=>{
+      const text=(a.title+' '+a.content+' '+a.tags.join(' ')).toLowerCase();
+      return terms.every(t=>text.includes(t));
+    });
+  },[knowledgeBase,search]);
+
+  const handleSaveArticle=()=>{
+    if(!editing.title.trim())return alert('请输入标题');
+    const now=new Date().toISOString();
+    if(editing.id){
+      setKnowledgeBase(prev=>prev.map(a=>a.id===editing.id?{...editing,updatedAt:now}:a));
+    }else{
+      setKnowledgeBase(prev=>[{...editing,id:'kb_'+Date.now(),createdAt:now,updatedAt:now},...prev]);
+    }
+    setEditing(null);
+  };
+
+  const handleDeleteArticle=(id)=>{
+    if(!confirm('确定删除这篇文章？'))return;
+    setKnowledgeBase(prev=>prev.filter(a=>a.id!==id));
+    setEditing(null);
+  };
+
+  const handleSendChat=async()=>{
+    const q=chatInput.trim();if(!q)return;
+    const userMsg={role:'user',text:q,time:new Date().toLocaleTimeString()};
+    setChatMsgs(prev=>[...prev,userMsg]);setChatInput('');setLoading(true);
+    const history=chatMsgs.map(m=>({role:m.role,text:m.text}));
+    const answer=await askAI(q,knowledgeBase,history);
+    setChatMsgs(prev=>[...prev,{role:'ai',text:answer,time:new Date().toLocaleTimeString()}]);
+    setLoading(false);
+  };
+
+  useEffect(()=>{chatEndRef.current?.scrollIntoView({behavior:'smooth'});},[chatMsgs,loading]);
+
+  const tabStyle=(t)=>({padding:'8px 20px',borderRadius:100,border:'none',background:tab===t?'linear-gradient(135deg,#c46b98,#e8a0bf)':'transparent',color:tab===t?'#fff':'#6b7280',fontWeight:700,fontSize:13,cursor:'pointer',fontFamily:'inherit',transition:'all 0.15s'});
+  const tagPill={display:'inline-block',padding:'2px 10px',borderRadius:100,background:'#f0ecf8',color:'#6b48a8',fontSize:11,fontWeight:600,marginRight:4,marginBottom:4};
+
+  return(<div style={S.overlay} onClick={onClose}>
+    <div style={{...S.modal,maxWidth:600,maxHeight:'85vh',display:'flex',flexDirection:'column'}} onClick={e=>e.stopPropagation()}>
+      {/* Header */}
+      <div style={{padding:'20px 24px 0',flexShrink:0}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>
+          <h2 style={{fontSize:20,fontWeight:800,color:'#1a1a2e'}}>📚 知识库</h2>
+          <button onClick={onClose} style={{background:'none',border:'none',fontSize:20,cursor:'pointer',color:'#9ca3af',padding:4}}>✕</button>
+        </div>
+        <div style={{display:'flex',gap:6,marginBottom:16,background:'#faf8f4',borderRadius:100,padding:4}}>
+          <button onClick={()=>setTab('articles')} style={tabStyle('articles')}>📝 文章</button>
+          <button onClick={()=>setTab('ai')} style={tabStyle('ai')}>🤖 AI问答</button>
+        </div>
+      </div>
+
+      {/* Articles Tab */}
+      {tab==='articles'&&!editing&&(
+        <div style={{flex:1,overflow:'auto',padding:'0 24px 20px'}}>
+          <div style={{display:'flex',gap:8,marginBottom:14}}>
+            <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="🔍 搜索文章..." style={{...S.inp,flex:1}}/>
+            <button onClick={()=>setEditing({id:null,title:'',content:'',tags:[]})} style={{...S.savBtn,fontSize:13,padding:'8px 16px',whiteSpace:'nowrap'}}>+ 新建</button>
+          </div>
+          {filtered.length===0&&<div style={{textAlign:'center',padding:'40px 0',color:'#9ca3af',fontSize:14}}>{knowledgeBase.length===0?'还没有文章，点击 + 新建':'未找到匹配的文章'}</div>}
+          {filtered.map(a=>(
+            <div key={a.id} onClick={()=>setEditing({...a})} style={{...S.actCard,marginBottom:10,cursor:'pointer'}}>
+              <div style={{fontWeight:700,fontSize:15,color:'#1a1a2e',marginBottom:4}}>{a.title}</div>
+              <div style={{fontSize:13,color:'#6b7280',marginBottom:8,lineHeight:1.5}}>{a.content.slice(0,120)}{a.content.length>120?'...':''}</div>
+              <div>{a.tags.map(t=><span key={t} style={tagPill}>{t}</span>)}</div>
+              <div style={{fontSize:11,color:'#b0b0b0',marginTop:6}}>{a.updatedAt?new Date(a.updatedAt).toLocaleDateString():''}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Article Editor */}
+      {tab==='articles'&&editing&&(
+        <div style={{flex:1,overflow:'auto',padding:'0 24px 20px'}}>
+          <button onClick={()=>setEditing(null)} style={{background:'none',border:'none',fontSize:13,color:'#c46b98',fontWeight:700,cursor:'pointer',padding:'0 0 12px',fontFamily:'inherit'}}>← 返回列表</button>
+          <label style={S.fl}>标题</label>
+          <input value={editing.title} onChange={e=>setEditing({...editing,title:e.target.value})} placeholder="文章标题" style={S.inp}/>
+          <label style={S.fl}>标签 (逗号分隔)</label>
+          <input value={editing.tags.join(', ')} onChange={e=>setEditing({...editing,tags:e.target.value.split(',').map(t=>t.trim()).filter(Boolean)})} placeholder="shopping, tax-free, tips" style={S.inp}/>
+          <label style={S.fl}>内容</label>
+          <textarea value={editing.content} onChange={e=>setEditing({...editing,content:e.target.value})} placeholder="在这里写文章内容..." style={{...S.inp,minHeight:200,resize:'vertical',lineHeight:1.7}}/>
+          <div style={{display:'flex',gap:8,marginTop:14}}>
+            {editing.id&&<button onClick={()=>handleDeleteArticle(editing.id)} style={S.delBtn}>删除</button>}
+            <button onClick={()=>setEditing(null)} style={S.canBtn}>取消</button>
+            <button onClick={handleSaveArticle} style={{...S.savBtn,flex:1}}>保存</button>
+          </div>
+        </div>
+      )}
+
+      {/* AI Chat Tab */}
+      {tab==='ai'&&(
+        <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
+          <div style={{flex:1,overflow:'auto',padding:'0 24px 12px'}}>
+            {chatMsgs.length===0&&<div style={{textAlign:'center',padding:'40px 0',color:'#9ca3af',fontSize:14}}>
+              {GEMINI_KEY?'基于知识库内容回答你的旅行问题':'⚠️ 未配置 Gemini API Key\n请在 config.js 中设置 window.GEMINI_KEY'}
+            </div>}
+            {chatMsgs.map((m,i)=>(
+              <div key={i} style={{display:'flex',justifyContent:m.role==='user'?'flex-end':'flex-start',marginBottom:10}}>
+                <div style={{maxWidth:'80%',padding:'10px 14px',borderRadius:m.role==='user'?'14px 14px 4px 14px':'14px 14px 14px 4px',background:m.role==='user'?'linear-gradient(135deg,#c46b98,#e8a0bf)':'#fff',color:m.role==='user'?'#fff':'#1a1a2e',fontSize:14,lineHeight:1.6,border:m.role==='user'?'none':'1px solid #e8e4de',boxShadow:'0 1px 3px rgba(0,0,0,0.05)',whiteSpace:'pre-wrap'}}>
+                  {m.text}
+                  <div style={{fontSize:10,marginTop:4,opacity:0.6,textAlign:'right'}}>{m.time}</div>
+                </div>
+              </div>
+            ))}
+            {loading&&<div style={{display:'flex',justifyContent:'flex-start',marginBottom:10}}>
+              <div style={{padding:'10px 14px',borderRadius:'14px 14px 14px 4px',background:'#fff',border:'1px solid #e8e4de',fontSize:14,color:'#9ca3af'}}>思考中...</div>
+            </div>}
+            <div ref={chatEndRef}/>
+          </div>
+          <div style={{padding:'12px 24px 20px',borderTop:'1px solid #e8e4de',display:'flex',gap:8,flexShrink:0}}>
+            <input value={chatInput} onChange={e=>setChatInput(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();handleSendChat();}}} placeholder="问我关于旅行的问题..." style={{...S.inp,flex:1}} disabled={loading}/>
+            <button onClick={handleSendChat} disabled={loading||!chatInput.trim()} style={{...S.savBtn,padding:'10px 18px',opacity:loading||!chatInput.trim()?0.5:1}}>发送</button>
+          </div>
+        </div>
+      )}
+    </div>
+  </div>);
+}
+
 function App(){
   const[days,setDays]=useState(INIT_DAYS);const[exp,setExp]=useState({1:true});const[viewE,setViewE]=useState(null);const[dayM,setDayM]=useState(null);const[editA,setEditA]=useState(null);const[editD,setEditD]=useState(null);
   const[copied,setCopied]=useState(false);const[saveStatus,setSaveStatus]=useState("");const[showPasteModal,setShowPasteModal]=useState(false);const[pasteText,setPasteText]=useState("");const[showMobile,setShowMobile]=useState(false);const[fullMap,setFullMap]=useState(false);const[showVersions,setShowVersions]=useState(false);const[ghSaveStatus,setGhSaveStatus]=useState("");
@@ -936,6 +1089,7 @@ function App(){
   const[geocoding,setGeocoding]=useState(false);const[geocodeProgress,setGeocodeProgress]=useState("");
   const fileRef=useRef(null);
   const[rateInfo,setRateInfo]=useState({live:false,myr:RATES.MYR,updated:""});
+  const[knowledgeBase,setKnowledgeBase]=useState([]);const[showKB,setShowKB]=useState(false);
 
   // Fetch real-time exchange rates
   useEffect(()=>{
@@ -979,7 +1133,7 @@ function App(){
 
   // Export JSON
   const handleExport=()=>{
-    const data=JSON.stringify({version:1,exportDate:new Date().toISOString(),days,origin},null,2);
+    const data=JSON.stringify({version:1,exportDate:new Date().toISOString(),days,origin,knowledgeBase},null,2);
     const blob=new Blob([data],{type:"application/json"});
     const url=URL.createObjectURL(blob);
     const a=document.createElement("a");
@@ -997,6 +1151,7 @@ function App(){
         if(data.days&&Array.isArray(data.days)){
           setDays(data.days);setExp({[data.days[0]?.id]:true});
           if(data.origin)setOrigin(data.origin);
+          if(data.knowledgeBase&&Array.isArray(data.knowledgeBase))setKnowledgeBase(data.knowledgeBase);
           const actCount=data.days.reduce((s,d)=>s+d.activities.length,0);
           // Auto-geocode missing coordinates
           setGeocoding(true);setGeocodeProgress("🔍 检查坐标...");
@@ -1020,7 +1175,7 @@ function App(){
 
   // Copy JSON to clipboard
   const handleCopy=async()=>{
-    const data=JSON.stringify({version:1,exportDate:new Date().toISOString(),days,origin},null,2);
+    const data=JSON.stringify({version:1,exportDate:new Date().toISOString(),days,origin,knowledgeBase},null,2);
     await navigator.clipboard.writeText(data);
     setCopied(true);setTimeout(()=>setCopied(false),2000);
   };
@@ -1032,6 +1187,7 @@ function App(){
       if(data.days&&Array.isArray(data.days)){
         setDays(data.days);setShowPasteModal(false);setPasteText("");
         if(data.origin)setOrigin(data.origin);
+        if(data.knowledgeBase&&Array.isArray(data.knowledgeBase))setKnowledgeBase(data.knowledgeBase);
         // Auto-geocode missing coordinates
         setGeocoding(true);setGeocodeProgress("🔍 检查坐标...");
         const result=await geocodeMissing(data.days,(done,total)=>{
@@ -1062,24 +1218,24 @@ function App(){
   useEffect(()=>{
     const timer=setTimeout(()=>{
       try{
-        localStorage.setItem("trip-planner-data",JSON.stringify({version:1,days,origin,savedAt:new Date().toISOString()}));
+        localStorage.setItem("trip-planner-data",JSON.stringify({version:1,days,origin,knowledgeBase,savedAt:new Date().toISOString()}));
         setSaveStatus("saved");
       }catch(e){/* storage may not be available */}
     },2000);
     return()=>clearTimeout(timer);
-  },[days,origin]);
+  },[days,origin,knowledgeBase]);
 
   // Auto-save to GitHub (debounced 30s)
   useEffect(()=>{
     if(!GITHUB_PAT||days.length===0)return;
     const timer=setTimeout(async()=>{
       setGhSaveStatus("saving");
-      const r=await githubSave(days,origin);
+      const r=await githubSave(days,origin,knowledgeBase);
       setGhSaveStatus(r.ok?"saved":"error");
       if(r.ok)setTimeout(()=>setGhSaveStatus(""),5000);
     },30000);
     return()=>clearTimeout(timer);
-  },[days,origin]);
+  },[days,origin,knowledgeBase]);
 
   // Auto-load: fetch both localStorage and GitHub, pick the newer one
   useEffect(()=>{
@@ -1124,6 +1280,7 @@ function App(){
       if(data&&data.days){
         setDays(data.days);
         if(data.origin)setOrigin(data.origin);
+        if(data.knowledgeBase&&Array.isArray(data.knowledgeBase))setKnowledgeBase(data.knowledgeBase);
         const result=await geocodeMissing(data.days);
         if(result.updated){
           setDays(result.days);
@@ -1162,7 +1319,8 @@ function App(){
         <button onClick={handleCopy} style={{...S.toolBtn,background:copied?"#ecf5ec":"#fff"}}>{copied?"✅ 已复制!":"📋 复制JSON"}</button>
         <button onClick={()=>setShowPasteModal(true)} style={S.toolBtn}>📋 粘贴导入</button>
         {GITHUB_PAT&&<button onClick={()=>setShowVersions(true)} style={S.toolBtn}>📜 版本历史</button>}
-        {GITHUB_PAT&&<button onClick={async()=>{setGhSaveStatus("saving");const r=await githubSave(days,origin);setGhSaveStatus(r.ok?"saved":"error");if(r.ok)setTimeout(()=>setGhSaveStatus(""),5000);}} style={{...S.toolBtn,background:ghSaveStatus==="saved"?"#ecf5ec":ghSaveStatus==="error"?"#fef2f2":"#fff"}}>{ghSaveStatus==="saving"?"☁️ 保存中...":ghSaveStatus==="saved"?"☁️ 已保存到GitHub":ghSaveStatus==="error"?"⚠️ 保存失败":"☁️ 保存到GitHub"}</button>}
+        {GITHUB_PAT&&<button onClick={async()=>{setGhSaveStatus("saving");const r=await githubSave(days,origin,knowledgeBase);setGhSaveStatus(r.ok?"saved":"error");if(r.ok)setTimeout(()=>setGhSaveStatus(""),5000);}} style={{...S.toolBtn,background:ghSaveStatus==="saved"?"#ecf5ec":ghSaveStatus==="error"?"#fef2f2":"#fff"}}>{ghSaveStatus==="saving"?"☁️ 保存中...":ghSaveStatus==="saved"?"☁️ 已保存到GitHub":ghSaveStatus==="error"?"⚠️ 保存失败":"☁️ 保存到GitHub"}</button>}
+        <button onClick={()=>setShowKB(true)} style={{...S.toolBtn,background:'#f0ecf8',color:'#6b48a8',borderColor:'#d8d0f0'}}>📚 知识库</button>
         {geocoding&&<span style={{fontSize:12,color:"#c46b98",alignSelf:"center",fontWeight:600}}>{geocodeProgress}</span>}
         {!geocoding&&saveStatus==="saved"&&<span style={{fontSize:12,color:"#2d7a3a",alignSelf:"center"}}>💾 已自动保存</span>}
         <input ref={fileRef} type="file" accept=".json" style={{display:"none"}} onChange={handleImport}/>
@@ -1217,7 +1375,8 @@ function App(){
     {viewE&&<ExperienceDetail act={viewE} onClose={()=>setViewE(null)} onEdit={hEditExp}/>}
     {dayM&&<DayDetailModal days={days} initialDayId={dayM} onClose={()=>setDayM(null)} onViewExp={act=>{setDayM(null);setViewE(act);}}/>}
     {editA&&<EditModal activity={editA} onSave={hSave} onDelete={hDel} onClose={()=>{setEditA(null);setEditD(null);}}/>}
-    {showVersions&&<VersionHistoryModal onClose={()=>setShowVersions(false)} onRestore={(data)=>{setDays(data.days);if(data.origin)setOrigin(data.origin);}}/>}
+    {showVersions&&<VersionHistoryModal onClose={()=>setShowVersions(false)} onRestore={(data)=>{setDays(data.days);if(data.origin)setOrigin(data.origin);if(data.knowledgeBase&&Array.isArray(data.knowledgeBase))setKnowledgeBase(data.knowledgeBase);}}/>}
+    {showKB&&<KnowledgeBaseModal knowledgeBase={knowledgeBase} setKnowledgeBase={setKnowledgeBase} onClose={()=>setShowKB(false)}/>}
   </div>);
 }
 
