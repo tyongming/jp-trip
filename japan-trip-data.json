@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exportDate": "2026-03-23T20:12:01.004Z",
+  "exportDate": "2026-03-23T20:14:42.482Z",
   "days": [
     {
       "id": 0,
@@ -367,40 +367,23 @@
       "activities": [
         {
           "category": "transport",
-          "name": "08:30 新宿 Nippon Rent-A-Car 提车并前往镰仓 (Nippon Rent-a-car)",
+          "name": "08:30 新宿 Nippon Rent-A-Car 提车并出发 (自驾前往镰仓) (Nippon Rent-a-car)",
           "currency": "¥",
           "addr": "Japan, 〒160-0022 Tokyo, Shinjuku City, Shinjuku, 5-chōme−6−１ SHINJUKU YAWARAGI BUILDING",
           "time": "Morning",
           "cost": "18000",
           "la": 35.691859099999995,
           "lo": 139.7096866,
-          "img": "https://places.googleapis.com/v1/places/ChIJ2VfcI92MGGARFoxqkwZsgFs/photos/AU_ZVEG8dJgSYTVGdiWBXwGvXSxpvx47Gwo1q4nT2InDfKw9Q1HJzKeJVy7F_CfljldSQ9Hf4T1S3p1GzDvgHqywkJO7sDMldD6_6KvLOz4BAc0eXqxsf1VZLSLSv8h1ZGpIV1B9d7dQirRMTMSTR-nj16tQMJ7DsEq5b2In-Xz3geMUf-YOQxSsB5eAnU2FSA_pe2OdM12iJh3SIE77l_fQLokeJMoJghXzYmJNJM628geQaCPM7oTgcOVgsqspov-_wwA3FsdxvP-5WvAM-OHUZcBbtKqKlpJPq389MDsgkK8roEo0e-y1CDxtg5PtDer7D2bl-vzaXBIQm_XS5P2Ib_i-Zls3SRWu3jojUMxvbHDjFFWK5a9dACojhklMaza8lXa1VsFZxnZQctiBdwFiERoSO1Oo3YSGDhW6TO4qUYpWIWkcF2ALpz3PwJPglU5c/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
-          "notes": "清晨的新宿街头，在Yawaragi",
+          "img": "https://places.googleapis.com/v1/places/ChIJ2VfcI92MGGARFoxqkwZsgFs/photos/AU_ZVEGXJTuQBu3GEAoTzxu977kwRtFSV-1NnHs16IUhU19KePomsYM8Z5N37xuU6GjrsUTKiw81IUnpJ_tOkFzrs6wvoSkG3cyt8kM1TeC5ZNzoAn1FkYxkkGNkGyOS-1fRmUUQo0RX0GTD1XfnZc9vC1RYt1Ps_QaWfCtHK3KfYZ4Brbfab7ATWJ4gGYBQSHU4LWPHjXmMqu7nuOo3h2gXbS47sdLewCen83zGyteinmgAxvhnXme3MblXUC0prmgQEAQ5_GW3v3t48caLLjGx71O_Q0Lhbm13MYzz0RZ9cv7Larv2zqtqX86EXu7T0JBIr8zAwAtruVu9j25R4k1U55gEYWpXIplikBdsNn5AklhKgLBR_t90VMdcmp4R48hpF7lPcYke36kqjhbJUGZeJClaglzjYqurSlUzbUQndNXhV5xomfL_j_IS7gjGxWET/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
+          "notes": "清晨的新宿街头，提车后立即出发。路线：新宿 → 镰仓高校前 → 七里滨 → 富士山区域。\n💡 建议尽早出发，避开早高峰。全程自驾，预计交通费¥3000。",
           "id": "2_1774286355117",
-          "type": "poi"
-        },
-        {
-          "transportCost": "3000",
-          "name": "09:30 驾车前往富士山区域",
-          "addr": "新宿 Nippon Rent-A-Car 提车点到新仓山浅间公园",
-          "to": "新仓山浅间公园",
-          "time": "Morning",
-          "category": "transport",
-          "line": "中央自动车道 (约1.5-2小时)",
-          "from": "新宿 Nippon Rent-A-Car",
-          "notes": "",
-          "id": "2_1774286449021",
-          "type": "note",
-          "la": 35.700799,
-          "lo": 140.509281,
-          "img": "https://places.googleapis.com/v1/places/ChIJu6hYHU1nGWARfaBH0X127o8/photos/AU_ZVEGaWEeqeiFx4tSuzOhQKnkI_gO9NS0lMuxoQ34nko8KI3AnsK-5hD_ha50_DiUb8EI5hKFUUKXiaoYBkudY21CXBgAtl1E302HqtTVSxy1I3JKxO3_zZzWgQQP2kCnAQcDnjvXZXjs3SBhoo6dh-3VRtrb3fwY-MhWzkCFltzvnAVU8MvFtfGQj_0eV8Pfuh2TuAYEsfcKFbZ63qF5fd9YNjomdNNmNdqw4dHoqN4ScINmR1mckHOk_SqcZmfwR7OZxIeeJJdUFy_Xf9ToiB40mNh6E8I1Wpuob2gAZNwYzIm0-id0n20omRHi67kZ3rnE4W9vMTa9-tXFe4WuA3TsjOA3f4_sySasNwdlyLRMKc936xrInps9PdccIXEUvtINqzA2qvtlwdmMn6-P0Dh4sJMrTaWx9mFstOEs1b7Qf8UdCCX4dCDYq83lLRPFu/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
-          "currency": "¥",
-          "cost": ""
+          "type": "poi",
+          "from": ""
         },
         {
           "id": "2b",
           "type": "poi",
-          "name": "09:30 镰仓高校前站 (Kamakurakōkō-Mae Station)",
+          "name": "10:30 镰仓高校前站 (Kamakurakōkō-Mae Station)",
           "category": "anime",
           "time": "Morning",
           "la": 35.30801,
@@ -467,22 +450,6 @@
           "img": "https://places.googleapis.com/v1/places/ChIJU2ZNcq5lGWARpuCLQW4dl7g/photos/AU_ZVEFFMT1H8atyiiHdLWc5hI0oXpuyYBMx_rzgl4cubhFLvDqEv5AWMqmq1VXWhpQDKx5Bm3s8xEHZ0VAiWu9HAxi-C6_Ee9Yci_blwz6K7LHVilX4fsHbowaNOMUkEdJc83_Bszjy7iXe1ASBaT1ol9KDbR0TrbpuoZRzXKKwm3-vJR1aNg7q7R1FxUaPNCJuaEobY6U0RnGVXmQdEhdigZ8li0_sBvHVVb-cNx6s7B_EjUxGi_0Kyy-_GD9HKXBzj0jJ0Ll1b7LqXIGk_uCj4jJxBDRkff7qTAOCHaa5I-ASwWAzzDREHcxuK7bVGefF5KPNPVvBFEzwPlQdWTKZnEdLIGMjqhEIi3zYVSdjA_skwzjJKk6DwnNQ7DAJxZLcPEiW8V9CtBN5rJ_Gpck-RXhDtQRIoqHOsf7v05C9sgzNDZih/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
           "id": "2_1774286395232",
           "type": "poi"
-        },
-        {
-          "id": "2d",
-          "type": "poi",
-          "name": "江之岛 日落",
-          "category": "photo",
-          "time": "Evening",
-          "la": 35.3005,
-          "lo": 139.481,
-          "addr": "Enoshima, Fujisawa",
-          "img": "https://places.googleapis.com/v1/places/ChIJcbT_oOZOGGARFHp30PfDRyY/photos/ATCDNfXakQ-0f3wBxCtn8e_Ud1YxRFfFP7dlgQNTg6WdRQm9STdR51JNXW_sVTPIV5L3D_h83UlC6_sYTgP2K2WOBdeyex4WnCwoteXP5DBKn37vtP1EAPzDXVgf3i-9Cq1wTx1twVCSFtaryUfL92bQN13R9-765GOQHRl58E-Xl0bRKFh5nCEj7ta-hao3W2XQAWcokEsegAOkLNBwIbdkL0NO95xthtbBrx8zC0LuofIKu_g1TcKtRR-Qt2gVVt-7RMS92Q8xaOMNDzRsi1zepm1IV4wT9AZFCRB-odKNLDeejZ9Y3VwRAjepTC7zS0PUoUU7uw-IPppB4G1L_vAc_322gpq2kia_wuW4LnpXA4YhNrDFMxuk5MpYfZqQbmbUutMDHg8l6Qwy4bTtE7moF4FHWHeweiK589MF98XAfxo/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
-          "notes": "在海边看富士山的剪影与日落，最美的公路片结尾感。",
-          "cost": "1500",
-          "currency": "¥",
-          "rating": 4.5,
-          "reviews": 266
         },
         {
           "cost": "3000",
