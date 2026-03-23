@@ -193,6 +193,8 @@ async function askAI(question,kb,chatHistory,tripData){
    - 不要"改善"或"重写"已有的 notes/name 内容，即使你觉得可以写得更好
    - reorder_activity 只移动位置，不改变活动内容
    - 如果用户说"不要改备注"，那 updates 里绝对不能包含 notes 字段
+8. 当用户说"整理顺序"或"排序"时，按照活动 name 中的时间 (HH:MM) 从早到晚排序，直接执行 reorder_activity，不需要询问用户。只确保time字段与name中的时间对应，其他字段一律不动。
+9. 当用户说"更新"某天但没有具体指令时，检查该天的活动是否缺少 time 字段、type 字段，时间顺序是否正确，补充缺失的必填字段后整理顺序。不要修改 name、notes、addr、cost 等已有内容。
 8. 活动ID格式为行程数据中 [ID:xxx] 的 xxx 部分。
 9. notes 字段风格参考已有数据，例如：
    "在日本的第一碗正式拉面！一兰的独立隔间设计，安静且不被打扰。\n💡 歌舞伎町店24h营业，不用担心时间"
