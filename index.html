@@ -173,8 +173,10 @@ async function askAI(question,kb,chatHistory,tripData){
 4. 回答要简洁实用，用中文回答。
 5. 当用户要求添加活动时，使用 add_activity function。注意：
    - 根据已有活动的时间安排，选择合适的时间段(time)插入，不要随意放在最后
-   - 如果新活动和前一个活动之间需要交通，也要额外调用 add_activity 添加一个 transport 类型的活动，包含 from/to/line/cost 字段
+   - ⚠️ 不要创建单独的交通卡片！交通信息必须填在目的地活动卡片的 from/to/line/transportCost/directionsUrl 字段里。
+     例如：添加"一风堂拉面"，如果前一个活动在新宿御苑，则在一风堂的活动中填写 from="新宿御苑", to="一风堂 �的仓店", line="🚶 步行约10分钟", transportCost="0"
    - name 必须包含具体时间如 "13:00 一风堂拉面"，不要在name里写 (Daytime) 或 (Morning)
+   - type 必须填写：poi=景点, restaurant=餐厅, note=备注/清单
    - time 字段必须填写对应的时间段枚举值（如 Midday, Morning 等），这是必填字段！
    - 使用 reorder_activity 把新活动移到正确的位置
 6. 对于实时信息（当前天气、最新营业时间、当前价格），如果行程数据中没有，回复 [需要搜索] 标记，系统会自动用Google Search重新回答。
