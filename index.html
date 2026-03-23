@@ -1324,10 +1324,15 @@ function PreviewCard({fc,days,onApply,onDismiss}){
 // ═══ Floating AI Chat Bubble ═══
 function AIChatBubble({knowledgeBase,setKnowledgeBase,days,origin,setDays,setOrigin,setExp,onScrollToActivity}){
   const[open,setOpen]=useState(false);
+  const[size,setSize]=useState('small');// 'small' | 'half' | 'full'
   const[chatMsgs,setChatMsgs]=useState([]);
   const[chatInput,setChatInput]=useState('');
   const[loading,setLoading]=useState(false);
   const chatEndRef=useRef(null);
+  const sizeStyles={small:{bottom:24,right:24,width:380,maxWidth:'calc(100vw - 32px)',height:520,maxHeight:'calc(100vh - 48px)',borderRadius:20},half:{bottom:0,right:0,width:'50vw',height:'100vh',maxWidth:'100vw',maxHeight:'100vh',borderRadius:'20px 0 0 20px'},full:{bottom:0,right:0,width:'100vw',height:'100vh',maxWidth:'100vw',maxHeight:'100vh',borderRadius:0}};
+  const nextSize=()=>setSize(s=>s==='small'?'half':s==='half'?'full':'small');
+  const sizeIcon=size==='small'?'⬜':size==='half'?'◧':'▣';
+  const sizeLabel=size==='small'?'半屏':size==='half'?'全屏':'小窗';
 
   const handleSendChat=async()=>{
     const q=chatInput.trim();if(!q)return;
@@ -1365,10 +1370,13 @@ function AIChatBubble({knowledgeBase,setKnowledgeBase,days,origin,setDays,setOri
 
   if(!open)return(<button onClick={()=>setOpen(true)} style={{position:'fixed',bottom:24,right:24,width:56,height:56,borderRadius:'50%',background:'linear-gradient(135deg,#c46b98,#e8a0bf)',border:'none',boxShadow:'0 4px 20px rgba(196,107,152,0.4)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:24,color:'#fff',zIndex:999,transition:'transform 0.2s'}} onMouseEnter={e=>e.currentTarget.style.transform='scale(1.1)'} onMouseLeave={e=>e.currentTarget.style.transform='scale(1)'}>🤖</button>);
 
-  return(<div style={{position:'fixed',bottom:24,right:24,width:380,maxWidth:'calc(100vw - 32px)',height:520,maxHeight:'calc(100vh - 48px)',borderRadius:20,background:'#fff',boxShadow:'0 8px 40px rgba(0,0,0,0.15)',display:'flex',flexDirection:'column',zIndex:999,border:'1px solid #e8e4de',overflow:'hidden'}}>
+  return(<div style={{position:'fixed',...sizeStyles[size],background:'#fff',boxShadow:'0 8px 40px rgba(0,0,0,0.15)',display:'flex',flexDirection:'column',zIndex:999,border:size==='full'?'none':'1px solid #e8e4de',overflow:'hidden',transition:'all 0.3s ease'}}>
     <div style={{padding:'14px 18px',background:'linear-gradient(135deg,#1a1a2e,#2d2d4a)',display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}}>
       <span style={{fontSize:15,fontWeight:700,color:'#fff'}}>🤖 AI 旅行助手</span>
-      <button onClick={()=>setOpen(false)} style={{background:'none',border:'none',fontSize:18,cursor:'pointer',color:'rgba(255,255,255,0.6)',padding:4}}>✕</button>
+      <div style={{display:'flex',alignItems:'center',gap:4}}>
+        <button onClick={nextSize} title={sizeLabel} style={{background:'rgba(255,255,255,0.1)',border:'none',borderRadius:6,padding:'4px 8px',cursor:'pointer',color:'rgba(255,255,255,0.7)',fontSize:12,fontFamily:'inherit'}}>{sizeIcon} {sizeLabel}</button>
+        <button onClick={()=>{setOpen(false);setSize('small');}} style={{background:'none',border:'none',fontSize:18,cursor:'pointer',color:'rgba(255,255,255,0.6)',padding:4}}>✕</button>
+      </div>
     </div>
     <div style={{flex:1,overflow:'auto',padding:'12px 14px'}}>
       {chatMsgs.length===0&&<div style={{textAlign:'center',padding:'30px 0',color:'#9ca3af',fontSize:13}}>
