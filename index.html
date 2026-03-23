@@ -128,7 +128,10 @@ const AI_TOOLS_CRUD=[
     {name:"add_activity",description:"添加一个新活动到指定日期。尽量填充完整信息（地址、费用、时间、分类、坐标等）。",parameters:{type:"object",properties:{dayId:{type:"integer",description:"目标日期的ID（如1代表Day 1）"},activity:ACTIVITY_SCHEMA},required:["dayId","activity"]}},
     {name:"edit_activity",description:"编辑已有活动的指定字段。只传需要修改的字段。",parameters:{type:"object",properties:{activityId:{type:"string",description:"活动ID，如'1d'或'2a'"},updates:ACTIVITY_SCHEMA},required:["activityId"]}},
     {name:"delete_activity",description:"删除一个活动",parameters:{type:"object",properties:{activityId:{type:"string",description:"要删除的活动ID"}},required:["activityId"]}},
-    {name:"reorder_activity",description:"移动活动到新位置",parameters:{type:"object",properties:{activityId:{type:"string",description:"活动ID"},newIndex:{type:"integer",description:"新的位置索引（从0开始）"}},required:["activityId","newIndex"]}}
+    {name:"reorder_activity",description:"移动活动到新位置",parameters:{type:"object",properties:{activityId:{type:"string",description:"活动ID"},newIndex:{type:"integer",description:"新的位置索引（从0开始）"}},required:["activityId","newIndex"]}},
+    {name:"save_to_kb",description:"保存一篇文章到知识库。用于用户分享旅行攻略、tips、规则等参考资料时。",parameters:{type:"object",properties:{title:{type:"string",description:"文章标题"},content:{type:"string",description:"文章内容（保留原始格式）"},tags:{type:"array",items:{type:"string"},description:"标签关键词，如['shopping','tax-free']"}},required:["title","content"]}},
+    {name:"edit_kb",description:"编辑知识库中已有文章",parameters:{type:"object",properties:{articleId:{type:"string",description:"文章ID"},title:{type:"string"},content:{type:"string"},tags:{type:"array",items:{type:"string"}}},required:["articleId"]}},
+    {name:"delete_kb",description:"删除知识库中的文章",parameters:{type:"object",properties:{articleId:{type:"string",description:"文章ID"}},required:["articleId"]}}
   ]}
 ];
 
@@ -1167,6 +1170,25 @@ function PreviewCard({fc,days,onApply,onDismiss}){
     </div>);
   }
 
+  if(fnName==='save_to_kb'){
+    return(<div style={{border:'2px solid #6b48a8',borderRadius:12,padding:12,margin:'8px 0',background:'#f0ecf8'}}>
+      <div style={{fontSize:11,fontWeight:700,color:'#6b48a8',marginBottom:8}}>📚 保存到知识库</div>
+      <div style={{background:'#fff',borderRadius:10,padding:10,border:'1px solid #e8e4de'}}>
+        <div style={{fontWeight:700,fontSize:15,color:'#1a1a2e',marginBottom:4}}>{args.title}</div>
+        <div style={{fontSize:12,color:'#6b7280',lineHeight:1.6,maxHeight:120,overflow:'auto',whiteSpace:'pre-wrap'}}>{(args.content||'').slice(0,300)}{(args.content||'').length>300?'...':''}</div>
+        {args.tags&&<div style={{marginTop:6}}>{args.tags.map(t=>React.createElement('span',{key:t,style:{display:'inline-block',padding:'2px 10px',borderRadius:100,background:'#f0ecf8',color:'#6b48a8',fontSize:11,fontWeight:600,marginRight:4}},t))}</div>}
+      </div>
+      {btnRow}{status}
+    </div>);
+  }
+
+  if(fnName==='delete_kb'){
+    return(<div style={{border:'2px solid #dc2626',borderRadius:12,padding:12,margin:'8px 0',background:'#fef2f2'}}>
+      <div style={{fontSize:11,fontWeight:700,color:'#dc2626',marginBottom:4}}>🗑️ 删除知识库文章: {args.articleId}</div>
+      {btnRow}{status}
+    </div>);
+  }
+
   return(<div style={{border:'1px solid #e8e4de',borderRadius:12,padding:12,margin:'8px 0',background:'#faf8f4'}}>
     <div style={{fontSize:12,color:'#6b7280'}}>未知操作: {fnName}</div>
     {btnRow}{status}
@@ -1234,6 +1256,14 @@ function KnowledgeBaseModal({knowledgeBase,setKnowledgeBase,days,origin,setDays,
       setDays(prev=>prev.map(d=>({...d,activities:d.activities.filter(a=>a.id!==args.activityId)})));
     }else if(fnName==='reorder_activity'){
       setDays(prev=>{const nd=JSON.parse(JSON.stringify(prev));for(const d of nd){const idx=d.activities.findIndex(a=>a.id===args.activityId);if(idx>=0){const[item]=d.activities.splice(idx,1);d.activities.splice(Math.min(args.newIndex,d.activities.length),0,item);break;}}return nd;});
+    }else if(fnName==='save_to_kb'){
+      setKnowledgeBase(prev=>[...prev,{id:'kb_'+Date.now(),title:args.title,content:args.content,tags:args.tags||[],createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()}]);
+    }else if(fnName==='edit_kb'){
+      setKnowledgeBase(prev=>prev.map(a=>a.id===args.articleId?{...a,...(args.title?{title:args.title}:{}),
+        ...(args.content?{content:args.content}:{}),
+        ...(args.tags?{tags:args.tags}:{}),updatedAt:new Date().toISOString()}:a));
+    }else if(fnName==='delete_kb'){
+      setKnowledgeBase(prev=>prev.filter(a=>a.id!==args.articleId));
     }
     setChatMsgs(prev=>prev.map((m,i)=>{if(i!==msgIdx)return m;const nfc=[...m.functionCalls];nfc[callIdx]={...nfc[callIdx],applied:true};return{...m,functionCalls:nfc};}));
   };
