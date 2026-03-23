@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exportDate": "2026-03-23T21:40:58.271Z",
+  "exportDate": "2026-03-23T21:44:41.198Z",
   "days": [
     {
       "id": 0,
@@ -620,10 +620,10 @@
           "name": "09:00 神田猿乐町：女坂 (Onnazaka)",
           "category": "anime",
           "time": "Morning",
-          "la": 35.7003177,
-          "lo": 139.7585312,
+          "la": 35.693836,
+          "lo": 139.75293,
           "addr": "2-chōme-4-7 Sarugakuchō, Chiyoda City, Tokyo 101-0064, Japan",
-          "img": "https://places.googleapis.com/v1/places/ChIJuRbQPxaMGGARzeKzO9ihmN8/photos/AU_ZVEFKM5py1SP-31XHaP7oSfN5R7FEdHOJZntP_gm0QtBmkDYI_AiXlUahPTrZ0bVYTUGneMg5EhwCiwPRPnqDAevmh-YMtPtaS5QOwtpUOJf_QsszlgQsESNu2Dg5DtmTunOTAQadOeGkJ9gWYu-efdKwFdEAJbZKsbwzpqicCpygOP2HeZnA0jlWJIpw93tVF3tENw42EDbH6sMO4XKeW4EZ9c2WfGUTPysrPMNOYRsoTxFvv1m4UQ92TstDe5jUNdoqQ6fQ6Z0-O7km5TJHSP5toEJpSPxa1-z7zt4IfD8cGlqAPj712nVrLGQs6MXXgsX04nscQtJXuvIuV1U8aB7vrtJ3PiDCfLRQKsldGHh93CYniNQYR9SReMNeZ6RpK0YNTqgvZRphVDA94yQc6HkvCG4dZrOrKpTSVOIuQPpOrL5j/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
+          "img": "https://places.googleapis.com/v1/places/ChIJuRbQPxaMGGARzeKzO9ihmN8/photos/ATCDNfXTj9Nk5YmaHmBln0h_ZhV92_r-wEt0Y8WqiYVT-cGRkjC4FcNQz_yMNvQqEJ9IvlRPIIc2MexC-FmXZ1HvS-3XlDyjAmQqwg0WY4H_2drmQQie1q5Jcw877N54cB6PQ59W5n42cdqKQP-vV_DDXAC6qu_JXKzImO_8tlqiaMcVwdK2j6GbmPU_Yk5IeX3FgPTdToJ9EDwT81qpusOaVdaxqMdm29oAwuRu9th9hF1jc_kpeh9oNWlWN7iGKgMmuKNPkCKBn0hOny1D1pW09dJgsn1JNetDd7PhPmh-zb_bNx8GULcyJdTjcEKYmyLXsSdP5ZmPYOGrCmckLeiVk4yJHDEdSHskZFBBvIv9j2fk6JRlJrxTCejcRTGXn65jytTqVAFRAnFWwrTp0P3aE67D760Wh6dvBniDWgaaiU1swviA/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
           "notes": "【电锯人朝圣】蕾塞去咖啡馆打工必经的长阶梯，寂静且充满年代感。",
           "cost": "0",
           "currency": "¥",
@@ -633,16 +633,16 @@
         {
           "id": "5b",
           "type": "poi",
-          "name": "天主教堂附近的电话亭",
+          "name": "12:30 雷塞电话亭 (The real Reze phone booth)",
           "category": "anime",
           "time": "Midday",
-          "la": 35.699,
-          "lo": 139.759,
-          "addr": "Kanda Sarugakucho",
+          "la": 35.696011,
+          "lo": 139.758101,
+          "addr": "1 Chome-４４-11 Kanda Jinbocho, Chiyoda City, Tokyo 101-0051",
           "notes": "【电锯人朝圣】电次与蕾塞在雨中躲避的同款电话亭。旁边还有类似剧中出现的咖啡小巷。",
           "cost": "0",
           "currency": "¥",
-          "img": "https://places.googleapis.com/v1/places/ChIJERbV3hWMGGARUPwaYY_9TE8/photos/ATCDNfX5izk5CoETP_-FwUALlKAeUgRYdxofg2lEz-v2QTPl80IbsOeZAOn6fxoUSUm_RK4_1aZZmphOyMPlAK5PhhSi3cazZOnQLBMGpPdIvtTOVe_ScN5SswsIvRmUz5d7pm4Gno7g755hm3GKDDc64LHolGjtjV_5PQl6xRvIEkh2GHJMbak2OrRZwxIds0_ZOGjLQq3x_V9k_y8pIivTp-Nru3G4rlJHpneBnAi3HU1uYi50XfLeKOZuujPFXxmPgKHS_ysVZpcT7eb8D8hZxJ7fM8Af6LxzsEAHdNNBZ39sbae00GEqw_A67GZEq4XY8I6OYHA92Iv8RRz18jpKzNuVga4wa8lK4ZNwr_3AtH65B5NiZIxrDxofgJF--I0AUqqZnc-x4INRjZnSUc6hqvNN6l8jk7moGGx2zlbplOU/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
+          "img": "",
           "rating": 4.3,
           "reviews": 286
         },
