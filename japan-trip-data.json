@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exportDate": "2026-03-24T12:21:42.346Z",
+  "exportDate": "2026-03-24T12:26:54.833Z",
   "days": [
     {
       "id": 0,
@@ -378,23 +378,6 @@
           "img": "https://places.googleapis.com/v1/places/ChIJP9eKBdeMGGAR0zzBXJNVj5A/photos/ATCDNfVLgU6tjCP_p4-EgltzamZAF5tsMMIGnAXUsEYXL-DmZsjiQjKlwNmWfB4DNm_QYHhMHB0E1bYLrtceGjCEISE33Mq97IIbtvKLx61YcqxltvbyuAvjf-GtmY4FDSiRtwhalbNEdQQYSSOcq7S9-ZkS04YMCNMTScrTgJBHoRkz7fbhjsBmPoBG1xSE6VZAiSmPcCWuQRzd5-jUgUfStvRfdDaldnQbGW5yaAKMGixOtWV4Zw7OafjHvLA0Mp_o7xptwMTByXmvwoRPL4UWMummDN5aADajCDAAAL2wWmUlJVa3i1O1IuWATFy376Le4VcA5XKkComVlzIu7wTECsqalurTRd7awzIiyTm5tmMGelWyc9_tz67Zm2CQJMnPRu9qw13ewOkJEVF7YStyJu0wQlhAwqdmuliO_50FPIMwvA/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
           "rating": 4.2,
           "reviews": 14300
-        },
-        {
-          "line": "🚶 步行约5分钟",
-          "addr": "Japan, 〒160-0021 Tokyo, Shinjuku City, Kabukichō, 1-chōme−19−１ Shinjuku Toho Building, ３階",
-          "cost": "2000",
-          "notes": "这是歌舞伎町的地标影院，就在哥斯拉头下。建议提前在官网查询排片。如果是热门动画电影，现场氛围极佳。💡 记得提前预订，日本影院通常不接受现场排队买热门场次。",
-          "currency": "¥",
-          "name": "19:00 TOHO Cinemas 新宿 电影观赏 (TOHO Cinemas Shinjuku)",
-          "transportCost": "0",
-          "directionsUrl": "https://www.google.com/maps/dir/?api=1&destination=35.6946,139.7027&travelmode=walking",
-          "category": "nightlife",
-          "type": "restaurant",
-          "time": "Evening",
-          "la": 35.6951588,
-          "lo": 139.70205389999998,
-          "img": "https://places.googleapis.com/v1/places/ChIJ__JMK9iMGGAR6P_7QHoOGE4/photos/AU_ZVEFO1aykryMag3eaIGHapsQo1BmKR89bYUT9nKP-l4w78_vNFMP5DNUHT11TtT2qlWAQ8D0O1TP6pz9B3PYEGFjYwy0N8pd5gd4Xfl9ihE75G3DsTRIOAr4hxRex61cYt35EN0wMweVHSAakwoVO3h41Gzr3aSAJyGaFmGQQ_B8OkSigsKTjy-ME3Ng0_SnPyitW_a8h-OJEuIxSgr1pAvEk8usDX9Mi6Z0MvE-irvzFHApQA_IXzRq8mCFDhBRQB0fN_zUDDHzilNR5njyhWPDk3tiHEXbWk8dHmFgcXeMGhw/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
-          "id": "1_1774354871447"
         }
       ]
     },
