@@ -1365,18 +1365,12 @@ function PreviewCard({fc,days,onApply,onDismiss}){
   </div>);
 }
 
-// ═══ Floating AI Chat Bubble ═══
-function AIChatBubble({knowledgeBase,setKnowledgeBase,days,origin,setDays,setOrigin,setExp,onScrollToActivity}){
-  const[open,setOpen]=useState(false);
-  const[size,setSize]=useState('small');// 'small' | 'half' | 'full'
+// ═══ AI Chat Panel (Layla-style side panel) ═══
+function AIChatPanel({knowledgeBase,setKnowledgeBase,days,origin,setDays,setOrigin,setExp,onCollapse,onScrollToActivity}){
   const[chatMsgs,setChatMsgs]=useState([]);
   const[chatInput,setChatInput]=useState('');
   const[loading,setLoading]=useState(false);
   const chatEndRef=useRef(null);
-  const sizeStyles={small:{bottom:24,right:24,width:380,maxWidth:'calc(100vw - 32px)',height:520,maxHeight:'calc(100vh - 48px)',borderRadius:20},half:{bottom:0,right:0,width:'50vw',height:'100vh',maxWidth:'100vw',maxHeight:'100vh',borderRadius:'20px 0 0 20px'},full:{bottom:0,right:0,width:'100vw',height:'100vh',maxWidth:'100vw',maxHeight:'100vh',borderRadius:0}};
-  const nextSize=()=>setSize(s=>s==='small'?'half':s==='half'?'full':'small');
-  const sizeIcon=size==='small'?'⬜':size==='half'?'◧':'▣';
-  const sizeLabel=size==='small'?'半屏':size==='half'?'全屏':'小窗';
 
   const handleSendChat=async()=>{
     const q=chatInput.trim();if(!q)return;
@@ -1416,40 +1410,43 @@ function AIChatBubble({knowledgeBase,setKnowledgeBase,days,origin,setDays,setOri
 
   useEffect(()=>{chatEndRef.current?.scrollIntoView({behavior:'smooth'});},[chatMsgs,loading]);
 
-  if(!open)return(<button onClick={()=>setOpen(true)} style={{position:'fixed',bottom:24,right:24,width:56,height:56,borderRadius:'50%',background:'linear-gradient(135deg,#c46b98,#e8a0bf)',border:'none',boxShadow:'0 4px 20px rgba(196,107,152,0.4)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:24,color:'#fff',zIndex:999,transition:'transform 0.2s'}} onMouseEnter={e=>e.currentTarget.style.transform='scale(1.1)'} onMouseLeave={e=>e.currentTarget.style.transform='scale(1)'}>🤖</button>);
-
-  return(<div style={{position:'fixed',...sizeStyles[size],background:'#fff',boxShadow:'0 8px 40px rgba(0,0,0,0.15)',display:'flex',flexDirection:'column',zIndex:999,border:size==='full'?'none':'1px solid #e8e4de',overflow:'hidden',transition:'all 0.3s ease'}}>
-    <div style={{padding:'14px 18px',background:'linear-gradient(135deg,#1a1a2e,#2d2d4a)',display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}}>
-      <span style={{fontSize:15,fontWeight:700,color:'#fff'}}>🤖 AI 旅行助手</span>
-      <div style={{display:'flex',alignItems:'center',gap:4}}>
-        <button onClick={nextSize} title={sizeLabel} style={{background:'rgba(255,255,255,0.1)',border:'none',borderRadius:6,padding:'4px 8px',cursor:'pointer',color:'rgba(255,255,255,0.7)',fontSize:12,fontFamily:'inherit'}}>{sizeIcon} {sizeLabel}</button>
-        <button onClick={()=>{setOpen(false);setSize('small');}} style={{background:'none',border:'none',fontSize:18,cursor:'pointer',color:'rgba(255,255,255,0.6)',padding:4}}>✕</button>
-      </div>
+  return(<div style={{display:'flex',flexDirection:'column',height:'100%',background:'#faf8f4'}}>
+    {/* Header */}
+    <div style={{padding:'16px 20px',background:'linear-gradient(135deg,#1a1a2e,#2d2d4a)',display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}}>
+      <span style={{fontSize:16,fontWeight:700,color:'#fff'}}>🤖 AI 旅行助手</span>
+      <button onClick={onCollapse} style={{background:'rgba(255,255,255,0.1)',border:'none',borderRadius:8,padding:'6px 12px',cursor:'pointer',color:'rgba(255,255,255,0.7)',fontSize:12,fontFamily:'inherit'}}>收起 ▶</button>
     </div>
-    <div style={{flex:1,overflow:'auto',padding:'12px 14px'}}>
-      {chatMsgs.length===0&&<div style={{textAlign:'center',padding:'30px 0',color:'#9ca3af',fontSize:13}}>
-        {GEMINI_KEY?'问我任何旅行问题，或让我帮你添加/编辑活动':'⚠️ 未配置 Gemini API Key'}
-      </div>}
+    {/* Welcome (shown when no messages) */}
+    {chatMsgs.length===0&&<div style={{padding:'24px 20px',flexShrink:0}}>
+      <div style={{fontSize:18,fontWeight:700,color:'#1a1a2e',marginBottom:8}}>你好！我是你的旅行助手 ✨</div>
+      <div style={{fontSize:13,color:'#6b7280',lineHeight:1.6,marginBottom:16}}>我可以帮你添加/编辑活动、规划交通、搜索餐厅和景点、管理知识库。</div>
+      <div style={{display:'flex',flexDirection:'column',gap:6}}>
+        {['帮我规划Day 6','Day 1的交通费总共多少？','推荐涩谷附近的拉面店','日本免税规则是什么？'].map(q=>(<button key={q} onClick={()=>{setChatInput(q);}} style={{textAlign:'left',padding:'10px 14px',borderRadius:10,border:'1px solid #e8e4de',background:'#fff',cursor:'pointer',fontSize:13,color:'#4a4a5a',fontFamily:'inherit',transition:'all 0.15s'}} onMouseEnter={e=>{e.currentTarget.style.background='#f0ecf8';e.currentTarget.style.borderColor='#c46b98';}} onMouseLeave={e=>{e.currentTarget.style.background='#fff';e.currentTarget.style.borderColor='#e8e4de';}}>{q}</button>))}
+      </div>
+    </div>}
+    {/* Chat messages */}
+    <div style={{flex:1,overflow:'auto',padding:'12px 16px'}}>
       {chatMsgs.map((m,i)=>(
-        <div key={i} style={{display:'flex',justifyContent:m.role==='user'?'flex-end':'flex-start',marginBottom:8}}>
-          <div style={{maxWidth:'85%',padding:'8px 12px',borderRadius:m.role==='user'?'12px 12px 4px 12px':'12px 12px 12px 4px',background:m.role==='user'?'linear-gradient(135deg,#c46b98,#e8a0bf)':'#faf8f4',color:m.role==='user'?'#fff':'#1a1a2e',fontSize:13,lineHeight:1.5,border:m.role==='user'?'none':'1px solid #e8e4de',whiteSpace:m.role==='user'?'pre-wrap':'normal'}}>
+        <div key={i} style={{display:'flex',justifyContent:m.role==='user'?'flex-end':'flex-start',marginBottom:10}}>
+          <div style={{maxWidth:'88%',padding:'10px 14px',borderRadius:m.role==='user'?'14px 14px 4px 14px':'14px 14px 14px 4px',background:m.role==='user'?'linear-gradient(135deg,#c46b98,#e8a0bf)':'#fff',color:m.role==='user'?'#fff':'#1a1a2e',fontSize:13,lineHeight:1.6,border:m.role==='user'?'none':'1px solid #e8e4de',whiteSpace:m.role==='user'?'pre-wrap':'normal',boxShadow:m.role==='user'?'none':'0 1px 3px rgba(0,0,0,0.04)'}}>
             {m.role==='ai'?(<div>
-              {m.text&&renderMd(m.text,(id)=>{setOpen(false);setTimeout(()=>onScrollToActivity&&onScrollToActivity(id),300);})}
+              {m.text&&renderMd(m.text,(id)=>{onScrollToActivity&&onScrollToActivity(id);})}
               {m.functionCalls&&m.functionCalls.map((fc,ci)=>(<PreviewCard key={ci} fc={fc} days={days} onApply={()=>handleApplyPreview(i,ci)} onDismiss={()=>handleDismissPreview(i,ci)}/>))}
               {m.groundingSources&&m.groundingSources.length>0&&(<div style={{fontSize:10,color:'#9ca3af',marginTop:6,paddingTop:4,borderTop:'1px solid #f0ede8'}}>🔍 {m.groundingSources.slice(0,2).map((s,si)=>(<a key={si} href={s.web?.uri} target="_blank" rel="noopener" style={{color:'#1a73a7',marginRight:6,textDecoration:'none',fontSize:10}}>{s.web?.title||'Link'}</a>))}</div>)}
             </div>):m.text}
-            <div style={{fontSize:9,marginTop:3,opacity:0.5,textAlign:'right'}}>{m.time}</div>
+            <div style={{fontSize:9,marginTop:4,opacity:0.4,textAlign:'right'}}>{m.time}</div>
           </div>
         </div>
       ))}
       {loading&&<div style={{display:'flex',justifyContent:'flex-start',marginBottom:8}}>
-        <div style={{padding:'8px 12px',borderRadius:'12px 12px 12px 4px',background:'#faf8f4',border:'1px solid #e8e4de',fontSize:13,color:'#9ca3af'}}>思考中...</div>
+        <div style={{padding:'10px 14px',borderRadius:'14px 14px 14px 4px',background:'#fff',border:'1px solid #e8e4de',fontSize:13,color:'#9ca3af'}}>思考中...</div>
       </div>}
       <div ref={chatEndRef}/>
     </div>
-    <div style={{padding:'10px 14px',borderTop:'1px solid #e8e4de',display:'flex',gap:6,flexShrink:0}}>
-      <input value={chatInput} onChange={e=>setChatInput(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();handleSendChat();}}} placeholder="问我旅行问题..." style={{...S.inp,flex:1,fontSize:13,padding:'8px 12px'}} disabled={loading}/>
-      <button onClick={handleSendChat} disabled={loading||!chatInput.trim()} style={{...S.savBtn,padding:'8px 14px',fontSize:13,opacity:loading||!chatInput.trim()?0.5:1}}>发送</button>
+    {/* Input bar */}
+    <div style={{padding:'12px 16px',borderTop:'1px solid #e8e4de',background:'#fff',display:'flex',gap:8,flexShrink:0}}>
+      <input value={chatInput} onChange={e=>setChatInput(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();handleSendChat();}}} placeholder="问我关于旅行的问题..." style={{...S.inp,flex:1,fontSize:14,padding:'10px 14px',borderRadius:12}} disabled={loading}/>
+      <button onClick={handleSendChat} disabled={loading||!chatInput.trim()} style={{...S.savBtn,padding:'10px 16px',fontSize:14,borderRadius:12,opacity:loading||!chatInput.trim()?0.5:1}}>发送</button>
     </div>
   </div>);
 }
@@ -1767,7 +1764,25 @@ function App(){
     })();
   },[]);
 
-  return(<div style={S.root}>
+  const[aiPanelOpen,setAiPanelOpen]=useState(window.innerWidth>900);
+  const[aiPanelWidth,setAiPanelWidth]=useState(400);
+  const aiResizing=useRef(false);
+  const isMobile=typeof window!=='undefined'&&window.innerWidth<=900;
+
+  return(<div style={{...S.root,display:'flex',flexDirection:isMobile?'column':'row',overflow:'hidden',height:'100vh'}}>
+    {/* AI Panel — Right side on desktop, bottom on mobile */}
+    {aiPanelOpen&&<div style={{width:isMobile?'100%':aiPanelWidth+'px',minWidth:isMobile?undefined:'300px',maxWidth:isMobile?undefined:'60vw',height:isMobile?'50vh':'100vh',borderLeft:isMobile?'none':'1px solid #e8e4de',borderTop:isMobile?'1px solid #e8e4de':'none',background:'#faf8f4',display:'flex',flexDirection:'column',flexShrink:0,position:'relative',order:isMobile?2:1}}>
+      {/* Resize handle */}
+      {!isMobile&&<div style={{position:'absolute',left:-3,top:0,bottom:0,width:6,cursor:'col-resize',zIndex:10,background:'transparent'}} onMouseDown={e=>{e.preventDefault();aiResizing.current=true;const startX=e.clientX;const startW=aiPanelWidth;const onMove=ev=>{if(!aiResizing.current)return;const diff=startX-ev.clientX;const nw=Math.min(Math.max(startW+diff,300),window.innerWidth*0.6);setAiPanelWidth(nw);};const onUp=()=>{aiResizing.current=false;document.removeEventListener('mousemove',onMove);document.removeEventListener('mouseup',onUp);document.body.style.cursor='';document.body.style.userSelect='';};document.addEventListener('mousemove',onMove);document.addEventListener('mouseup',onUp);document.body.style.cursor='col-resize';document.body.style.userSelect='none';}} onMouseEnter={e=>e.currentTarget.style.background='rgba(196,107,152,0.3)'} onMouseLeave={e=>{if(!aiResizing.current)e.currentTarget.style.background='transparent';}}></div>}
+      <AIChatPanel knowledgeBase={knowledgeBase} setKnowledgeBase={setKnowledgeBase} days={days} origin={origin} setDays={setDays} setOrigin={setOrigin} setExp={setExp} onCollapse={()=>setAiPanelOpen(false)} onScrollToActivity={(id)=>{
+        const dayObj=days.find(d=>d.activities.some(a=>a.id===id));
+        if(dayObj){setExp(p=>({...p,[dayObj.id]:true}));setTimeout(()=>{const el=document.getElementById('act-'+id);if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.style.boxShadow='0 0 0 3px #c46b98';setTimeout(()=>{el.style.boxShadow='';},2000);}},300);}
+      }}/>
+    </div>}
+    {/* Toggle AI Panel button */}
+    {!aiPanelOpen&&<button onClick={()=>setAiPanelOpen(true)} style={{position:'fixed',right:isMobile?12:12,bottom:isMobile?12:'auto',left:isMobile?'auto':'auto',top:isMobile?'auto':'50%',transform:isMobile?'none':'translateY(-50%)',width:48,height:48,borderRadius:'50%',background:'linear-gradient(135deg,#c46b98,#e8a0bf)',border:'none',boxShadow:'0 4px 20px rgba(196,107,152,0.4)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:22,color:'#fff',zIndex:999}}>🤖</button>}
+    {/* Main content — Left side on desktop, top on mobile */}
+    <div style={{flex:1,height:isMobile?(aiPanelOpen?'50vh':'100vh'):'100vh',overflow:'auto',position:'relative',order:isMobile?0:0}}>
     <div style={{position:"fixed",inset:0,background:"radial-gradient(ellipse at 15% 20%, rgba(232,160,191,0.1) 0%, transparent 50%), radial-gradient(ellipse at 85% 60%, rgba(232,160,191,0.06) 0%, transparent 40%)",pointerEvents:"none",zIndex:0}}/>
     <div style={S.container}>
       <div style={{textAlign:"center",marginBottom:20,paddingTop:4}}>
@@ -1852,12 +1867,7 @@ function App(){
     {editA&&<EditModal activity={editA} onSave={hSave} onDelete={hDel} onClose={()=>{setEditA(null);setEditD(null);}}/>}
     {showVersions&&<VersionHistoryModal onClose={()=>setShowVersions(false)} onRestore={(data)=>{setDays(data.days);if(data.origin)setOrigin(data.origin);if(data.knowledgeBase&&Array.isArray(data.knowledgeBase))setKnowledgeBase(data.knowledgeBase);}}/>}
     {showKB&&<KnowledgeBaseModal knowledgeBase={knowledgeBase} setKnowledgeBase={setKnowledgeBase} onClose={()=>setShowKB(false)}/>}
-    <AIChatBubble knowledgeBase={knowledgeBase} setKnowledgeBase={setKnowledgeBase} days={days} origin={origin} setDays={setDays} setOrigin={setOrigin} setExp={setExp} onScrollToActivity={(id)=>{
-      const dayObj=days.find(d=>d.activities.some(a=>a.id===id));
-      if(dayObj){setExp(p=>({...p,[dayObj.id]:true}));
-        setTimeout(()=>{const el=document.getElementById('act-'+id);if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.style.boxShadow='0 0 0 3px #c46b98';el.style.transition='box-shadow 0.3s';setTimeout(()=>{el.style.boxShadow='';},3000);}},400);
-      }
-    }}/>
+    </div>{/* end scrollable content */}
   </div>);
 }
 
