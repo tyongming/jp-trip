@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exportDate": "2026-03-24T12:45:41.143Z",
+  "exportDate": "2026-03-24T12:48:12.657Z",
   "days": [
     {
       "id": 0,
@@ -603,7 +603,20 @@
       "theme": "咒术回战朝圣 · 涩谷事变与都市丛林",
       "weather": "18°C ☀️",
       "hotelIdx": 0,
-      "activities": []
+      "activities": [
+        {
+          "id": "4_1774356462187",
+          "type": "poi",
+          "name": "Ueno",
+          "category": "hotel",
+          "time": "Morning",
+          "cost": "1200",
+          "currency": "MYR",
+          "notes": "",
+          "la": 35.70978,
+          "lo": 139.773385
+        }
+      ]
     },
     {
       "id": 5,
