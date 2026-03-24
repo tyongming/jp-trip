@@ -10,8 +10,10 @@
 <script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
+html{font-size:clamp(13px,2.2vw,16px)}
 body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#faf8f4;-webkit-font-smoothing:antialiased}
 select,input,textarea,button{font-family:inherit}
+::-webkit-scrollbar{height:0;width:0}
 .mapboxgl-popup-content{padding:0!important;border-radius:12px!important;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,0.15)!important;font-family:'DM Sans',sans-serif}
 .mapboxgl-popup-close-button{font-size:18px;padding:4px 8px;color:#999;z-index:1}
 .mapboxgl-popup-tip{border-top-color:#fff}
@@ -72,11 +74,11 @@ async function githubEnsureBranch(){
   }catch(e){return false;}
 }
 
-async function githubSave(days,origin,knowledgeBase){
+async function githubSave(days,origin,knowledgeBase,segments){
   if(!GITHUB_PAT)return{ok:false,reason:'no_pat'};
   try{
     await githubEnsureBranch();
-    const content=btoa(unescape(encodeURIComponent(JSON.stringify({version:1,exportDate:new Date().toISOString(),days,origin,knowledgeBase:knowledgeBase||[]},null,2))));
+    const content=btoa(unescape(encodeURIComponent(JSON.stringify({version:1,exportDate:new Date().toISOString(),days,origin,knowledgeBase:knowledgeBase||[],segments:segments||[]},null,2))));
     // Get current file SHA on data branch
     let sha='';
     try{
@@ -304,30 +306,30 @@ function VersionHistoryModal({onClose,onRestore}){
     else{alert('❌ 无法加载该版本');setRestoring(null);}
   };
   return(<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.5)",backdropFilter:"blur(4px)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000,padding:16}}>
-    <div style={{background:"#fff",borderRadius:20,maxWidth:500,width:"100%",maxHeight:"80vh",overflow:"auto",boxShadow:"0 24px 80px rgba(0,0,0,0.2)",padding:"24px"}}>
+    <div style={{background:"#fff",borderRadius:20,maxWidth:500,width:"100%",maxHeight:"80vh",overflow:"auto",boxShadow:"0 24px 80px rgba(0,0,0,0.2)",padding:"1.5rem"}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
-        <h3 style={{fontSize:18,fontWeight:800,margin:0}}>📜 版本历史</h3>
-        <button onClick={onClose} style={{background:"none",border:"none",fontSize:18,cursor:"pointer",color:"#9ca3af"}}>✕</button>
+        <h3 style={{fontSize:"1.125rem",fontWeight:800,margin:0}}>📜 版本历史</h3>
+        <button onClick={onClose} style={{background:"none",border:"none",fontSize:"1.125rem",cursor:"pointer",color:"#9ca3af"}}>✕</button>
       </div>
-      {!GITHUB_PAT&&<div style={{padding:20,textAlign:"center",color:"#9ca3af",fontSize:14}}>⚠️ 未配置 GitHub PAT。请在 config.js 中设置 window.GITHUB_PAT</div>}
+      {!GITHUB_PAT&&<div style={{padding:20,textAlign:"center",color:"#9ca3af",fontSize:"0.875rem"}}>⚠️ 未配置 GitHub PAT。请在 config.js 中设置 window.GITHUB_PAT</div>}
       {GITHUB_PAT&&loading&&<div style={{padding:20,textAlign:"center",color:"#9ca3af"}}>加载中...</div>}
-      {GITHUB_PAT&&!loading&&versions.length===0&&<div style={{padding:20,textAlign:"center",color:"#9ca3af",fontSize:14}}>暂无版本历史。修改行程后将自动保存到 GitHub。</div>}
+      {GITHUB_PAT&&!loading&&versions.length===0&&<div style={{padding:20,textAlign:"center",color:"#9ca3af",fontSize:"0.875rem"}}>暂无版本历史。修改行程后将自动保存到 GitHub。</div>}
       {GITHUB_PAT&&!loading&&versions.map((v,i)=>{
         const msg=v.commit?.message||'';
         const actMatch=msg.match(/(\d+)\s*activities/);
         const dayMatch=msg.match(/(\d+)\s*days/);
-        return(<div key={v.sha} style={{padding:"12px 14px",borderRadius:10,border:"1px solid #f0ede8",marginBottom:8,background:i===0?"#f0faf0":"#fff"}}>
+        return(<div key={v.sha} style={{padding:"0.75rem 0.875rem",borderRadius:10,border:"1px solid #f0ede8",marginBottom:8,background:i===0?"#f0faf0":"#fff"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
             <div>
-              <div style={{fontSize:13,fontWeight:700,color:"#1a1a2e"}}>{i===0?"🟢 最新版本":timeAgo(v.commit?.author?.date)}</div>
-              <div style={{fontSize:11,color:"#9ca3af",marginTop:2}}>
+              <div style={{fontSize:"0.8125rem",fontWeight:700,color:"#1a1a2e"}}>{i===0?"🟢 最新版本":timeAgo(v.commit?.author?.date)}</div>
+              <div style={{fontSize:"0.6875rem",color:"#9ca3af",marginTop:2}}>
                 {actMatch?`${actMatch[1]} 个体验`:''}{dayMatch?` · ${dayMatch[1]} 天`:''}
                 {' · '}{new Date(v.commit?.author?.date).toLocaleString('zh-CN',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}
               </div>
             </div>
-            {i>0&&<button onClick={()=>restore(v.sha)} disabled={restoring===v.sha} style={{padding:"6px 14px",borderRadius:8,border:"1px solid #e8e4de",background:restoring===v.sha?"#f5f3f0":"#fff",cursor:"pointer",fontSize:12,fontWeight:600,color:"#c46b98",fontFamily:"inherit"}}>{restoring===v.sha?"恢复中...":"恢复"}</button>}
+            {i>0&&<button onClick={()=>restore(v.sha)} disabled={restoring===v.sha} style={{padding:"0.375rem 0.875rem",borderRadius:8,border:"1px solid #e8e4de",background:restoring===v.sha?"#f5f3f0":"#fff",cursor:"pointer",fontSize:"0.75rem",fontWeight:600,color:"#c46b98",fontFamily:"inherit"}}>{restoring===v.sha?"恢复中...":"恢复"}</button>}
           </div>
-          <div style={{fontSize:10,color:"#b0b0b0",marginTop:4,fontFamily:"monospace"}}>{v.sha?.substring(0,7)}</div>
+          <div style={{fontSize:"0.625rem",color:"#b0b0b0",marginTop:4,fontFamily:"monospace"}}>{v.sha?.substring(0,7)}</div>
         </div>);
       })}
     </div>
@@ -635,9 +637,9 @@ function MapboxMap({markers,height=220,singlePin=false,highlightId=null,onMarker
 function FullMapModal({markers,onClose,days}){
   return(
     <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.7)",zIndex:1001,display:"flex",flexDirection:"column"}}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"12px 16px",background:"linear-gradient(135deg,#1a1a2e,#2d2d4a)"}}>
-        <span style={{color:"#fff",fontWeight:700,fontSize:15}}>🗺️ 全行程地图</span>
-        <button onClick={onClose} style={{background:"rgba(255,255,255,0.15)",border:"none",color:"#fff",width:32,height:32,borderRadius:"50%",fontSize:16,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>✕</button>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"0.75rem 1.0rem",background:"linear-gradient(135deg,#1a1a2e,#2d2d4a)"}}>
+        <span style={{color:"#fff",fontWeight:700,fontSize:"0.9375rem"}}>🗺️ 全行程地图</span>
+        <button onClick={onClose} style={{background:"rgba(255,255,255,0.15)",border:"none",color:"#fff",width:32,height:32,borderRadius:"50%",fontSize:"1rem",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>✕</button>
       </div>
       <div style={{flex:1,position:"relative"}}>
         <MapboxMap markers={markers} height="100%"/>
@@ -707,7 +709,7 @@ function InlineRouteMap({days,onViewFull}){
   return(
     <div style={{position:"relative",borderRadius:14,overflow:"hidden",border:"1px solid #e8e4de",marginBottom:8,background:"linear-gradient(135deg,#f0ecf8,#e8e0f4 50%,#f5f0fa)"}}>
       <div ref={containerRef} style={{width:"100%",height:180}}/>
-      <button onClick={onViewFull} style={{position:"absolute",bottom:10,right:10,background:"#fff",border:"1px solid #e8e4de",borderRadius:10,padding:"6px 14px",fontSize:12,fontWeight:600,color:"#1a1a2e",cursor:"pointer",boxShadow:"0 2px 8px rgba(0,0,0,0.1)",fontFamily:"inherit"}}>View full map</button>
+      <button onClick={onViewFull} style={{position:"absolute",bottom:10,right:10,background:"#fff",border:"1px solid #e8e4de",borderRadius:10,padding:"0.375rem 0.875rem",fontSize:"0.75rem",fontWeight:600,color:"#1a1a2e",cursor:"pointer",boxShadow:"0 2px 8px rgba(0,0,0,0.1)",fontFamily:"inherit"}}>View full map</button>
     </div>
   );
 }
@@ -892,20 +894,20 @@ function FullRouteMap({days,origin,onClose}){
   return(
     <div style={{position:"fixed",inset:0,zIndex:1001,display:"flex",flexDirection:"column"}}>
       {/* Close button — top-left ✕ (Layla style) */}
-      <button onClick={onClose} style={{position:"absolute",top:14,left:14,zIndex:10,width:36,height:36,borderRadius:"50%",background:"#fff",border:"1px solid #e0e0e0",fontSize:18,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 2px 8px rgba(0,0,0,0.12)",color:"#333"}}>✕</button>
+      <button onClick={onClose} style={{position:"absolute",top:14,left:14,zIndex:10,width:36,height:36,borderRadius:"50%",background:"#fff",border:"1px solid #e0e0e0",fontSize:"1.125rem",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 2px 8px rgba(0,0,0,0.12)",color:"#333"}}>✕</button>
       {/* Origin label — top-right corner (Layla style: "📍 Singapore Changi") */}
-      <div style={{position:"absolute",top:14,right:14,zIndex:10,display:"flex",alignItems:"center",gap:8,background:"#fff",padding:"6px 16px",borderRadius:20,boxShadow:"0 2px 8px rgba(0,0,0,0.1)",fontFamily:"DM Sans,sans-serif"}}>
-        <span style={{fontSize:14}}>📍</span>
-        <span style={{fontSize:13,fontWeight:700,color:"#1a1a2e"}}>{origin.name}</span>
+      <div style={{position:"absolute",top:14,right:14,zIndex:10,display:"flex",alignItems:"center",gap:"0.5rem",background:"#fff",padding:"0.375rem 1.0rem",borderRadius:20,boxShadow:"0 2px 8px rgba(0,0,0,0.1)",fontFamily:"DM Sans,sans-serif"}}>
+        <span style={{fontSize:"0.875rem"}}>📍</span>
+        <span style={{fontSize:"0.8125rem",fontWeight:700,color:"#1a1a2e"}}>{origin.name}</span>
       </div>
       {/* "View full map" button — right side (Layla style) */}
-      <button onClick={onClose} style={{position:"absolute",top:"50%",right:14,transform:"translateY(-50%)",zIndex:10,background:"#fff",border:"1px solid #e0e0e0",borderRadius:12,padding:"8px 18px",fontSize:13,fontWeight:600,color:"#1a1a2e",cursor:"pointer",boxShadow:"0 2px 8px rgba(0,0,0,0.1)",fontFamily:"DM Sans,sans-serif"}}>View full map</button>
+      <button onClick={onClose} style={{position:"absolute",top:"50%",right:14,transform:"translateY(-50%)",zIndex:10,background:"#fff",border:"1px solid #e0e0e0",borderRadius:12,padding:"0.5rem 1.125rem",fontSize:"0.8125rem",fontWeight:600,color:"#1a1a2e",cursor:"pointer",boxShadow:"0 2px 8px rgba(0,0,0,0.1)",fontFamily:"DM Sans,sans-serif"}}>View full map</button>
       <div ref={containerRef} style={{flex:1}}/>
       {/* Play button — bottom-left, lavender filled circle (Layla style) */}
       <button onClick={play} disabled={playing} style={{
         position:"absolute",bottom:24,left:24,width:52,height:52,borderRadius:"50%",zIndex:10,
         background:playing?"#d4cce6":"#c8bce0",border:"none",
-        boxShadow:"0 3px 14px rgba(0,0,0,0.15)",color:"#fff",fontSize:22,
+        boxShadow:"0 3px 14px rgba(0,0,0,0.15)",color:"#fff",fontSize:"1.375rem",
         cursor:playing?"default":"pointer",display:"flex",alignItems:"center",justifyContent:"center",
         transition:"background 0.2s"
       }}>{playing?"⏳":"▶"}</button>
@@ -913,7 +915,7 @@ function FullRouteMap({days,origin,onClose}){
   );
 }
 
-function MapLinks({markers}){const pts=markers.filter(m=>m.la&&m.lo);if(!pts.length)return null;return(<div style={{display:"flex",flexWrap:"wrap",gap:5,padding:"8px 0"}}>{pts.slice(0,10).map((m,i)=>(<a key={i} href={gmUrl(m.la,m.lo,m.name)} target="_blank" rel="noopener noreferrer" style={{fontSize:11,color:"#1a73a7",background:"#e8f4fd",padding:"4px 10px",borderRadius:20,textDecoration:"none",fontWeight:600}}>📍 {m.name.length>12?m.name.slice(0,12)+"…":m.name}</a>))}</div>);}
+function MapLinks({markers}){const pts=markers.filter(m=>m.la&&m.lo);if(!pts.length)return null;return(<div style={{display:"flex",flexWrap:"wrap",gap:"0.3125rem",padding:"0.5rem 0"}}>{pts.slice(0,10).map((m,i)=>(<a key={i} href={gmUrl(m.la,m.lo,m.name)} target="_blank" rel="noopener noreferrer" style={{fontSize:"0.6875rem",color:"#1a73a7",background:"#e8f4fd",padding:"0.25rem 0.625rem",borderRadius:20,textDecoration:"none",fontWeight:600}}>📍 {m.name.length>12?m.name.slice(0,12)+"…":m.name}</a>))}</div>);}
 
 function TikTokEmbed({url}){
   const containerRef=useRef(null);
@@ -934,7 +936,7 @@ function TikTokEmbed({url}){
     <div ref={containerRef} style={{marginBottom:12,borderRadius:12,overflow:"hidden"}}>
       <blockquote className="tiktok-embed" cite={url} data-video-id={videoId} style={{maxWidth:"100%",minWidth:280,margin:0}}>
         <section>
-          <a target="_blank" href={url} rel="noopener noreferrer" style={{color:"#c46b98",fontSize:13,fontWeight:600}}>🎬 查看 TikTok 视频参考</a>
+          <a target="_blank" href={url} rel="noopener noreferrer" style={{color:"#c46b98",fontSize:"0.8125rem",fontWeight:600}}>🎬 查看 TikTok 视频参考</a>
         </section>
       </blockquote>
     </div>
@@ -946,34 +948,34 @@ function ExperienceDetail({act,onClose,onEdit}){
   const mk=act.la&&act.lo?[{name:act.name,la:act.la,lo:act.lo,cat:act.category}]:[];
   return(
     <div style={S.overlay} onClick={onClose}><div style={{...S.panel,maxWidth:480}} onClick={e=>e.stopPropagation()}>
-      {act.img?(<div style={{width:"100%",height:220,overflow:"hidden",position:"relative"}}><img src={act.img} alt={act.name} style={{width:"100%",height:"100%",objectFit:"cover"}}/><div style={{position:"absolute",inset:0,background:"linear-gradient(transparent 50%, rgba(0,0,0,0.6))"}}/><button onClick={onClose} style={{position:"absolute",top:12,right:12,width:32,height:32,borderRadius:"50%",background:"rgba(0,0,0,0.5)",border:"none",color:"#fff",fontSize:16,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>✕</button><div style={{position:"absolute",bottom:14,left:16}}><span style={{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:0.5,color:"#fff",background:c.c+"dd",padding:"3px 10px",borderRadius:6}}>{tl}</span></div></div>):(<div style={{display:"flex",justifyContent:"space-between",padding:"20px 20px 0"}}><span style={{fontSize:11,fontWeight:700,textTransform:"uppercase",background:c.bg,color:c.c,padding:"3px 10px",borderRadius:6}}>{tl}</span><button onClick={onClose} style={{background:"none",border:"none",fontSize:18,cursor:"pointer",color:"#999"}}>✕</button></div>)}
-      <div style={{padding:"16px 20px 20px"}}>
-        <h2 style={{fontSize:20,fontWeight:800,color:"#1a1a2e",margin:"0 0 6px",lineHeight:1.3}}>{act.name}</h2>
-        {act.addr&&<a href={act.la?gmUrl(act.la,act.lo,act.name):`https://www.google.com/maps/search/${encodeURIComponent(act.addr)}`} target="_blank" rel="noopener noreferrer" style={{display:"flex",alignItems:"center",gap:6,fontSize:13,color:"#1a73a7",textDecoration:"none",marginBottom:8}}>📍 {act.addr}</a>}
+      {act.img?(<div style={{width:"100%",height:220,overflow:"hidden",position:"relative"}}><img src={act.img} alt={act.name} style={{width:"100%",height:"100%",objectFit:"cover"}}/><div style={{position:"absolute",inset:0,background:"linear-gradient(transparent 50%, rgba(0,0,0,0.6))"}}/><button onClick={onClose} style={{position:"absolute",top:12,right:12,width:32,height:32,borderRadius:"50%",background:"rgba(0,0,0,0.5)",border:"none",color:"#fff",fontSize:"1rem",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>✕</button><div style={{position:"absolute",bottom:14,left:16}}><span style={{fontSize:"0.6875rem",fontWeight:700,textTransform:"uppercase",letterSpacing:0.5,color:"#fff",background:c.c+"dd",padding:"0.1875rem 0.625rem",borderRadius:6}}>{tl}</span></div></div>):(<div style={{display:"flex",justifyContent:"space-between",padding:"1.25rem 1.25rem 0"}}><span style={{fontSize:"0.6875rem",fontWeight:700,textTransform:"uppercase",background:c.bg,color:c.c,padding:"0.1875rem 0.625rem",borderRadius:6}}>{tl}</span><button onClick={onClose} style={{background:"none",border:"none",fontSize:"1.125rem",cursor:"pointer",color:"#999"}}>✕</button></div>)}
+      <div style={{padding:"1.0rem 1.25rem 1.25rem"}}>
+        <h2 style={{fontSize:"1.25rem",fontWeight:800,color:"#1a1a2e",margin:"0 0 6px",lineHeight:1.3}}>{act.name}</h2>
+        {act.addr&&<a href={act.la?gmUrl(act.la,act.lo,act.name):`https://www.google.com/maps/search/${encodeURIComponent(act.addr)}`} target="_blank" rel="noopener noreferrer" style={{display:"flex",alignItems:"center",gap:"0.375rem",fontSize:"0.8125rem",color:"#1a73a7",textDecoration:"none",marginBottom:8}}>📍 {act.addr}</a>}
         {/* Transport route details */}
         {(act.from||act.to||act.line)&&(
-          <div style={{marginBottom:12,padding:"12px 16px",background:"linear-gradient(135deg,#ecf5ec,#e8f4fd)",borderRadius:12,border:"1px solid #d4e8d4"}}>
-            {(act.from||act.to)&&<div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
-              {act.from&&<div style={{flex:1,padding:"6px 10px",background:"#fff",borderRadius:8,fontSize:13,fontWeight:700,color:"#2d7a3a",textAlign:"center"}}>🚏 {act.from}</div>}
-              {act.from&&act.to&&<span style={{fontSize:16,color:"#2d7a3a",fontWeight:800}}>→</span>}
-              {act.to&&<div style={{flex:1,padding:"6px 10px",background:"#fff",borderRadius:8,fontSize:13,fontWeight:700,color:"#1a73a7",textAlign:"center"}}>🏁 {act.to}</div>}
+          <div style={{marginBottom:12,padding:"0.75rem 1.0rem",background:"linear-gradient(135deg,#ecf5ec,#e8f4fd)",borderRadius:12,border:"1px solid #d4e8d4"}}>
+            {(act.from||act.to)&&<div style={{display:"flex",alignItems:"center",gap:"0.5rem",marginBottom:6}}>
+              {act.from&&<div style={{flex:1,padding:"0.375rem 0.625rem",background:"#fff",borderRadius:8,fontSize:"0.8125rem",fontWeight:700,color:"#2d7a3a",textAlign:"center"}}>🚏 {act.from}</div>}
+              {act.from&&act.to&&<span style={{fontSize:"1rem",color:"#2d7a3a",fontWeight:800}}>→</span>}
+              {act.to&&<div style={{flex:1,padding:"0.375rem 0.625rem",background:"#fff",borderRadius:8,fontSize:"0.8125rem",fontWeight:700,color:"#1a73a7",textAlign:"center"}}>🏁 {act.to}</div>}
             </div>}
-            {act.line&&<div style={{fontSize:13,color:"#4a7a4a",fontWeight:600}}>🚃 {act.line}</div>}
-            {act.directionsUrl&&<a href={act.directionsUrl} target="_blank" rel="noopener noreferrer" style={{display:"inline-flex",alignItems:"center",gap:6,marginTop:8,padding:"8px 14px",background:"#1a73a7",color:"#fff",borderRadius:8,textDecoration:"none",fontSize:13,fontWeight:600}}>📍 Google Maps 路线导航</a>}
+            {act.line&&<div style={{fontSize:"0.8125rem",color:"#4a7a4a",fontWeight:600}}>🚃 {act.line}</div>}
+            {act.directionsUrl&&<a href={act.directionsUrl} target="_blank" rel="noopener noreferrer" style={{display:"inline-flex",alignItems:"center",gap:"0.375rem",marginTop:8,padding:"0.5rem 0.875rem",background:"#1a73a7",color:"#fff",borderRadius:8,textDecoration:"none",fontSize:"0.8125rem",fontWeight:600}}>📍 Google Maps 路线导航</a>}
           </div>
         )}
-        {act.notes&&<div style={{fontSize:13,color:"#4a4a5a",lineHeight:1.6,marginBottom:12,padding:"10px 14px",background:"#faf8f4",borderRadius:10,borderLeft:"3px solid "+c.c,whiteSpace:"pre-line"}}>{act.notes}</div>}
+        {act.notes&&<div style={{fontSize:"0.8125rem",color:"#4a4a5a",lineHeight:1.6,marginBottom:12,padding:"0.625rem 0.875rem",background:"#faf8f4",borderRadius:10,borderLeft:"3px solid "+c.c,whiteSpace:"pre-line"}}>{act.notes}</div>}
         {act.tiktok&&<TikTokEmbed url={act.tiktok}/>}
-        <div style={{display:"flex",gap:6,marginBottom:14,flexWrap:"wrap"}}>
-          {act.time&&<span style={{fontSize:12,padding:"4px 12px",borderRadius:20,background:"#f0f0f0",color:"#666",fontWeight:600}}>🕐 {act.time}</span>}
-          <span style={{fontSize:12,padding:"4px 12px",borderRadius:20,background:c.bg,color:c.c,fontWeight:600}}>{c.e} {c.l}</span>
-          {act.cost&&<span style={{fontSize:12,padding:"4px 12px",borderRadius:20,background:"#f5dce8",color:"#c46b98",fontWeight:700}}>💰 {act.currency||"¥"}{act.cost}</span>}
+        <div style={{display:"flex",gap:"0.375rem",marginBottom:14,flexWrap:"wrap"}}>
+          {act.time&&<span style={{fontSize:"0.75rem",padding:"0.25rem 0.75rem",borderRadius:20,background:"#f0f0f0",color:"#666",fontWeight:600}}>🕐 {act.time}</span>}
+          <span style={{fontSize:"0.75rem",padding:"0.25rem 0.75rem",borderRadius:20,background:c.bg,color:c.c,fontWeight:600}}>{c.e} {c.l}</span>
+          {act.cost&&<span style={{fontSize:"0.75rem",padding:"0.25rem 0.75rem",borderRadius:20,background:"#f5dce8",color:"#c46b98",fontWeight:700}}>💰 {act.currency||"¥"}{act.cost}</span>}
         </div>
         {mk.length>0&&<MapboxMap markers={mk} height={180} singlePin/>}
         {mk.length>0&&<MapLinks markers={mk}/>}
-        <div style={{display:"flex",gap:8,marginTop:8}}>
+        <div style={{display:"flex",gap:"0.5rem",marginTop:8}}>
           <button onClick={()=>onEdit(act)} style={{...S.savBtn,flex:1}}>✏️ 编辑</button>
-          {act.la&&act.lo&&<a href={gmDir(act.la,act.lo,act.name)} target="_blank" rel="noopener noreferrer" style={{...S.canBtn,display:"flex",alignItems:"center",justifyContent:"center",textDecoration:"none",gap:4}}>🧭 导航</a>}
+          {act.la&&act.lo&&<a href={gmDir(act.la,act.lo,act.name)} target="_blank" rel="noopener noreferrer" style={{...S.canBtn,display:"flex",alignItems:"center",justifyContent:"center",textDecoration:"none",gap:"0.25rem"}}>🧭 导航</a>}
         </div>
       </div>
     </div></div>
@@ -989,25 +991,25 @@ function DayDetailModal({days,initialDayId,onClose,onViewExp}){
   day.activities.filter(a=>a.la&&a.lo).forEach(a=>mk.push({name:a.name,la:a.la,lo:a.lo,cat:a.category,id:a.id,img:a.img,addr:a.addr}));
   return(
     <div style={S.overlay} onClick={onClose}><div style={S.dayModal} onClick={e=>e.stopPropagation()}>
-      <div style={{padding:"18px 22px 12px",borderBottom:"1px solid #f0ede8",flexShrink:0}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}><div><h2 style={{fontSize:16,fontWeight:800,color:"#1a1a2e",margin:"0 0 4px",lineHeight:1.3}}>{day.theme}</h2><div style={{fontSize:13,color:"#6b7280"}}>{day.location} · {day.date} · {day.weather}</div></div><button onClick={onClose} style={{background:"none",border:"none",fontSize:20,cursor:"pointer",color:"#999"}}>✕</button></div>
-        <div style={{display:"flex",gap:4,marginTop:10,overflowX:"auto",paddingBottom:2}}>{days.map(d=>(<button key={d.id} onClick={()=>setAid(d.id)} style={{padding:"5px 12px",borderRadius:20,border:"none",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap",background:d.id===aid?"#1a1a2e":"#f0f0f0",color:d.id===aid?"#fff":"#666",transition:"all 0.15s"}}>{d.date}</button>))}</div>
+      <div style={{padding:"1.125rem 1.375rem 0.75rem",borderBottom:"1px solid #f0ede8",flexShrink:0}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}><div><h2 style={{fontSize:"1rem",fontWeight:800,color:"#1a1a2e",margin:"0 0 4px",lineHeight:1.3}}>{day.theme}</h2><div style={{fontSize:"0.8125rem",color:"#6b7280"}}>{day.location} · {day.date} · {day.weather}</div></div><button onClick={onClose} style={{background:"none",border:"none",fontSize:"1.25rem",cursor:"pointer",color:"#999"}}>✕</button></div>
+        <div style={{display:"flex",gap:"0.25rem",marginTop:10,overflowX:"auto",paddingBottom:2}}>{days.map(d=>(<button key={d.id} onClick={()=>setAid(d.id)} style={{padding:"0.3125rem 0.75rem",borderRadius:20,border:"none",fontSize:"0.6875rem",fontWeight:700,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap",background:d.id===aid?"#1a1a2e":"#f0f0f0",color:d.id===aid?"#fff":"#666",transition:"all 0.15s"}}>{d.date}</button>))}</div>
       </div>
-      <div style={{overflowY:"auto",flex:1,padding:"10px 18px"}}>
-        <div style={{fontSize:12,color:"#6b7280",marginBottom:8}}>• {day.location} • Day {day.id} • {day.activities.length} 体验</div>
-        {h&&<div style={{padding:"10px 12px",background:"#fffcf5",border:"1px solid #f0e8d8",borderRadius:10,marginBottom:8}}><div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:1,color:"#8a6d3b",marginBottom:4}}>🏨 住宿 · {h.nights}晚</div><div style={{fontSize:14,fontWeight:800}}>{h.name}</div><div style={{fontSize:11,color:"#9ca3af",marginTop:2}}>📍 {h.addr} · <strong style={{color:"#c46b98"}}>{h.price}</strong></div></div>}
+      <div style={{overflowY:"auto",flex:1,padding:"0.625rem 1.125rem"}}>
+        <div style={{fontSize:"0.75rem",color:"#6b7280",marginBottom:8}}>• {day.location} • Day {day.id} • {day.activities.length} 体验</div>
+        {h&&<div style={{padding:"0.625rem 0.75rem",background:"#fffcf5",border:"1px solid #f0e8d8",borderRadius:10,marginBottom:8}}><div style={{fontSize:"0.625rem",fontWeight:700,textTransform:"uppercase",letterSpacing:1,color:"#8a6d3b",marginBottom:4}}>🏨 住宿 · {h.nights}晚</div><div style={{fontSize:"0.875rem",fontWeight:800}}>{h.name}</div><div style={{fontSize:"0.6875rem",color:"#9ca3af",marginTop:2}}>📍 {h.addr} · <strong style={{color:"#c46b98"}}>{h.price}</strong></div></div>}
         {day.activities.map(act=>{const ac=gc(act.category);const tl=act.type==="restaurant"?"Restaurant":act.type==="poi"?"Place":"Note";
           return(<div key={act.id} style={{marginBottom:8,borderRadius:10,border:hovAct===act.id?"2px solid "+ac.c:"1px solid #f0ede8",overflow:"hidden",background:hovAct===act.id?"#faf5f8":"#fff",boxShadow:"0 1px 3px rgba(0,0,0,0.03)",transition:"all 0.15s"}} onMouseEnter={()=>setHovAct(act.id)} onMouseLeave={()=>setHovAct(null)}>
-            <div style={{padding:"6px 12px 0"}}><span style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:0.5,color:ac.c}}>{tl}</span></div>
-            <div style={{padding:"4px 12px 8px",display:"flex",gap:10,alignItems:"flex-start"}}>
-              <div style={{flex:1}}><div style={{fontSize:14,fontWeight:700,color:"#1a1a2e",marginBottom:2}}>{act.name}</div></div>
+            <div style={{padding:"0.375rem 0.75rem 0"}}><span style={{fontSize:"0.625rem",fontWeight:700,textTransform:"uppercase",letterSpacing:0.5,color:ac.c}}>{tl}</span></div>
+            <div style={{padding:"0.25rem 0.75rem 0.5rem",display:"flex",gap:"0.625rem",alignItems:"flex-start"}}>
+              <div style={{flex:1}}><div style={{fontSize:"0.875rem",fontWeight:700,color:"#1a1a2e",marginBottom:2}}>{act.name}</div></div>
               {act.img&&<div style={{width:100,height:68,borderRadius:8,overflow:"hidden",flexShrink:0}}><img src={act.img} alt={act.name} style={{width:"100%",height:"100%",objectFit:"cover"}} loading="lazy"/></div>}
             </div>
-            {act.type!=="note"&&<button onClick={()=>onViewExp(act)} style={{width:"100%",padding:"8px",background:"none",border:"none",borderTop:"1px solid #f0ede8",fontSize:12,fontWeight:600,color:"#1a73a7",cursor:"pointer",fontFamily:"inherit"}}>View Details</button>}
+            {act.type!=="note"&&<button onClick={()=>onViewExp(act)} style={{width:"100%",padding:"0.5rem",background:"none",border:"none",borderTop:"1px solid #f0ede8",fontSize:"0.75rem",fontWeight:600,color:"#1a73a7",cursor:"pointer",fontFamily:"inherit"}}>View Details</button>}
           </div>);
         })}
       </div>
-      <div style={{padding:"10px 18px 16px",borderTop:"1px solid #f0ede8",flexShrink:0}}>{mk.length>0&&<MapboxMap markers={mk} height={180} highlightId={hovAct} onMarkerClick={(m)=>{const act=day.activities.find(a=>a.la===m.la&&a.lo===m.lo);if(act&&act.type!=="note")onViewExp(act);}}/>}{mk.length>0&&<MapLinks markers={mk}/>}</div>
+      <div style={{padding:"0.625rem 1.125rem 1.0rem",borderTop:"1px solid #f0ede8",flexShrink:0}}>{mk.length>0&&<MapboxMap markers={mk} height={180} highlightId={hovAct} onMarkerClick={(m)=>{const act=day.activities.find(a=>a.la===m.la&&a.lo===m.lo);if(act&&act.type!=="note")onViewExp(act);}}/>}{mk.length>0&&<MapLinks markers={mk}/>}</div>
     </div></div>
   );
 }
@@ -1016,50 +1018,48 @@ function EditModal({activity,onSave,onClose,onDelete}){
   const[form,setForm]=useState({...activity,currency:activity.currency||"¥",cost:activity.cost||""});
   const ref=useRef(null);useEffect(()=>{ref.current?.focus();},[]);const up=(k,v)=>setForm(p=>({...p,[k]:v}));
   return(<div style={S.overlay} onClick={onClose}><div style={S.modal} onClick={e=>e.stopPropagation()}>
-    <div style={{display:"flex",justifyContent:"space-between",padding:"18px 22px 8px"}}><span style={{fontSize:17,fontWeight:700}}>{activity.id?.startsWith?.("new_")?"添加体验":"编辑体验"}</span><button onClick={onClose} style={{background:"none",border:"none",fontSize:18,cursor:"pointer",color:"#9ca3af"}}>✕</button></div>
+    <div style={{display:"flex",justifyContent:"space-between",padding:"1.125rem 1.375rem 0.5rem"}}><span style={{fontSize:"1.0625rem",fontWeight:700}}>{activity.id?.startsWith?.("new_")?"添加体验":"编辑体验"}</span><button onClick={onClose} style={{background:"none",border:"none",fontSize:"1.125rem",cursor:"pointer",color:"#9ca3af"}}>✕</button></div>
     <div style={{padding:"0 22px 12px"}}>
       <label style={S.fl}>名称</label><input ref={ref} style={S.inp} value={form.name} onChange={e=>up("name",e.target.value)} placeholder="e.g. 秋叶原"/>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10}}><div><label style={S.fl}>类型</label><select style={S.inp} value={form.type||"poi"} onChange={e=>up("type",e.target.value)}><option value="poi">📍 Place</option><option value="restaurant">🍽️ Restaurant</option><option value="note">📝 Note</option></select></div><div><label style={S.fl}>时间</label><select style={S.inp} value={form.time} onChange={e=>up("time",e.target.value)}>{TIMES.map(t=><option key={t}>{t}</option>)}</select></div><div><label style={S.fl}>分类</label><select style={S.inp} value={form.category} onChange={e=>up("category",e.target.value)}>{Object.entries(CATS).map(([k,v])=><option key={k} value={k}>{v.e} {v.l}</option>)}</select></div></div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"0.625rem"}}><div><label style={S.fl}>类型</label><select style={S.inp} value={form.type||"poi"} onChange={e=>up("type",e.target.value)}><option value="poi">📍 Place</option><option value="restaurant">🍽️ Restaurant</option><option value="note">📝 Note</option></select></div><div><label style={S.fl}>时间</label><select style={S.inp} value={form.time} onChange={e=>up("time",e.target.value)}>{TIMES.map(t=><option key={t}>{t}</option>)}</select></div><div><label style={S.fl}>分类</label><select style={S.inp} value={form.category} onChange={e=>up("category",e.target.value)}>{Object.entries(CATS).map(([k,v])=><option key={k} value={k}>{v.e} {v.l}</option>)}</select></div></div>
       <label style={S.fl}>图片URL</label><input style={S.inp} value={form.img||""} onChange={e=>up("img",e.target.value)} placeholder="https://..."/>
       <label style={S.fl}>地址</label><input style={S.inp} value={form.addr||""} onChange={e=>up("addr",e.target.value)}/>
       {/* Transport fields — shown for ALL activity types */}
-      <div style={{marginTop:8,padding:"10px 14px",background:"#f0faf0",borderRadius:10,border:"1px solid #d4edda"}}>
-        <div style={{fontSize:12,fontWeight:700,color:"#2d7a3a",marginBottom:8}}>🚃 交通方式 (可选)</div>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+      <div style={{marginTop:8,padding:"0.625rem 0.875rem",background:"#f0faf0",borderRadius:10,border:"1px solid #d4edda"}}>
+        <div style={{fontSize:"0.75rem",fontWeight:700,color:"#2d7a3a",marginBottom:8}}>🚃 交通方式 (可选)</div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"0.625rem"}}>
           <div><label style={S.fl}>🚏 出发站</label><input style={S.inp} value={form.from||""} onChange={e=>up("from",e.target.value)} placeholder="蒲田駅"/></div>
           <div><label style={S.fl}>🏁 到达站</label><input style={S.inp} value={form.to||""} onChange={e=>up("to",e.target.value)} placeholder="新宿駅"/></div>
         </div>
         <label style={S.fl}>🚃 路线</label><input style={S.inp} value={form.line||""} onChange={e=>up("line",e.target.value)} placeholder="JR 京浜東北線 → 山手線"/>
         <label style={S.fl}>🔗 Google Maps 路线链接</label><input style={S.inp} value={form.directionsUrl||""} onChange={e=>up("directionsUrl",e.target.value)} placeholder="https://maps.app.goo.gl/..."/>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 80px",gap:10}}><div><label style={S.fl}>🚃 交通费用</label><input style={S.inp} value={form.transportCost||""} onChange={e=>up("transportCost",e.target.value)} placeholder="170"/></div><div><label style={S.fl}>币种</label><select style={S.inp} value={form.transportCurrency||form.currency} onChange={e=>up("transportCurrency",e.target.value)}><option>¥</option><option>MYR</option><option>USD</option></select></div></div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 80px",gap:"0.625rem"}}><div><label style={S.fl}>🚃 交通费用</label><input style={S.inp} value={form.transportCost||""} onChange={e=>up("transportCost",e.target.value)} placeholder="170"/></div><div><label style={S.fl}>币种</label><select style={S.inp} value={form.transportCurrency||form.currency} onChange={e=>up("transportCurrency",e.target.value)}><option>¥</option><option>MYR</option><option>USD</option></select></div></div>
       </div>
       <label style={S.fl}>备注</label><textarea style={{...S.inp,minHeight:60,resize:"vertical",fontFamily:"inherit"}} value={form.notes||""} onChange={e=>up("notes",e.target.value)}/>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 80px",gap:10}}><div><label style={S.fl}>费用</label><input style={S.inp} value={form.cost} onChange={e=>up("cost",e.target.value)} placeholder="2000"/></div><div><label style={S.fl}>币种</label><select style={S.inp} value={form.currency} onChange={e=>up("currency",e.target.value)}><option>¥</option><option>MYR</option><option>USD</option></select></div></div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 80px",gap:"0.625rem"}}><div><label style={S.fl}>费用</label><input style={S.inp} value={form.cost} onChange={e=>up("cost",e.target.value)} placeholder="2000"/></div><div><label style={S.fl}>币种</label><select style={S.inp} value={form.currency} onChange={e=>up("currency",e.target.value)}><option>¥</option><option>MYR</option><option>USD</option></select></div></div>
     </div>
-    <div style={{display:"flex",gap:8,padding:"10px 22px 18px",borderTop:"1px solid #f0ede8"}}>{activity.id&&!activity.id.startsWith?.("new_")&&<button onClick={()=>{onDelete(activity.id);onClose();}} style={S.delBtn}>🗑 删除</button>}<div style={{flex:1}}/><button onClick={onClose} style={S.canBtn}>取消</button><button onClick={()=>{onSave(form);onClose();}} style={S.savBtn}>保存</button></div>
+    <div style={{display:"flex",gap:"0.5rem",padding:"0.625rem 1.375rem 1.125rem",borderTop:"1px solid #f0ede8"}}>{activity.id&&!activity.id.startsWith?.("new_")&&<button onClick={()=>{onDelete(activity.id);onClose();}} style={S.delBtn}>🗑 删除</button>}<div style={{flex:1}}/><button onClick={onClose} style={S.canBtn}>取消</button><button onClick={()=>{onSave(form);onClose();}} style={S.savBtn}>保存</button></div>
   </div></div>);
 }
 
 function ActivityCard({act,onClick,index,dayId,onDragStart,onDragOver,onDrop,isDragOver}){const c=gc(act.category);const tl=act.type==="restaurant"?"Restaurant":act.type==="poi"?"Place":"Note";const cd=act.cost?`${act.currency||"¥"}${act.cost}`:"";
   return(<div id={"act-"+act.id} onClick={onClick} draggable onDragStart={e=>{e.dataTransfer.setData("text/plain",JSON.stringify({id:act.id,dayId,index}));e.currentTarget.style.opacity="0.4";if(onDragStart)onDragStart(act.id);}} onDragEnd={e=>{e.currentTarget.style.opacity="1";}} onDragOver={e=>{e.preventDefault();e.currentTarget.style.borderTop="3px solid #c46b98";if(onDragOver)onDragOver(index);}} onDragLeave={e=>{e.currentTarget.style.borderTop="";}} onDrop={e=>{e.preventDefault();e.currentTarget.style.borderTop="";try{const data=JSON.parse(e.dataTransfer.getData("text/plain"));if(onDrop)onDrop(data,index);}catch(err){}}} style={{...S.actCard,cursor:"grab",userSelect:"none"}} onMouseEnter={e=>{e.currentTarget.style.boxShadow="0 6px 20px rgba(0,0,0,0.07)";e.currentTarget.style.transform="translateY(-2px)";}} onMouseLeave={e=>{e.currentTarget.style.boxShadow="";e.currentTarget.style.transform="";}}>
-    <div style={{display:"flex",gap:12,alignItems:"center"}}>
-      <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,flexShrink:0,cursor:"grab",color:"#ccc",fontSize:10,padding:"0 2px"}} title="拖拽排序">⠿</div>
-      {act.img?(<div style={{width:100,height:72,borderRadius:10,overflow:"hidden",flexShrink:0}}><img src={act.img} alt={act.name} style={{width:"100%",height:"100%",objectFit:"cover"}} loading="lazy"/></div>):(<div style={{width:36,height:36,borderRadius:"50%",background:c.bg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,flexShrink:0}}>{c.e}</div>)}
-      <div style={{flex:1,minWidth:0}}><div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap",marginBottom:3}}><span style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:0.4,color:c.c,background:c.bg,padding:"2px 8px",borderRadius:5}}>{tl}</span><span style={{fontSize:11,color:"#9ca3af"}}>{act.time}</span>{cd&&<span style={{fontSize:12,fontWeight:700,color:"#c46b98",marginLeft:"auto"}}>{cd}</span>}</div>
-        <div style={{fontSize:14,fontWeight:700,color:"#1a1a2e",lineHeight:1.3}}>{act.name}</div>
+    <div style={{display:"flex",gap:"0.5rem",alignItems:"center"}}>
+      <div style={{display:"flex",flexDirection:"column",alignItems:"center",flexShrink:0,cursor:"grab",color:"#ccc",fontSize:"0.625rem",padding:"0 2px"}} title="拖拽排序">⠿</div>
+      {act.img?(<div style={{width:"6.25rem",height:"4.5rem",borderRadius:"0.6rem",overflow:"hidden",flexShrink:0}}><img src={act.img} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}} loading="lazy" onError={e=>{e.target.parentElement.style.display="none";}}/></div>):(<div style={{width:"2rem",height:"2rem",borderRadius:"50%",background:c.bg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"0.875rem",flexShrink:0}}>{c.e}</div>)}
+      <div style={{flex:1,minWidth:0,overflow:"hidden"}}><div style={{display:"flex",alignItems:"center",gap:"0.25rem",flexWrap:"wrap",marginBottom:"0.15rem"}}><span style={{fontSize:"0.625rem",fontWeight:700,textTransform:"uppercase",letterSpacing:0.4,color:c.c,background:c.bg,padding:"0.1rem 0.4rem",borderRadius:5}}>{tl}</span><span style={{fontSize:"0.65rem",color:"#9ca3af"}}>{act.time}</span>{cd&&<span style={{fontSize:"0.7rem",fontWeight:700,color:"#c46b98",marginLeft:"auto"}}>{cd}</span>}</div>
+        <div style={{fontSize:"clamp(0.75rem,3vw,0.875rem)",fontWeight:700,color:"#1a1a2e",lineHeight:1.3,wordBreak:"break-word"}}>{act.name}</div>
         {(act.from||act.to||act.line)&&(
-          <div style={{marginTop:4,padding:"6px 10px",background:"#ecf5ec",borderRadius:8,fontSize:12}}>
-            {(act.from||act.to)&&<div style={{display:"flex",alignItems:"center",gap:4,fontWeight:600,color:"#2d7a3a"}}>
-              {act.from&&<span>{act.from}</span>}
-              {act.from&&act.to&&<span style={{color:"#9ca3af"}}>→</span>}
-              {act.to&&<span>{act.to}</span>}
+          <div style={{marginTop:"0.25rem",padding:"0.3rem 0.5rem",background:"#ecf5ec",borderRadius:"0.4rem",fontSize:"clamp(0.6rem,2.5vw,0.75rem)"}}>
+            {(act.from||act.to)&&<div style={{fontWeight:600,color:"#2d7a3a",lineHeight:1.4,wordBreak:"break-word"}}>
+              {act.from}{act.from&&act.to&&<span style={{color:"#9ca3af",margin:"0 0.2rem"}}>→</span>}{act.to}
             </div>}
-            {act.line&&<div style={{color:"#4a7a4a",marginTop:2}}>🚃 {act.line}</div>}
-            {act.directionsUrl&&<a href={act.directionsUrl} target="_blank" rel="noopener noreferrer" onClick={e=>e.stopPropagation()} style={{display:"inline-flex",alignItems:"center",gap:4,color:"#1a73a7",textDecoration:"none",fontWeight:600,marginTop:3}}>📍 Google Maps 路线</a>}
-            {act.transportCost&&<div style={{marginTop:3,fontWeight:700,color:"#2d7a3a",fontSize:12}}>🚃 {act.transportCurrency||act.currency||"¥"}{act.transportCost}</div>}
+            {act.line&&<div style={{color:"#4a7a4a",marginTop:"0.15rem",lineHeight:1.3,wordBreak:"break-word"}}>🚃 {act.line}</div>}
+            {act.directionsUrl&&<a href={act.directionsUrl} target="_blank" rel="noopener noreferrer" onClick={e=>e.stopPropagation()} style={{display:"inline-flex",alignItems:"center",gap:"0.2rem",color:"#1a73a7",textDecoration:"none",fontWeight:600,marginTop:"0.2rem",fontSize:"0.65rem"}}>📍 路线</a>}
+            {act.transportCost&&<span style={{marginLeft:"0.4rem",fontWeight:700,color:"#2d7a3a",fontSize:"0.7rem"}}>🚃 {act.transportCurrency||act.currency||"¥"}{act.transportCost}</span>}
           </div>
         )}
-        {act.notes&&<div style={{fontSize:11,color:"#9ca3af",marginTop:2,lineHeight:1.4,overflow:"hidden",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical"}}>{act.notes}</div>}
+        {act.notes&&<div style={{fontSize:"0.65rem",color:"#9ca3af",marginTop:"0.15rem",lineHeight:1.4,overflow:"hidden",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical"}}>{act.notes}</div>}
       </div>
     </div>
   </div>);
@@ -1070,20 +1070,20 @@ function DaySection({day,expanded,onToggle,onClickAct,onOpenDay,onAdd,onRemove,o
   const isPre=day.isPreTrip;
   const headerBg=isPre?"linear-gradient(135deg, #2d7a3a, #1a5c2a)":S.dayHeader.background;
   return(<div style={{...S.daySection,...(isPre?{border:"2px dashed #2d7a3a",background:"#f0f7f0"}:{})}}>
-    <div style={{...S.dayHeader,background:headerBg}} onClick={onToggle}><div style={S.dayNum}>{isPre?"📋":String(day.id).padStart(2,"0")}</div><div style={{flex:1}}><div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}><span style={{fontSize:15,fontWeight:700,color:"#fff"}}>{isPre?"出发前准备":day.dow+", "+day.date}</span><span style={S.locBadge}>{day.location}</span>{day.weather&&<span style={{fontSize:12,color:"rgba(255,255,255,0.45)"}}>{day.weather}</span>}</div><div style={{fontSize:12,color:"rgba(255,255,255,0.5)",marginTop:2}}>{day.theme} · {day.activities.length} items{dc>0?` · ~${fJ(dc)}`:""}
-    </div></div>{!isPre&&<button onClick={e=>{e.stopPropagation();onOpenDay(day.id);}} style={S.mapBtn} title="日视图+地图">🗺️</button>}<button onClick={e=>{e.stopPropagation();if(confirm(`确定删除${isPre?"准备项":"Day "+day.id+" ("+day.date+")"}？`))onRemove(day.id);}} style={{background:"none",border:"none",color:"rgba(255,255,255,0.4)",fontSize:16,cursor:"pointer",padding:"4px 6px",borderRadius:6}} title="删除">✕</button><div style={{fontSize:18,color:"rgba(255,255,255,0.4)",transform:expanded?"rotate(180deg)":"",transition:"transform 0.2s"}}>▾</div></div>
-    {expanded&&<div style={{padding:"8px 14px 14px"}}>{day.activities.map((a,i)=><ActivityCard key={a.id} act={a} index={i} dayId={day.id} onClick={()=>onClickAct(a,day.id)} onDrop={(data,toIdx)=>{if(onReorder)onReorder(data,day.id,toIdx);}}/>)}<button onClick={()=>onAdd(day.id)} style={S.addBtn}><span style={{fontSize:18}}>+</span> {isPre?"添加准备项":"添加体验"}</button></div>}
+    <div style={{...S.dayHeader,background:headerBg}} onClick={onToggle}><div style={S.dayNum}>{isPre?"📋":String(day.id).padStart(2,"0")}</div><div style={{flex:1,minWidth:0,overflow:"hidden"}}><div style={{display:"flex",alignItems:"center",gap:"0.3rem",flexWrap:"wrap"}}><span style={{fontSize:"0.9rem",fontWeight:700,color:"#fff",whiteSpace:"nowrap"}}>{isPre?"出发前准备":day.dow+", "+day.date}</span><span style={S.locBadge}>{day.location}</span>{day.weather&&<span style={{fontSize:"0.7rem",color:"rgba(255,255,255,0.45)",whiteSpace:"nowrap"}}>{day.weather}</span>}</div><div style={{fontSize:"0.7rem",color:"rgba(255,255,255,0.5)",marginTop:"0.1rem",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{day.theme} · {day.activities.length} items{dc>0?` · ~${fJ(dc)}`:""}
+    </div></div>{!isPre&&<button onClick={e=>{e.stopPropagation();onOpenDay(day.id);}} style={S.mapBtn} title="日视图+地图">🗺️</button>}<button onClick={e=>{e.stopPropagation();if(confirm(`确定删除${isPre?"准备项":"Day "+day.id+" ("+day.date+")"}？`))onRemove(day.id);}} style={{background:"none",border:"none",color:"rgba(255,255,255,0.4)",fontSize:"1rem",cursor:"pointer",padding:"0.25rem 0.375rem",borderRadius:"0.375rem",flexShrink:0}} title="删除">✕</button><div style={{fontSize:"1.1rem",color:"rgba(255,255,255,0.4)",transform:expanded?"rotate(180deg)":"",transition:"transform 0.2s",flexShrink:0}}>▾</div></div>
+    {expanded&&<div style={{padding:"0.5rem 0.875rem 0.875rem"}}>{day.activities.map((a,i)=><ActivityCard key={a.id} act={a} index={i} dayId={day.id} onClick={()=>onClickAct(a,day.id)} onDrop={(data,toIdx)=>{if(onReorder)onReorder(data,day.id,toIdx);}}/>)}<button onClick={()=>onAdd(day.id)} style={S.addBtn}><span style={{fontSize:"1.125rem"}}>+</span> {isPre?"添加准备项":"添加体验"}</button></div>}
   </div>);
 }
 
 function BudgetSummary({days,rateInfo}){
   const d=useMemo(()=>{const cs={};Object.keys(CATS).forEach(k=>{cs[k]=0;});const pd=[];days.forEach(dy=>{let dt=0;dy.activities.forEach(a=>{const v=pJ(a.cost,a.currency);cs[a.category]=(cs[a.category]||0)+v;dt+=v;const tv=pJ(a.transportCost,a.transportCurrency||a.currency);if(tv>0){cs["transport"]=(cs["transport"]||0)+tv;dt+=tv;}});pd.push({id:dy.id,date:dy.date,total:dt});});return{cs,pd,g:Object.values(cs).reduce((s,v)=>s+v,0)};},[days,rateInfo]);
   const has=d.g>0;const ci=Object.entries(CATS).filter(([k])=>d.cs[k]>0);const mx=Math.max(...Object.values(d.cs),1);
-  return(<div style={S.budgetBox}><h3 style={{fontSize:18,fontWeight:800,margin:"0 0 2px"}}>💰 预算汇总</h3><div style={{fontSize:12,color:"#9ca3af",marginBottom:16}}>自动计算 · ¥1 ≈ MYR {(1/RATES.MYR).toFixed(4)} {rateInfo?.live?<span style={{color:"#2d7a3a",fontWeight:600}}> · 🟢 实时汇率</span>:<span style={{color:"#c27019",fontWeight:600}}> · 🟡 离线汇率</span>}</div>
-    {!has?<div style={{textAlign:"center",padding:"20px",color:"#9ca3af",fontStyle:"italic",background:"#faf8f4",borderRadius:10,fontSize:14}}>点击体验 → 添加费用即可看到预算明细</div>:(<>
-      <div style={{marginBottom:16}}>{ci.map(([k,c])=>(<div key={k} style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}><span style={{fontSize:14,width:20,textAlign:"center"}}>{c.e}</span><span style={{fontSize:12,color:"#6b7280",width:75,flexShrink:0}}>{c.l}</span><div style={{flex:1,height:18,background:"#f5f3f0",borderRadius:5,overflow:"hidden"}}><div style={{height:"100%",width:`${Math.max((d.cs[k]/mx)*100,3)}%`,background:`linear-gradient(90deg, ${c.bg}, ${c.c}22)`,borderRadius:5,transition:"width 0.4s"}}/></div><span style={{fontSize:12,fontWeight:700,color:c.c,width:80,textAlign:"right",flexShrink:0}}>{fJ(d.cs[k])}</span></div>))}</div>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill, minmax(120px, 1fr))",gap:5,marginBottom:14}}>{d.pd.map(p=>(<div key={p.id} style={{padding:"7px 10px",background:"#faf8f4",borderRadius:7}}><div style={{display:"flex",justifyContent:"space-between"}}><span style={{fontSize:11,color:"#6b7280"}}>Day {p.id}</span><span style={{fontSize:10,color:"#b0b0b0"}}>{p.date}</span></div><div style={{fontSize:13,fontWeight:700,color:p.total>0?"#1a1a2e":"#d1d5db",marginTop:1}}>{p.total>0?fJ(p.total):"—"}</div></div>))}</div>
-      <div style={S.grandTotal}><div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline"}}><span style={{fontSize:13,color:"rgba(255,255,255,0.6)"}}>总计 (JPY)</span><span style={{fontSize:22,fontWeight:800,color:"#f5dce8"}}>{fJ(d.g)}</span></div><div style={{display:"flex",justifyContent:"space-between",marginTop:5,paddingTop:7,borderTop:"1px solid rgba(255,255,255,0.1)"}}><span style={{fontSize:12,color:"rgba(255,255,255,0.5)"}}>≈ MYR</span><span style={{fontSize:16,fontWeight:700,color:"rgba(255,255,255,0.7)"}}>{fM(d.g/RATES.MYR)}</span></div></div>
+  return(<div style={S.budgetBox}><h3 style={{fontSize:"1.125rem",fontWeight:800,margin:"0 0 2px"}}>💰 预算汇总</h3><div style={{fontSize:"0.75rem",color:"#9ca3af",marginBottom:16}}>自动计算 · ¥1 ≈ MYR {(1/RATES.MYR).toFixed(4)} {rateInfo?.live?<span style={{color:"#2d7a3a",fontWeight:600}}> · 🟢 实时汇率</span>:<span style={{color:"#c27019",fontWeight:600}}> · 🟡 离线汇率</span>}</div>
+    {!has?<div style={{textAlign:"center",padding:"1.25rem",color:"#9ca3af",fontStyle:"italic",background:"#faf8f4",borderRadius:10,fontSize:"0.875rem"}}>点击体验 → 添加费用即可看到预算明细</div>:(<>
+      <div style={{marginBottom:16}}>{ci.map(([k,c])=>(<div key={k} style={{display:"flex",alignItems:"center",gap:"0.5rem",marginBottom:6}}><span style={{fontSize:"0.875rem",width:20,textAlign:"center"}}>{c.e}</span><span style={{fontSize:"0.75rem",color:"#6b7280",width:75,flexShrink:0}}>{c.l}</span><div style={{flex:1,height:18,background:"#f5f3f0",borderRadius:5,overflow:"hidden"}}><div style={{height:"100%",width:`${Math.max((d.cs[k]/mx)*100,3)}%`,background:`linear-gradient(90deg, ${c.bg}, ${c.c}22)`,borderRadius:5,transition:"width 0.4s"}}/></div><span style={{fontSize:"0.75rem",fontWeight:700,color:c.c,width:80,textAlign:"right",flexShrink:0}}>{fJ(d.cs[k])}</span></div>))}</div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill, minmax(120px, 1fr))",gap:"0.3125rem",marginBottom:14}}>{d.pd.map(p=>(<div key={p.id} style={{padding:"0.4375rem 0.625rem",background:"#faf8f4",borderRadius:7}}><div style={{display:"flex",justifyContent:"space-between"}}><span style={{fontSize:"0.6875rem",color:"#6b7280"}}>Day {p.id}</span><span style={{fontSize:"0.625rem",color:"#b0b0b0"}}>{p.date}</span></div><div style={{fontSize:"0.8125rem",fontWeight:700,color:p.total>0?"#1a1a2e":"#d1d5db",marginTop:1}}>{p.total>0?fJ(p.total):"—"}</div></div>))}</div>
+      <div style={S.grandTotal}><div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline"}}><span style={{fontSize:"0.8125rem",color:"rgba(255,255,255,0.6)"}}>总计 (JPY)</span><span style={{fontSize:"1.375rem",fontWeight:800,color:"#f5dce8"}}>{fJ(d.g)}</span></div><div style={{display:"flex",justifyContent:"space-between",marginTop:5,paddingTop:7,borderTop:"1px solid rgba(255,255,255,0.1)"}}><span style={{fontSize:"0.75rem",color:"rgba(255,255,255,0.5)"}}>≈ MYR</span><span style={{fontSize:"1rem",fontWeight:700,color:"rgba(255,255,255,0.7)"}}>{fM(d.g/RATES.MYR)}</span></div></div>
     </>)}</div>);
 }
 
@@ -1123,17 +1123,17 @@ function renderKBMarkdown(text){
       while(i<lines.length&&lines[i].includes('|')){tableLines.push(lines[i]);i++;}
       const rows=tableLines.filter(l=>!l.match(/^\s*\|[\s\-:]+\|/)).map(l=>l.split('|').filter((_,ci,arr)=>ci>0&&ci<arr.length).map(c=>c.trim()));
       if(rows.length>0){
-        elements.push(React.createElement('table',{key:'t'+i,style:{width:'100%',borderCollapse:'collapse',margin:'8px 0',fontSize:13}},
-          React.createElement('thead',null,React.createElement('tr',null,rows[0].map((c,ci)=>React.createElement('th',{key:ci,style:{padding:'6px 10px',background:'#f0ecf8',fontWeight:700,textAlign:'left',borderBottom:'2px solid #d4cce6',fontSize:12}},c)))),
+        elements.push(React.createElement('table',{key:'t'+i,style:{width:'100%',borderCollapse:'collapse',margin:'8px 0',fontSize:"0.8125rem"}},
+          React.createElement('thead',null,React.createElement('tr',null,rows[0].map((c,ci)=>React.createElement('th',{key:ci,style:{padding:'6px 10px',background:'#f0ecf8',fontWeight:700,textAlign:'left',borderBottom:'2px solid #d4cce6',fontSize:"0.75rem"}},c)))),
           React.createElement('tbody',null,rows.slice(1).map((r,ri)=>React.createElement('tr',{key:ri,style:{background:ri%2?'#faf8f4':'#fff'}},r.map((c,ci)=>React.createElement('td',{key:ci,style:{padding:'6px 10px',borderBottom:'1px solid #e8e4de'}},c)))))
         ));
       }
       continue;
     }
     // Headings
-    if(line.match(/^###\s/))elements.push(React.createElement('h4',{key:i,style:{fontWeight:700,fontSize:15,margin:'12px 0 4px',color:'#1a1a2e'}},line.replace(/^###\s/,'')));
-    else if(line.match(/^##\s/))elements.push(React.createElement('h3',{key:i,style:{fontWeight:800,fontSize:17,margin:'14px 0 6px',color:'#1a1a2e'}},line.replace(/^##\s/,'')));
-    else if(line.match(/^#\s/))elements.push(React.createElement('h2',{key:i,style:{fontWeight:800,fontSize:19,margin:'16px 0 8px',color:'#1a1a2e'}},line.replace(/^#\s/,'')));
+    if(line.match(/^###\s/))elements.push(React.createElement('h4',{key:i,style:{fontWeight:700,fontSize:"0.9375rem",margin:'12px 0 4px',color:'#1a1a2e'}},line.replace(/^###\s/,'')));
+    else if(line.match(/^##\s/))elements.push(React.createElement('h3',{key:i,style:{fontWeight:800,fontSize:"1.0625rem",margin:'14px 0 6px',color:'#1a1a2e'}},line.replace(/^##\s/,'')));
+    else if(line.match(/^#\s/))elements.push(React.createElement('h2',{key:i,style:{fontWeight:800,fontSize:"1.1875rem",margin:'16px 0 8px',color:'#1a1a2e'}},line.replace(/^#\s/,'')));
     // Bullets
     else if(line.match(/^[\-\*]\s/))elements.push(React.createElement('div',{key:i,style:{paddingLeft:16,position:'relative',marginBottom:2}},React.createElement('span',{style:{position:'absolute',left:0}},'•'),line.replace(/^[\-\*]\s/,'').replace(/\*\*(.+?)\*\*/g,'$1')));
     // Numbered
@@ -1153,8 +1153,8 @@ function renderKBMarkdown(text){
 function renderMd(text,onActivityClick){
   if(!text)return null;
   return text.split('\n').map((line,i)=>{
-    if(line.match(/^###\s/))return React.createElement('div',{key:i,style:{fontWeight:700,fontSize:15,marginTop:8,marginBottom:4}},parseInline(line.replace(/^###\s/,''),onActivityClick));
-    if(line.match(/^##\s/))return React.createElement('div',{key:i,style:{fontWeight:800,fontSize:16,marginTop:10,marginBottom:4}},parseInline(line.replace(/^##\s/,''),onActivityClick));
+    if(line.match(/^###\s/))return React.createElement('div',{key:i,style:{fontWeight:700,fontSize:"0.9375rem",marginTop:8,marginBottom:4}},parseInline(line.replace(/^###\s/,''),onActivityClick));
+    if(line.match(/^##\s/))return React.createElement('div',{key:i,style:{fontWeight:800,fontSize:"1rem",marginTop:10,marginBottom:4}},parseInline(line.replace(/^##\s/,''),onActivityClick));
     if(line.match(/^[\-\*]\s/))return React.createElement('div',{key:i,style:{paddingLeft:12,position:'relative'}},React.createElement('span',{style:{position:'absolute',left:0}},'•'),parseInline(line.replace(/^[\-\*]\s/,''),onActivityClick));
     const numMatch=line.match(/^(\d+)[\.\)]\s/);
     if(numMatch)return React.createElement('div',{key:i,style:{paddingLeft:16,position:'relative'}},React.createElement('span',{style:{position:'absolute',left:0,fontWeight:600}},numMatch[1]+'.'),parseInline(line.replace(/^\d+[\.\)]\s/,''),onActivityClick));
@@ -1169,7 +1169,7 @@ function parseInline(text,onActivityClick){
   return parts.map((p,i)=>{
     if(p.startsWith('[[')&&p.endsWith(']]')){
       const id=p.slice(2,-2);
-      return React.createElement('button',{key:i,onClick:()=>onActivityClick&&onActivityClick(id),style:{display:'inline',padding:'1px 8px',borderRadius:6,background:'#f5dce8',color:'#c46b98',fontSize:12,fontWeight:700,border:'1px solid #e8a0bf',cursor:'pointer',fontFamily:'inherit',margin:'0 2px'}},'\u{1F4CD} '+id);
+      return React.createElement('button',{key:i,onClick:()=>onActivityClick&&onActivityClick(id),style:{display:'inline',padding:'1px 8px',borderRadius:6,background:'#f5dce8',color:'#c46b98',fontSize:"0.75rem",fontWeight:700,border:'1px solid #e8a0bf',cursor:'pointer',fontFamily:'inherit',margin:'0 2px'}},'\u{1F4CD} '+id);
     }
     if(p.startsWith('**')&&p.endsWith('**'))return React.createElement('strong',{key:i},p.slice(2,-2));
     return p;
@@ -1179,25 +1179,25 @@ function parseInline(text,onActivityClick){
 function PreviewCard({fc,days,onApply,onDismiss}){
   const{name:fnName,args}=fc.functionCall;
   const isApplied=fc.applied;const isDismissed=fc.dismissed;
-  const btnRow=!isApplied&&!isDismissed&&(<div style={{display:'flex',gap:8,marginTop:10}}><button onClick={onApply} style={{flex:1,padding:'8px 14px',borderRadius:10,border:'none',background:'linear-gradient(135deg,#2d7a3a,#4ade80)',color:'#fff',fontWeight:700,fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>✅ 应用</button><button onClick={onDismiss} style={{flex:1,padding:'8px 14px',borderRadius:10,border:'1px solid #e8e4de',background:'#fff',color:'#6b7280',fontWeight:600,fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>❌ 取消</button></div>);
-  const status=isApplied?<div style={{color:'#2d7a3a',fontWeight:700,fontSize:12,marginTop:6}}>✅ 已应用到行程</div>:isDismissed?<div style={{color:'#9ca3af',fontWeight:700,fontSize:12,marginTop:6}}>已取消</div>:null;
+  const btnRow=!isApplied&&!isDismissed&&(<div style={{display:'flex',gap:"0.5rem",marginTop:10}}><button onClick={onApply} style={{flex:1,padding:'8px 14px',borderRadius:10,border:'none',background:'linear-gradient(135deg,#2d7a3a,#4ade80)',color:'#fff',fontWeight:700,fontSize:"0.8125rem",cursor:'pointer',fontFamily:'inherit'}}>✅ 应用</button><button onClick={onDismiss} style={{flex:1,padding:'8px 14px',borderRadius:10,border:'1px solid #e8e4de',background:'#fff',color:'#6b7280',fontWeight:600,fontSize:"0.8125rem",cursor:'pointer',fontFamily:'inherit'}}>❌ 取消</button></div>);
+  const status=isApplied?<div style={{color:'#2d7a3a',fontWeight:700,fontSize:"0.75rem",marginTop:6}}>✅ 已应用到行程</div>:isDismissed?<div style={{color:'#9ca3af',fontWeight:700,fontSize:"0.75rem",marginTop:6}}>已取消</div>:null;
 
   if(fnName==='add_activity'){
     const act=args.activity||{};const c=gc(act.category||'sightseeing');
     const targetDay=days.find(d=>d.id===args.dayId);
     return(<div style={{border:'2px solid #2d7a3a',borderRadius:12,padding:12,margin:'8px 0',background:'#f0faf0'}}>
-      <div style={{fontSize:11,fontWeight:700,color:'#2d7a3a',marginBottom:8}}>➕ 添加到 Day {args.dayId}{targetDay?` (${targetDay.date})`:''}</div>
+      <div style={{fontSize:"0.6875rem",fontWeight:700,color:'#2d7a3a',marginBottom:8}}>➕ 添加到 Day {args.dayId}{targetDay?` (${targetDay.date})`:''}</div>
       <div style={{background:'#fff',borderRadius:10,padding:10,border:'1px solid #e8e4de'}}>
-        <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
-          <div style={{width:28,height:28,borderRadius:'50%',background:c.bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:14}}>{c.e}</div>
+        <div style={{display:'flex',alignItems:'center',gap:"0.5rem",marginBottom:4}}>
+          <div style={{width:28,height:28,borderRadius:'50%',background:c.bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:"0.875rem"}}>{c.e}</div>
           <div style={{flex:1}}>
-            <div style={{fontWeight:700,fontSize:14,color:'#1a1a2e'}}>{act.name}</div>
-            <div style={{fontSize:11,color:'#9ca3af'}}>{act.time&&<span>{act.time}</span>}{act.cost&&<span style={{color:'#c46b98',fontWeight:700,marginLeft:8}}>{act.currency||'¥'}{act.cost}</span>}</div>
+            <div style={{fontWeight:700,fontSize:"0.875rem",color:'#1a1a2e'}}>{act.name}</div>
+            <div style={{fontSize:"0.6875rem",color:'#9ca3af'}}>{act.time&&<span>{act.time}</span>}{act.cost&&<span style={{color:'#c46b98',fontWeight:700,marginLeft:8}}>{act.currency||'¥'}{act.cost}</span>}</div>
           </div>
         </div>
-        {act.addr&&<div style={{fontSize:12,color:'#6b7280',marginTop:2}}>📍 {act.addr}</div>}
-        {act.from&&act.to&&<div style={{fontSize:12,color:'#6b7280',marginTop:2}}>🚃 {act.from} → {act.to}</div>}
-        {act.notes&&<div style={{fontSize:11,color:'#9ca3af',marginTop:4,lineHeight:1.4}}>{act.notes.split('\n').slice(0,3).join('\n')}</div>}
+        {act.addr&&<div style={{fontSize:"0.75rem",color:'#6b7280',marginTop:2}}>📍 {act.addr}</div>}
+        {act.from&&act.to&&<div style={{fontSize:"0.75rem",color:'#6b7280',marginTop:2}}>🚃 {act.from} → {act.to}</div>}
+        {act.notes&&<div style={{fontSize:"0.6875rem",color:'#9ca3af',marginTop:4,lineHeight:1.4}}>{act.notes.split('\n').slice(0,3).join('\n')}</div>}
       </div>
       {btnRow}{status}
     </div>);
@@ -1219,16 +1219,16 @@ function PreviewCard({fc,days,onApply,onDismiss}){
     // Store checked fields on fc for apply handler
     fc._checkedFields=checkedFields;
     return(<div style={{border:'2px solid #1a73a7',borderRadius:12,padding:12,margin:'8px 0',background:'#e8f4fd'}}>
-      <div style={{fontSize:11,fontWeight:700,color:'#1a73a7',marginBottom:8}}>✏️ 编辑: {orig?orig.name:args.activityId}</div>
-      {changedEntries.length===0?<div style={{fontSize:12,color:'#9ca3af',padding:8}}>没有检测到实际变更</div>:
+      <div style={{fontSize:"0.6875rem",fontWeight:700,color:'#1a73a7',marginBottom:8}}>✏️ 编辑: {orig?orig.name:args.activityId}</div>
+      {changedEntries.length===0?<div style={{fontSize:"0.75rem",color:'#9ca3af',padding:8}}>没有检测到实际变更</div>:
       <div style={{background:'#fff',borderRadius:10,padding:10,border:'1px solid #e8e4de'}}>
-        <div style={{fontSize:10,color:'#9ca3af',marginBottom:6}}>☑️ 勾选要应用的字段：</div>
-        {changedEntries.map(([k,v])=>(<div key={k} style={{fontSize:13,marginBottom:6,display:'flex',alignItems:'flex-start',gap:6,opacity:checkedFields.includes(k)?1:0.4}}>
+        <div style={{fontSize:"0.625rem",color:'#9ca3af',marginBottom:6}}>☑️ 勾选要应用的字段：</div>
+        {changedEntries.map(([k,v])=>(<div key={k} style={{fontSize:"0.8125rem",marginBottom:6,display:'flex',alignItems:'flex-start',gap:"0.375rem",opacity:checkedFields.includes(k)?1:0.4}}>
           <input type="checkbox" checked={checkedFields.includes(k)} onChange={()=>toggleField(k)} style={{marginTop:3,cursor:'pointer',accentColor:'#1a73a7'}}/>
           <div style={{flex:1}}>
-            <span style={{fontWeight:700,color:'#6b7280',fontSize:11,textTransform:'uppercase'}}>{k}</span>
-            {orig&&orig[k]!=null&&<div style={{fontSize:11,color:'#dc2626',textDecoration:'line-through',lineHeight:1.3,maxHeight:40,overflow:'hidden'}}>{String(orig[k]).slice(0,100)}</div>}
-            <div style={{fontSize:12,color:'#2d7a3a',fontWeight:600,lineHeight:1.3,maxHeight:60,overflow:'hidden'}}>{String(v).slice(0,120)}</div>
+            <span style={{fontWeight:700,color:'#6b7280',fontSize:"0.6875rem",textTransform:'uppercase'}}>{k}</span>
+            {orig&&orig[k]!=null&&<div style={{fontSize:"0.6875rem",color:'#dc2626',textDecoration:'line-through',lineHeight:1.3,maxHeight:40,overflow:'hidden'}}>{String(orig[k]).slice(0,100)}</div>}
+            <div style={{fontSize:"0.75rem",color:'#2d7a3a',fontWeight:600,lineHeight:1.3,maxHeight:60,overflow:'hidden'}}>{String(v).slice(0,120)}</div>
           </div>
         </div>))}
       </div>}
@@ -1240,11 +1240,11 @@ function PreviewCard({fc,days,onApply,onDismiss}){
     const act=days.flatMap(d=>d.activities).find(a=>a.id===args.activityId);
     const c=act?gc(act.category):gc('sightseeing');
     return(<div style={{border:'2px solid #dc2626',borderRadius:12,padding:12,margin:'8px 0',background:'#fef2f2'}}>
-      <div style={{fontSize:11,fontWeight:700,color:'#dc2626',marginBottom:8}}>🗑️ 删除活动</div>
+      <div style={{fontSize:"0.6875rem",fontWeight:700,color:'#dc2626',marginBottom:8}}>🗑️ 删除活动</div>
       <div style={{background:'#fff',borderRadius:10,padding:10,border:'1px solid #fecaca'}}>
-        <div style={{display:'flex',alignItems:'center',gap:8}}>
-          <div style={{width:28,height:28,borderRadius:'50%',background:c.bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:14}}>{c.e}</div>
-          <div style={{fontWeight:700,fontSize:14,color:'#1a1a2e'}}>{act?act.name:args.activityId}</div>
+        <div style={{display:'flex',alignItems:'center',gap:"0.5rem"}}>
+          <div style={{width:28,height:28,borderRadius:'50%',background:c.bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:"0.875rem"}}>{c.e}</div>
+          <div style={{fontWeight:700,fontSize:"0.875rem",color:'#1a1a2e'}}>{act?act.name:args.activityId}</div>
         </div>
       </div>
       {btnRow}{status}
@@ -1253,18 +1253,18 @@ function PreviewCard({fc,days,onApply,onDismiss}){
 
   if(fnName==='reorder_activity'){
     return(<div style={{border:'2px solid #7c3aed',borderRadius:12,padding:12,margin:'8px 0',background:'#ede9fe'}}>
-      <div style={{fontSize:11,fontWeight:700,color:'#7c3aed',marginBottom:4}}>↕️ 移动活动 {args.activityId} 到位置 {args.newIndex}</div>
+      <div style={{fontSize:"0.6875rem",fontWeight:700,color:'#7c3aed',marginBottom:4}}>↕️ 移动活动 {args.activityId} 到位置 {args.newIndex}</div>
       {btnRow}{status}
     </div>);
   }
 
   if(fnName==='save_to_kb'){
     return(<div style={{border:'2px solid #6b48a8',borderRadius:12,padding:12,margin:'8px 0',background:'#f0ecf8'}}>
-      <div style={{fontSize:11,fontWeight:700,color:'#6b48a8',marginBottom:8}}>📚 保存到知识库</div>
+      <div style={{fontSize:"0.6875rem",fontWeight:700,color:'#6b48a8',marginBottom:8}}>📚 保存到知识库</div>
       <div style={{background:'#fff',borderRadius:10,padding:10,border:'1px solid #e8e4de'}}>
-        <div style={{fontWeight:700,fontSize:15,color:'#1a1a2e',marginBottom:4}}>{args.title}</div>
-        <div style={{fontSize:12,color:'#6b7280',lineHeight:1.6,maxHeight:120,overflow:'auto',whiteSpace:'pre-wrap'}}>{(args.content||'').slice(0,300)}{(args.content||'').length>300?'...':''}</div>
-        {args.tags&&<div style={{marginTop:6}}>{args.tags.map(t=>React.createElement('span',{key:t,style:{display:'inline-block',padding:'2px 10px',borderRadius:100,background:'#f0ecf8',color:'#6b48a8',fontSize:11,fontWeight:600,marginRight:4}},t))}</div>}
+        <div style={{fontWeight:700,fontSize:"0.9375rem",color:'#1a1a2e',marginBottom:4}}>{args.title}</div>
+        <div style={{fontSize:"0.75rem",color:'#6b7280',lineHeight:1.6,maxHeight:120,overflow:'auto',whiteSpace:'pre-wrap'}}>{(args.content||'').slice(0,300)}{(args.content||'').length>300?'...':''}</div>
+        {args.tags&&<div style={{marginTop:6}}>{args.tags.map(t=>React.createElement('span',{key:t,style:{display:'inline-block',padding:'2px 10px',borderRadius:100,background:'#f0ecf8',color:'#6b48a8',fontSize:"0.6875rem",fontWeight:600,marginRight:4}},t))}</div>}
       </div>
       {btnRow}{status}
     </div>);
@@ -1272,20 +1272,20 @@ function PreviewCard({fc,days,onApply,onDismiss}){
 
   if(fnName==='delete_kb'){
     return(<div style={{border:'2px solid #dc2626',borderRadius:12,padding:12,margin:'8px 0',background:'#fef2f2'}}>
-      <div style={{fontSize:11,fontWeight:700,color:'#dc2626',marginBottom:4}}>🗑️ 删除知识库文章: {args.articleId}</div>
+      <div style={{fontSize:"0.6875rem",fontWeight:700,color:'#dc2626',marginBottom:4}}>🗑️ 删除知识库文章: {args.articleId}</div>
       {btnRow}{status}
     </div>);
   }
 
   if(fnName==='add_day'){
     return(<div style={{border:'2px solid #2d7a3a',borderRadius:12,padding:12,margin:'8px 0',background:'#f0faf0'}}>
-      <div style={{fontSize:11,fontWeight:700,color:'#2d7a3a',marginBottom:8}}>📅 添加新日期</div>
+      <div style={{fontSize:"0.6875rem",fontWeight:700,color:'#2d7a3a',marginBottom:8}}>📅 添加新日期</div>
       <div style={{background:'#fff',borderRadius:10,padding:10,border:'1px solid #e8e4de'}}>
-        <div style={{fontWeight:700,fontSize:15,color:'#1a1a2e'}}>Day {args.id}: {args.dow}, {args.date}</div>
-        <div style={{fontSize:12,color:'#6b7280',marginTop:2}}>📍 {args.location}</div>
-        <div style={{fontSize:12,color:'#9ca3af',marginTop:2}}>{args.theme}</div>
-        {args.weather&&<div style={{fontSize:11,color:'#9ca3af',marginTop:2}}>{args.weather}</div>}
-        {args.activities&&args.activities.length>0&&<div style={{fontSize:11,color:'#6b7280',marginTop:4}}>{args.activities.length} 个活动</div>}
+        <div style={{fontWeight:700,fontSize:"0.9375rem",color:'#1a1a2e'}}>Day {args.id}: {args.dow}, {args.date}</div>
+        <div style={{fontSize:"0.75rem",color:'#6b7280',marginTop:2}}>📍 {args.location}</div>
+        <div style={{fontSize:"0.75rem",color:'#9ca3af',marginTop:2}}>{args.theme}</div>
+        {args.weather&&<div style={{fontSize:"0.6875rem",color:'#9ca3af',marginTop:2}}>{args.weather}</div>}
+        {args.activities&&args.activities.length>0&&<div style={{fontSize:"0.6875rem",color:'#6b7280',marginTop:4}}>{args.activities.length} 个活动</div>}
       </div>
       {btnRow}{status}
     </div>);
@@ -1294,9 +1294,9 @@ function PreviewCard({fc,days,onApply,onDismiss}){
   if(fnName==='edit_day'){
     const day=days.find(d=>d.id===args.dayId);
     return(<div style={{border:'2px solid #1a73a7',borderRadius:12,padding:12,margin:'8px 0',background:'#e8f4fd'}}>
-      <div style={{fontSize:11,fontWeight:700,color:'#1a73a7',marginBottom:8}}>✏️ 编辑 Day {args.dayId}{day?` (${day.date})`:''}</div>
+      <div style={{fontSize:"0.6875rem",fontWeight:700,color:'#1a73a7',marginBottom:8}}>✏️ 编辑 Day {args.dayId}{day?` (${day.date})`:''}</div>
       <div style={{background:'#fff',borderRadius:10,padding:10,border:'1px solid #e8e4de'}}>
-        {Object.entries(args.updates||{}).map(([k,v])=>(<div key={k} style={{fontSize:13,marginBottom:4}}>
+        {Object.entries(args.updates||{}).map(([k,v])=>(<div key={k} style={{fontSize:"0.8125rem",marginBottom:4}}>
           <span style={{fontWeight:700,color:'#6b7280'}}>{k}: </span>
           {day&&day[k]&&<span style={{textDecoration:'line-through',color:'#dc2626',marginRight:6}}>{String(day[k]).slice(0,50)}</span>}
           <span style={{color:'#2d7a3a',fontWeight:600}}>{String(v).slice(0,80)}</span>
@@ -1309,10 +1309,10 @@ function PreviewCard({fc,days,onApply,onDismiss}){
   if(fnName==='delete_day'){
     const day=days.find(d=>d.id===args.dayId);
     return(<div style={{border:'2px solid #dc2626',borderRadius:12,padding:12,margin:'8px 0',background:'#fef2f2'}}>
-      <div style={{fontSize:11,fontWeight:700,color:'#dc2626',marginBottom:8}}>🗑️ 删除整天</div>
+      <div style={{fontSize:"0.6875rem",fontWeight:700,color:'#dc2626',marginBottom:8}}>🗑️ 删除整天</div>
       <div style={{background:'#fff',borderRadius:10,padding:10,border:'1px solid #fecaca'}}>
-        <div style={{fontWeight:700,fontSize:14}}>Day {args.dayId}{day?`: ${day.date} · ${day.location}`:''}</div>
-        {day&&<div style={{fontSize:12,color:'#dc2626',marginTop:2}}>⚠️ 将删除 {day.activities.length} 个活动</div>}
+        <div style={{fontWeight:700,fontSize:"0.875rem"}}>Day {args.dayId}{day?`: ${day.date} · ${day.location}`:''}</div>
+        {day&&<div style={{fontSize:"0.75rem",color:'#dc2626',marginTop:2}}>⚠️ 将删除 {day.activities.length} 个活动</div>}
       </div>
       {btnRow}{status}
     </div>);
@@ -1322,10 +1322,10 @@ function PreviewCard({fc,days,onApply,onDismiss}){
     const act=days.flatMap(d=>d.activities).find(a=>a.id===args.activityId);
     const targetDay=days.find(d=>d.id===args.targetDayId);
     return(<div style={{border:'2px solid #7c3aed',borderRadius:12,padding:12,margin:'8px 0',background:'#ede9fe'}}>
-      <div style={{fontSize:11,fontWeight:700,color:'#7c3aed',marginBottom:8}}>↗️ 移动活动到其他日期</div>
+      <div style={{fontSize:"0.6875rem",fontWeight:700,color:'#7c3aed',marginBottom:8}}>↗️ 移动活动到其他日期</div>
       <div style={{background:'#fff',borderRadius:10,padding:10,border:'1px solid #e8e4de'}}>
-        <div style={{fontWeight:700,fontSize:14}}>{act?act.name:args.activityId}</div>
-        <div style={{fontSize:12,color:'#7c3aed',marginTop:4}}>→ Day {args.targetDayId}{targetDay?` (${targetDay.date})`:''}{args.targetIndex!=null?` · 位置 ${args.targetIndex}`:''}</div>
+        <div style={{fontWeight:700,fontSize:"0.875rem"}}>{act?act.name:args.activityId}</div>
+        <div style={{fontSize:"0.75rem",color:'#7c3aed',marginTop:4}}>→ Day {args.targetDayId}{targetDay?` (${targetDay.date})`:''}{args.targetIndex!=null?` · 位置 ${args.targetIndex}`:''}</div>
       </div>
       {btnRow}{status}
     </div>);
@@ -1333,10 +1333,10 @@ function PreviewCard({fc,days,onApply,onDismiss}){
 
   if(fnName==='edit_origin'){
     return(<div style={{border:'2px solid #c27019',borderRadius:12,padding:12,margin:'8px 0',background:'#fef3e2'}}>
-      <div style={{fontSize:11,fontWeight:700,color:'#c27019',marginBottom:8}}>🏠 修改出发地</div>
+      <div style={{fontSize:"0.6875rem",fontWeight:700,color:'#c27019',marginBottom:8}}>🏠 修改出发地</div>
       <div style={{background:'#fff',borderRadius:10,padding:10,border:'1px solid #e8e4de'}}>
-        <div style={{fontWeight:700,fontSize:14}}>{args.name}</div>
-        {args.la&&args.lo&&<div style={{fontSize:11,color:'#9ca3af',marginTop:2}}>📍 {args.la}, {args.lo}</div>}
+        <div style={{fontWeight:700,fontSize:"0.875rem"}}>{args.name}</div>
+        {args.la&&args.lo&&<div style={{fontSize:"0.6875rem",color:'#9ca3af',marginTop:2}}>📍 {args.la}, {args.lo}</div>}
       </div>
       {btnRow}{status}
     </div>);
@@ -1346,21 +1346,21 @@ function PreviewCard({fc,days,onApply,onDismiss}){
     const targetDay=days.find(d=>d.id===args.dayId);
     const acts=args.activities||[];
     return(<div style={{border:'2px solid #2d7a3a',borderRadius:12,padding:12,margin:'8px 0',background:'#f0faf0'}}>
-      <div style={{fontSize:11,fontWeight:700,color:'#2d7a3a',marginBottom:8}}>📋 批量添加 {acts.length} 个活动到 Day {args.dayId}{targetDay?` (${targetDay.date})`:''}</div>
+      <div style={{fontSize:"0.6875rem",fontWeight:700,color:'#2d7a3a',marginBottom:8}}>📋 批量添加 {acts.length} 个活动到 Day {args.dayId}{targetDay?` (${targetDay.date})`:''}</div>
       <div style={{maxHeight:200,overflow:'auto'}}>{acts.map((a,i)=>{const c=gc(a.category||'sightseeing');return(<div key={i} style={{background:'#fff',borderRadius:8,padding:8,border:'1px solid #e8e4de',marginBottom:4}}>
-        <div style={{display:'flex',alignItems:'center',gap:6}}>
-          <span style={{fontSize:14}}>{c.e}</span>
-          <span style={{fontWeight:700,fontSize:13,flex:1}}>{a.name}</span>
-          {a.cost&&<span style={{fontSize:12,color:'#c46b98',fontWeight:700}}>{a.currency||'¥'}{a.cost}</span>}
+        <div style={{display:'flex',alignItems:'center',gap:"0.375rem"}}>
+          <span style={{fontSize:"0.875rem"}}>{c.e}</span>
+          <span style={{fontWeight:700,fontSize:"0.8125rem",flex:1}}>{a.name}</span>
+          {a.cost&&<span style={{fontSize:"0.75rem",color:'#c46b98',fontWeight:700}}>{a.currency||'¥'}{a.cost}</span>}
         </div>
-        {a.addr&&<div style={{fontSize:11,color:'#6b7280',marginTop:2}}>📍 {a.addr}</div>}
+        {a.addr&&<div style={{fontSize:"0.6875rem",color:'#6b7280',marginTop:2}}>📍 {a.addr}</div>}
       </div>);})}</div>
       {btnRow}{status}
     </div>);
   }
 
   return(<div style={{border:'1px solid #e8e4de',borderRadius:12,padding:12,margin:'8px 0',background:'#faf8f4'}}>
-    <div style={{fontSize:12,color:'#6b7280'}}>未知操作: {fnName}</div>
+    <div style={{fontSize:"0.75rem",color:'#6b7280'}}>未知操作: {fnName}</div>
     {btnRow}{status}
   </div>);
 }
@@ -1413,40 +1413,40 @@ function AIChatPanel({knowledgeBase,setKnowledgeBase,days,origin,setDays,setOrig
   return(<div style={{display:'flex',flexDirection:'column',height:'100%',background:'#faf8f4'}}>
     {/* Header */}
     <div style={{padding:'16px 20px',background:'linear-gradient(135deg,#1a1a2e,#2d2d4a)',display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}}>
-      <span style={{fontSize:16,fontWeight:700,color:'#fff'}}>🤖 AI 旅行助手</span>
-      <button onClick={onCollapse} style={{background:'rgba(255,255,255,0.1)',border:'none',borderRadius:8,padding:'6px 12px',cursor:'pointer',color:'rgba(255,255,255,0.7)',fontSize:12,fontFamily:'inherit'}}>收起 ▶</button>
+      <span style={{fontSize:"1rem",fontWeight:700,color:'#fff'}}>🤖 AI 旅行助手</span>
+      <button onClick={onCollapse} style={{background:'rgba(255,255,255,0.1)',border:'none',borderRadius:8,padding:'6px 12px',cursor:'pointer',color:'rgba(255,255,255,0.7)',fontSize:"0.75rem",fontFamily:'inherit'}}>收起 ▶</button>
     </div>
     {/* Welcome (shown when no messages) */}
     {chatMsgs.length===0&&<div style={{padding:'24px 20px',flexShrink:0}}>
-      <div style={{fontSize:18,fontWeight:700,color:'#1a1a2e',marginBottom:8}}>你好！我是你的旅行助手 ✨</div>
-      <div style={{fontSize:13,color:'#6b7280',lineHeight:1.6,marginBottom:16}}>我可以帮你添加/编辑活动、规划交通、搜索餐厅和景点、管理知识库。</div>
-      <div style={{display:'flex',flexDirection:'column',gap:6}}>
-        {['帮我规划Day 6','Day 1的交通费总共多少？','推荐涩谷附近的拉面店','日本免税规则是什么？'].map(q=>(<button key={q} onClick={()=>{setChatInput(q);}} style={{textAlign:'left',padding:'10px 14px',borderRadius:10,border:'1px solid #e8e4de',background:'#fff',cursor:'pointer',fontSize:13,color:'#4a4a5a',fontFamily:'inherit',transition:'all 0.15s'}} onMouseEnter={e=>{e.currentTarget.style.background='#f0ecf8';e.currentTarget.style.borderColor='#c46b98';}} onMouseLeave={e=>{e.currentTarget.style.background='#fff';e.currentTarget.style.borderColor='#e8e4de';}}>{q}</button>))}
+      <div style={{fontSize:"1.125rem",fontWeight:700,color:'#1a1a2e',marginBottom:8}}>你好！我是你的旅行助手 ✨</div>
+      <div style={{fontSize:"0.8125rem",color:'#6b7280',lineHeight:1.6,marginBottom:16}}>我可以帮你添加/编辑活动、规划交通、搜索餐厅和景点、管理知识库。</div>
+      <div style={{display:'flex',flexDirection:'column',gap:"0.375rem"}}>
+        {['帮我规划Day 6','Day 1的交通费总共多少？','推荐涩谷附近的拉面店','日本免税规则是什么？'].map(q=>(<button key={q} onClick={()=>{setChatInput(q);}} style={{textAlign:'left',padding:'10px 14px',borderRadius:10,border:'1px solid #e8e4de',background:'#fff',cursor:'pointer',fontSize:"0.8125rem",color:'#4a4a5a',fontFamily:'inherit',transition:'all 0.15s'}} onMouseEnter={e=>{e.currentTarget.style.background='#f0ecf8';e.currentTarget.style.borderColor='#c46b98';}} onMouseLeave={e=>{e.currentTarget.style.background='#fff';e.currentTarget.style.borderColor='#e8e4de';}}>{q}</button>))}
       </div>
     </div>}
     {/* Chat messages */}
     <div style={{flex:1,overflow:'auto',padding:'12px 16px'}}>
       {chatMsgs.map((m,i)=>(
         <div key={i} style={{display:'flex',justifyContent:m.role==='user'?'flex-end':'flex-start',marginBottom:10}}>
-          <div style={{maxWidth:'88%',padding:'10px 14px',borderRadius:m.role==='user'?'14px 14px 4px 14px':'14px 14px 14px 4px',background:m.role==='user'?'linear-gradient(135deg,#c46b98,#e8a0bf)':'#fff',color:m.role==='user'?'#fff':'#1a1a2e',fontSize:13,lineHeight:1.6,border:m.role==='user'?'none':'1px solid #e8e4de',whiteSpace:m.role==='user'?'pre-wrap':'normal',boxShadow:m.role==='user'?'none':'0 1px 3px rgba(0,0,0,0.04)'}}>
+          <div style={{maxWidth:'88%',padding:'10px 14px',borderRadius:m.role==='user'?'14px 14px 4px 14px':'14px 14px 14px 4px',background:m.role==='user'?'linear-gradient(135deg,#c46b98,#e8a0bf)':'#fff',color:m.role==='user'?'#fff':'#1a1a2e',fontSize:"0.8125rem",lineHeight:1.6,border:m.role==='user'?'none':'1px solid #e8e4de',whiteSpace:m.role==='user'?'pre-wrap':'normal',boxShadow:m.role==='user'?'none':'0 1px 3px rgba(0,0,0,0.04)'}}>
             {m.role==='ai'?(<div>
               {m.text&&renderMd(m.text,(id)=>{onScrollToActivity&&onScrollToActivity(id);})}
               {m.functionCalls&&m.functionCalls.map((fc,ci)=>(<PreviewCard key={ci} fc={fc} days={days} onApply={()=>handleApplyPreview(i,ci)} onDismiss={()=>handleDismissPreview(i,ci)}/>))}
-              {m.groundingSources&&m.groundingSources.length>0&&(<div style={{fontSize:10,color:'#9ca3af',marginTop:6,paddingTop:4,borderTop:'1px solid #f0ede8'}}>🔍 {m.groundingSources.slice(0,2).map((s,si)=>(<a key={si} href={s.web?.uri} target="_blank" rel="noopener" style={{color:'#1a73a7',marginRight:6,textDecoration:'none',fontSize:10}}>{s.web?.title||'Link'}</a>))}</div>)}
+              {m.groundingSources&&m.groundingSources.length>0&&(<div style={{fontSize:"0.625rem",color:'#9ca3af',marginTop:6,paddingTop:4,borderTop:'1px solid #f0ede8'}}>🔍 {m.groundingSources.slice(0,2).map((s,si)=>(<a key={si} href={s.web?.uri} target="_blank" rel="noopener" style={{color:'#1a73a7',marginRight:6,textDecoration:'none',fontSize:"0.625rem"}}>{s.web?.title||'Link'}</a>))}</div>)}
             </div>):m.text}
-            <div style={{fontSize:9,marginTop:4,opacity:0.4,textAlign:'right'}}>{m.time}</div>
+            <div style={{fontSize:"0.5625rem",marginTop:4,opacity:0.4,textAlign:'right'}}>{m.time}</div>
           </div>
         </div>
       ))}
       {loading&&<div style={{display:'flex',justifyContent:'flex-start',marginBottom:8}}>
-        <div style={{padding:'10px 14px',borderRadius:'14px 14px 14px 4px',background:'#fff',border:'1px solid #e8e4de',fontSize:13,color:'#9ca3af'}}>思考中...</div>
+        <div style={{padding:'10px 14px',borderRadius:'14px 14px 14px 4px',background:'#fff',border:'1px solid #e8e4de',fontSize:"0.8125rem",color:'#9ca3af'}}>思考中...</div>
       </div>}
       <div ref={chatEndRef}/>
     </div>
     {/* Input bar */}
-    <div style={{padding:'12px 16px',borderTop:'1px solid #e8e4de',background:'#fff',display:'flex',gap:8,flexShrink:0}}>
-      <input value={chatInput} onChange={e=>setChatInput(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();handleSendChat();}}} placeholder="问我关于旅行的问题..." style={{...S.inp,flex:1,fontSize:14,padding:'10px 14px',borderRadius:12}} disabled={loading}/>
-      <button onClick={handleSendChat} disabled={loading||!chatInput.trim()} style={{...S.savBtn,padding:'10px 16px',fontSize:14,borderRadius:12,opacity:loading||!chatInput.trim()?0.5:1}}>发送</button>
+    <div style={{padding:'12px 16px',borderTop:'1px solid #e8e4de',background:'#fff',display:'flex',gap:"0.5rem",flexShrink:0}}>
+      <input value={chatInput} onChange={e=>setChatInput(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();handleSendChat();}}} placeholder="问我关于旅行的问题..." style={{...S.inp,flex:1,fontSize:"0.875rem",padding:'10px 14px',borderRadius:12}} disabled={loading}/>
+      <button onClick={handleSendChat} disabled={loading||!chatInput.trim()} style={{...S.savBtn,padding:'10px 16px',fontSize:"0.875rem",borderRadius:12,opacity:loading||!chatInput.trim()?0.5:1}}>发送</button>
     </div>
   </div>);
 }
@@ -1474,7 +1474,7 @@ function KnowledgeBaseModal({knowledgeBase,setKnowledgeBase,onClose}){
   };
   const handleDeleteArticle=(id)=>{if(!confirm('确定删除？'))return;setKnowledgeBase(prev=>prev.filter(a=>a.id!==id));setEditing(null);setViewing(null);};
 
-  const tagPill={display:'inline-block',padding:'2px 10px',borderRadius:100,background:'#f0ecf8',color:'#6b48a8',fontSize:11,fontWeight:600,marginRight:4,marginBottom:4};
+  const tagPill={display:'inline-block',padding:'2px 10px',borderRadius:100,background:'#f0ecf8',color:'#6b48a8',fontSize:"0.6875rem",fontWeight:600,marginRight:4,marginBottom:4};
   const viewArticle=viewing?knowledgeBase.find(a=>a.id===viewing):null;
 
   return(<div style={S.overlay} onClick={onClose}>
@@ -1482,8 +1482,8 @@ function KnowledgeBaseModal({knowledgeBase,setKnowledgeBase,onClose}){
       {/* Header */}
       <div style={{padding:'20px 24px 0',flexShrink:0}}>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>
-          <h2 style={{fontSize:22,fontWeight:800,color:'#1a1a2e'}}>📚 知识库</h2>
-          <button onClick={onClose} style={{background:'none',border:'none',fontSize:20,cursor:'pointer',color:'#9ca3af',padding:4}}>✕</button>
+          <h2 style={{fontSize:"1.375rem",fontWeight:800,color:'#1a1a2e'}}>📚 知识库</h2>
+          <button onClick={onClose} style={{background:'none',border:'none',fontSize:"1.25rem",cursor:'pointer',color:'#9ca3af',padding:4}}>✕</button>
         </div>
         {/* KB is articles-only now — AI chat is the floating bubble */}
       </div>
@@ -1491,18 +1491,18 @@ function KnowledgeBaseModal({knowledgeBase,setKnowledgeBase,onClose}){
       {/* Article List */}
       {!viewing&&!editing&&(
         <div style={{flex:1,overflow:'auto',padding:'0 24px 20px'}}>
-          <div style={{display:'flex',gap:8,marginBottom:14}}>
-            <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="🔍 搜索文章..." style={{...S.inp,flex:1,padding:'12px 16px',fontSize:15}}/>
-            <button onClick={()=>setEditing({id:null,title:'',content:'',tags:[]})} style={{...S.savBtn,fontSize:14,padding:'10px 20px',whiteSpace:'nowrap'}}>+ 新建</button>
+          <div style={{display:'flex',gap:"0.5rem",marginBottom:14}}>
+            <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="🔍 搜索文章..." style={{...S.inp,flex:1,padding:'12px 16px',fontSize:"0.9375rem"}}/>
+            <button onClick={()=>setEditing({id:null,title:'',content:'',tags:[]})} style={{...S.savBtn,fontSize:"0.875rem",padding:'10px 20px',whiteSpace:'nowrap'}}>+ 新建</button>
           </div>
-          {filtered.length===0&&<div style={{textAlign:'center',padding:'60px 0',color:'#9ca3af',fontSize:15}}>{knowledgeBase.length===0?<><div style={{fontSize:32,marginBottom:12}}>📝</div><div>还没有文章，点击 + 新建</div></>:'未找到匹配的文章'}</div>}
-          <div style={{display:'grid',gridTemplateColumns:window.innerWidth>=768?'repeat(2, 1fr)':'1fr',gap:12}}>
+          {filtered.length===0&&<div style={{textAlign:'center',padding:'60px 0',color:'#9ca3af',fontSize:"0.9375rem"}}>{knowledgeBase.length===0?<><div style={{fontSize:"2rem",marginBottom:12}}>📝</div><div>还没有文章，点击 + 新建</div></>:'未找到匹配的文章'}</div>}
+          <div style={{display:'grid',gridTemplateColumns:window.innerWidth>=768?'repeat(2, 1fr)':'1fr',gap:"0.75rem"}}>
           {filtered.map(a=>(
             <div key={a.id} onClick={()=>setViewing(a.id)} style={{...S.actCard,marginBottom:0,cursor:'pointer',transition:'all 0.15s',borderRadius:14}}>
-              <div style={{fontWeight:700,fontSize:15,color:'#1a1a2e',marginBottom:6}}>{a.title}</div>
-              <div style={{fontSize:13,color:'#6b7280',marginBottom:8,lineHeight:1.6}}>{a.content.slice(0,150)}{a.content.length>150?'...':''}</div>
+              <div style={{fontWeight:700,fontSize:"0.9375rem",color:'#1a1a2e',marginBottom:6}}>{a.title}</div>
+              <div style={{fontSize:"0.8125rem",color:'#6b7280',marginBottom:8,lineHeight:1.6}}>{a.content.slice(0,150)}{a.content.length>150?'...':''}</div>
               <div>{a.tags.map(t=><span key={t} style={tagPill}>{t}</span>)}</div>
-              <div style={{fontSize:11,color:'#b0b0b0',marginTop:8}}>{a.updatedAt?new Date(a.updatedAt).toLocaleDateString():''}</div>
+              <div style={{fontSize:"0.6875rem",color:'#b0b0b0',marginTop:8}}>{a.updatedAt?new Date(a.updatedAt).toLocaleDateString():''}</div>
             </div>
           ))}
           </div>
@@ -1512,13 +1512,13 @@ function KnowledgeBaseModal({knowledgeBase,setKnowledgeBase,onClose}){
       {/* Article Reader (Preview) */}
       {viewing&&!editing&&viewArticle&&(
         <div style={{flex:1,overflow:'auto',padding:'0 24px 20px'}}>
-          <button onClick={()=>setViewing(null)} style={{background:'none',border:'none',fontSize:14,color:'#c46b98',fontWeight:700,cursor:'pointer',padding:'0 0 14px',fontFamily:'inherit'}}>← 返回列表</button>
-          <h3 style={{fontSize:20,fontWeight:800,color:'#1a1a2e',marginBottom:8,lineHeight:1.3}}>{viewArticle.title}</h3>
+          <button onClick={()=>setViewing(null)} style={{background:'none',border:'none',fontSize:"0.875rem",color:'#c46b98',fontWeight:700,cursor:'pointer',padding:'0 0 14px',fontFamily:'inherit'}}>← 返回列表</button>
+          <h3 style={{fontSize:"1.25rem",fontWeight:800,color:'#1a1a2e',marginBottom:8,lineHeight:1.3}}>{viewArticle.title}</h3>
           <div style={{marginBottom:12}}>{viewArticle.tags.map(t=><span key={t} style={tagPill}>{t}</span>)}</div>
-          <div style={{fontSize:14,color:'#4a4a5a',lineHeight:1.8,background:'#faf8f4',borderRadius:12,padding:'16px 20px',border:'1px solid #e8e4de'}}>
+          <div style={{fontSize:"0.875rem",color:'#4a4a5a',lineHeight:1.8,background:'#faf8f4',borderRadius:12,padding:'16px 20px',border:'1px solid #e8e4de'}}>
             {renderKBMarkdown(viewArticle.content)}
           </div>
-          <div style={{display:'flex',gap:8,marginTop:14}}>
+          <div style={{display:'flex',gap:"0.5rem",marginTop:14}}>
             <button onClick={()=>setEditing({...viewArticle})} style={{...S.savBtn,flex:1}}>✏️ 编辑</button>
             <button onClick={()=>handleDeleteArticle(viewArticle.id)} style={S.delBtn}>🗑️ 删除</button>
           </div>
@@ -1528,23 +1528,23 @@ function KnowledgeBaseModal({knowledgeBase,setKnowledgeBase,onClose}){
       {/* Article Editor */}
       {editing&&(
         <div style={{flex:1,overflow:'auto',padding:'0 24px 20px'}}>
-          <button onClick={()=>{setEditing(null);}} style={{background:'none',border:'none',fontSize:14,color:'#c46b98',fontWeight:700,cursor:'pointer',padding:'0 0 14px',fontFamily:'inherit'}}>← {viewing?'返回预览':'返回列表'}</button>
-          <div style={{display:window.innerWidth>=768?'grid':'block',gridTemplateColumns:'1fr 1fr',gap:16}}>
+          <button onClick={()=>{setEditing(null);}} style={{background:'none',border:'none',fontSize:"0.875rem",color:'#c46b98',fontWeight:700,cursor:'pointer',padding:'0 0 14px',fontFamily:'inherit'}}>← {viewing?'返回预览':'返回列表'}</button>
+          <div style={{display:window.innerWidth>=768?'grid':'block',gridTemplateColumns:'1fr 1fr',gap:"1.0rem"}}>
             <div>
               <label style={S.fl}>标题</label>
-              <input value={editing.title} onChange={e=>setEditing({...editing,title:e.target.value})} placeholder="文章标题" style={{...S.inp,padding:'12px 16px',fontSize:15}}/>
+              <input value={editing.title} onChange={e=>setEditing({...editing,title:e.target.value})} placeholder="文章标题" style={{...S.inp,padding:'12px 16px',fontSize:"0.9375rem"}}/>
             </div>
             <div>
               <label style={S.fl}>标签 (逗号分隔)</label>
-              <input value={editing.tags.join(', ')} onChange={e=>setEditing({...editing,tags:e.target.value.split(',').map(t=>t.trim()).filter(Boolean)})} placeholder="shopping, tax-free, tips" style={{...S.inp,padding:'12px 16px',fontSize:15}}/>
+              <input value={editing.tags.join(', ')} onChange={e=>setEditing({...editing,tags:e.target.value.split(',').map(t=>t.trim()).filter(Boolean)})} placeholder="shopping, tax-free, tips" style={{...S.inp,padding:'12px 16px',fontSize:"0.9375rem"}}/>
             </div>
           </div>
           <label style={S.fl}>内容</label>
-          <textarea value={editing.content} onChange={e=>setEditing({...editing,content:e.target.value})} placeholder="在这里写文章内容..." style={{...S.inp,minHeight:window.innerWidth>=768?300:200,resize:'vertical',lineHeight:1.7,fontSize:15,padding:'14px 16px'}}/>
-          <div style={{display:'flex',gap:8,marginTop:16}}>
+          <textarea value={editing.content} onChange={e=>setEditing({...editing,content:e.target.value})} placeholder="在这里写文章内容..." style={{...S.inp,minHeight:window.innerWidth>=768?300:200,resize:'vertical',lineHeight:1.7,fontSize:"0.9375rem",padding:'14px 16px'}}/>
+          <div style={{display:'flex',gap:"0.5rem",marginTop:16}}>
             {editing.id&&<button onClick={()=>handleDeleteArticle(editing.id)} style={S.delBtn}>删除</button>}
             <button onClick={()=>setEditing(null)} style={S.canBtn}>取消</button>
-            <button onClick={handleSaveArticle} style={{...S.savBtn,flex:1,padding:'12px 22px',fontSize:15}}>保存</button>
+            <button onClick={handleSaveArticle} style={{...S.savBtn,flex:1,padding:'12px 22px',fontSize:"0.9375rem"}}>保存</button>
           </div>
         </div>
       )}
@@ -1554,10 +1554,71 @@ function KnowledgeBaseModal({knowledgeBase,setKnowledgeBase,onClose}){
   </div>);
 }
 
+// ═══ Trip Overview Editor (Layla-style segment editor) ═══
+function TripOverviewModal({segments,setSegments,origin,days,onClose}){
+  const[editing,setEditing]=useState(()=>{
+    if(segments.length>0)return segments.map(s=>({...s}));
+    // Auto-generate from origin + days data
+    const auto=[];const tripDays=(days||[]).filter(d=>d.id>0);
+    const originName=origin?.name||'';
+    // Group consecutive days by location
+    const cities=[];let prev='';
+    tripDays.forEach(d=>{const loc=d.location.split('→')[0].split('/')[0].trim();if(loc!==prev){cities.push({name:loc,date:d.date});prev=loc;}});
+    if(cities.length>0){
+      // Origin → first city (flight)
+      auto.push({from:originName,to:cities[0].name,transport:'flight',date:cities[0].date});
+      // Between cities (drive)
+      for(let i=0;i<cities.length-1;i++){auto.push({from:cities[i].name,to:cities[i+1].name,transport:'drive',date:cities[i+1].date});}
+      // Last city → origin (flight)
+      auto.push({from:cities[cities.length-1].name,to:originName,transport:'flight',date:''});
+    }else{auto.push({from:originName,to:'',transport:'flight',date:''});}
+    return auto;
+  });
+  const addLeg=()=>setEditing(prev=>[...prev,{from:prev[prev.length-1]?.to||'',to:'',transport:'drive',date:''}]);
+  const removeLeg=(i)=>setEditing(prev=>prev.filter((_,j)=>j!==i));
+  const updateLeg=(i,field,val)=>setEditing(prev=>prev.map((s,j)=>j===i?{...s,[field]:val}:s));
+  const handleApply=()=>{setSegments(editing.filter(s=>s.from&&s.to));onClose();};
+  const transportOpts=[{val:'flight',icon:'✈️',label:'Flight'},{val:'drive',icon:'🚗',label:'Drive'},{val:'train',icon:'🚃',label:'Train'},{val:'bus',icon:'🚌',label:'Bus'},{val:'ferry',icon:'⛴️',label:'Ferry'},{val:'walk',icon:'🚶',label:'Walk'}];
+
+  return(<div style={S.overlay} onClick={onClose}><div style={{...S.modal,maxWidth:560}} onClick={e=>e.stopPropagation()}>
+    <div style={{padding:"1.25rem 1.5rem 0.75rem",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+      <span style={{fontSize:"1.125rem",fontWeight:800,color:"#1a1a2e"}}>Trip Overview</span>
+      <button onClick={onClose} style={{background:"none",border:"none",fontSize:"1.125rem",cursor:"pointer",color:"#9ca3af"}}>✕</button>
+    </div>
+    <div style={{padding:"0 24px",maxHeight:"60vh",overflow:"auto"}}>
+      {editing.map((leg,i)=>(<div key={i} style={{display:"flex",alignItems:"center",gap:"0.5rem",marginBottom:10,padding:"0.625rem 0.75rem",background:"#faf8f4",borderRadius:12,border:"1px solid #e8e4de"}}>
+        <div style={{width:28,height:28,borderRadius:"50%",background:"#e8e4de",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,fontSize:"0.75rem",color:"#6b7280",flexShrink:0}}>{i+1}</div>
+        <div style={{flex:1,display:"flex",flexDirection:"column",gap:"0.375rem"}}>
+          <div style={{display:"flex",gap:"0.375rem",alignItems:"center"}}>
+            <input value={leg.from} onChange={e=>updateLeg(i,'from',e.target.value)} placeholder="From" style={{...S.inp,padding:"0.375rem 0.625rem",fontSize:"0.8125rem",flex:1}}/>
+            <select value={leg.transport} onChange={e=>updateLeg(i,'transport',e.target.value)} style={{...S.inp,padding:"0.375rem 0.5rem",fontSize:"0.8125rem",width:52,textAlign:"center",flexShrink:0}}>
+              {transportOpts.map(t=><option key={t.val} value={t.val}>{t.icon}</option>)}
+            </select>
+            <input value={leg.to} onChange={e=>updateLeg(i,'to',e.target.value)} placeholder="To" style={{...S.inp,padding:"0.375rem 0.625rem",fontSize:"0.8125rem",flex:1}}/>
+          </div>
+          <div style={{display:"flex",gap:"0.375rem",alignItems:"center"}}>
+            <span style={{fontSize:"0.6875rem",color:"#9ca3af",flexShrink:0}}>📅</span>
+            <input value={leg.date} onChange={e=>updateLeg(i,'date',e.target.value)} placeholder="Apr 11" style={{...S.inp,padding:"0.25rem 0.625rem",fontSize:"0.75rem",width:100}}/>
+            <span style={{fontSize:"0.6875rem",color:"#9ca3af",flex:1}}>{transportOpts.find(t=>t.val===leg.transport)?.label}</span>
+          </div>
+        </div>
+        <button onClick={()=>removeLeg(i)} style={{background:"none",border:"none",fontSize:"1rem",color:"#dc2626",cursor:"pointer",padding:4,flexShrink:0}}>✕</button>
+      </div>))}
+      <button onClick={addLeg} style={{...S.addBtn,marginBottom:12}}>+ Add Leg</button>
+    </div>
+    <div style={{padding:"0.75rem 1.5rem 1.25rem",borderTop:"1px solid #e8e4de",display:"flex",justifyContent:"flex-end",gap:"0.5rem"}}>
+      <button onClick={onClose} style={S.canBtn}>Cancel</button>
+      <button onClick={handleApply} style={S.savBtn}>✓ Apply</button>
+    </div>
+  </div></div>);
+}
+
 function App(){
   const[days,setDays]=useState(INIT_DAYS);const[exp,setExp]=useState({1:true});const[viewE,setViewE]=useState(null);const[dayM,setDayM]=useState(null);const[editA,setEditA]=useState(null);const[editD,setEditD]=useState(null);
   const[copied,setCopied]=useState(false);const[saveStatus,setSaveStatus]=useState("");const[showPasteModal,setShowPasteModal]=useState(false);const[pasteText,setPasteText]=useState("");const[showMobile,setShowMobile]=useState(false);const[fullMap,setFullMap]=useState(false);const[showVersions,setShowVersions]=useState(false);const[ghSaveStatus,setGhSaveStatus]=useState("");
   const[origin,setOrigin]=useState(null);
+  const[segments,setSegments]=useState([]);// Trip legs: [{from,to,transport,date}]
+  const[showTripOverview,setShowTripOverview]=useState(false);
   const[geocoding,setGeocoding]=useState(false);const[geocodeProgress,setGeocodeProgress]=useState("");
   const fileRef=useRef(null);
   const[rateInfo,setRateInfo]=useState({live:false,myr:RATES.MYR,updated:""});
@@ -1605,7 +1666,7 @@ function App(){
 
   // Export JSON
   const handleExport=()=>{
-    const data=JSON.stringify({version:1,exportDate:new Date().toISOString(),days,origin,knowledgeBase},null,2);
+    const data=JSON.stringify({version:1,exportDate:new Date().toISOString(),days,origin,knowledgeBase,segments},null,2);
     const blob=new Blob([data],{type:"application/json"});
     const url=URL.createObjectURL(blob);
     const a=document.createElement("a");
@@ -1624,6 +1685,7 @@ function App(){
           setDays(data.days);setExp({[data.days[0]?.id]:true});
           if(data.origin)setOrigin(data.origin);
           if(data.knowledgeBase&&Array.isArray(data.knowledgeBase))setKnowledgeBase(data.knowledgeBase);
+          if(data.segments&&Array.isArray(data.segments))setSegments(data.segments);
           const actCount=data.days.reduce((s,d)=>s+d.activities.length,0);
           // Auto-geocode missing coordinates
           setGeocoding(true);setGeocodeProgress("🔍 检查坐标...");
@@ -1647,7 +1709,7 @@ function App(){
 
   // Copy JSON to clipboard
   const handleCopy=async()=>{
-    const data=JSON.stringify({version:1,exportDate:new Date().toISOString(),days,origin,knowledgeBase},null,2);
+    const data=JSON.stringify({version:1,exportDate:new Date().toISOString(),days,origin,knowledgeBase,segments},null,2);
     await navigator.clipboard.writeText(data);
     setCopied(true);setTimeout(()=>setCopied(false),2000);
   };
@@ -1659,6 +1721,7 @@ function App(){
       if(data.days&&Array.isArray(data.days)){
         setDays(data.days);setShowPasteModal(false);setPasteText("");
         if(data.origin)setOrigin(data.origin);
+        if(data.segments&&Array.isArray(data.segments))setSegments(data.segments);
         if(data.knowledgeBase&&Array.isArray(data.knowledgeBase))setKnowledgeBase(data.knowledgeBase);
         // Auto-geocode missing coordinates
         setGeocoding(true);setGeocodeProgress("🔍 检查坐标...");
@@ -1690,24 +1753,24 @@ function App(){
   useEffect(()=>{
     const timer=setTimeout(()=>{
       try{
-        localStorage.setItem("trip-planner-data",JSON.stringify({version:1,days,origin,knowledgeBase,savedAt:new Date().toISOString()}));
+        localStorage.setItem("trip-planner-data",JSON.stringify({version:1,days,origin,knowledgeBase,segments,savedAt:new Date().toISOString()}));
         setSaveStatus("saved");
       }catch(e){/* storage may not be available */}
     },2000);
     return()=>clearTimeout(timer);
-  },[days,origin,knowledgeBase]);
+  },[days,origin,knowledgeBase,segments]);
 
   // Auto-save to GitHub (debounced 30s)
   useEffect(()=>{
     if(!GITHUB_PAT||days.length===0)return;
     const timer=setTimeout(async()=>{
       setGhSaveStatus("saving");
-      const r=await githubSave(days,origin,knowledgeBase);
+      const r=await githubSave(days,origin,knowledgeBase,segments);
       setGhSaveStatus(r.ok?"saved":"error");
       if(r.ok)setTimeout(()=>setGhSaveStatus(""),5000);
     },30000);
     return()=>clearTimeout(timer);
-  },[days,origin,knowledgeBase]);
+  },[days,origin,knowledgeBase,segments]);
 
   // Auto-load: fetch both localStorage and GitHub, pick the newer one
   useEffect(()=>{
@@ -1753,6 +1816,7 @@ function App(){
         setDays(data.days);
         if(data.origin)setOrigin(data.origin);
         if(data.knowledgeBase&&Array.isArray(data.knowledgeBase))setKnowledgeBase(data.knowledgeBase);
+        if(data.segments&&Array.isArray(data.segments))setSegments(data.segments);
         const result=await geocodeMissing(data.days);
         if(result.updated){
           setDays(result.days);
@@ -1769,9 +1833,9 @@ function App(){
   const aiResizing=useRef(false);
   const isMobile=typeof window!=='undefined'&&window.innerWidth<=900;
 
-  return(<div style={{...S.root,display:'flex',flexDirection:isMobile?'column':'row',overflow:'hidden',height:'100vh'}}>
+  return(<div style={{...S.root,display:'flex',flexDirection:isMobile?'column':'row',height:aiPanelOpen?'100vh':'auto',minHeight:'100vh',overflow:aiPanelOpen?'hidden':'visible'}}>
     {/* AI Panel — Right side on desktop, bottom on mobile */}
-    {aiPanelOpen&&<div style={{width:isMobile?'100%':aiPanelWidth+'px',minWidth:isMobile?undefined:'300px',maxWidth:isMobile?undefined:'60vw',height:isMobile?'50vh':'100vh',borderLeft:isMobile?'none':'1px solid #e8e4de',borderTop:isMobile?'1px solid #e8e4de':'none',background:'#faf8f4',display:'flex',flexDirection:'column',flexShrink:0,position:'relative',order:isMobile?2:1}}>
+    {aiPanelOpen&&<div style={{width:isMobile?'100%':aiPanelWidth+'px',minWidth:isMobile?undefined:'300px',maxWidth:isMobile?undefined:'60vw',height:isMobile?'100%':'100%',borderLeft:isMobile?'none':'1px solid #e8e4de',background:'#faf8f4',display:'flex',flexDirection:'column',flexShrink:0,position:isMobile?'fixed':'relative',inset:isMobile?0:undefined,zIndex:isMobile?1000:undefined,order:isMobile?2:1}}>
       {/* Resize handle */}
       {!isMobile&&<div style={{position:'absolute',left:-3,top:0,bottom:0,width:6,cursor:'col-resize',zIndex:10,background:'transparent'}} onMouseDown={e=>{e.preventDefault();aiResizing.current=true;const startX=e.clientX;const startW=aiPanelWidth;const onMove=ev=>{if(!aiResizing.current)return;const diff=startX-ev.clientX;const nw=Math.min(Math.max(startW+diff,300),window.innerWidth*0.6);setAiPanelWidth(nw);};const onUp=()=>{aiResizing.current=false;document.removeEventListener('mousemove',onMove);document.removeEventListener('mouseup',onUp);document.body.style.cursor='';document.body.style.userSelect='';};document.addEventListener('mousemove',onMove);document.addEventListener('mouseup',onUp);document.body.style.cursor='col-resize';document.body.style.userSelect='none';}} onMouseEnter={e=>e.currentTarget.style.background='rgba(196,107,152,0.3)'} onMouseLeave={e=>{if(!aiResizing.current)e.currentTarget.style.background='transparent';}}></div>}
       <AIChatPanel knowledgeBase={knowledgeBase} setKnowledgeBase={setKnowledgeBase} days={days} origin={origin} setDays={setDays} setOrigin={setOrigin} setExp={setExp} onCollapse={()=>setAiPanelOpen(false)} onScrollToActivity={(id)=>{
@@ -1780,30 +1844,65 @@ function App(){
       }}/>
     </div>}
     {/* Toggle AI Panel button */}
-    {!aiPanelOpen&&<button onClick={()=>setAiPanelOpen(true)} style={{position:'fixed',right:isMobile?12:12,bottom:isMobile?12:'auto',left:isMobile?'auto':'auto',top:isMobile?'auto':'50%',transform:isMobile?'none':'translateY(-50%)',width:48,height:48,borderRadius:'50%',background:'linear-gradient(135deg,#c46b98,#e8a0bf)',border:'none',boxShadow:'0 4px 20px rgba(196,107,152,0.4)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:22,color:'#fff',zIndex:999}}>🤖</button>}
+    {!aiPanelOpen&&<button onClick={()=>setAiPanelOpen(true)} style={{position:'fixed',right:isMobile?12:12,bottom:isMobile?12:'auto',left:isMobile?'auto':'auto',top:isMobile?'auto':'50%',transform:isMobile?'none':'translateY(-50%)',width:48,height:48,borderRadius:'50%',background:'linear-gradient(135deg,#c46b98,#e8a0bf)',border:'none',boxShadow:'0 4px 20px rgba(196,107,152,0.4)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:"1.375rem",color:'#fff',zIndex:999}}>🤖</button>}
     {/* Main content — Left side on desktop, top on mobile */}
-    <div style={{flex:1,height:isMobile?(aiPanelOpen?'50vh':'100vh'):'100vh',overflow:'auto',position:'relative',order:isMobile?0:0}}>
+    <div style={{flex:1,minHeight:0,overflow:aiPanelOpen?'auto':undefined,position:'relative',order:isMobile?0:0}}>
     <div style={{position:"fixed",inset:0,background:"radial-gradient(ellipse at 15% 20%, rgba(232,160,191,0.1) 0%, transparent 50%), radial-gradient(ellipse at 85% 60%, rgba(232,160,191,0.06) 0%, transparent 40%)",pointerEvents:"none",zIndex:0}}/>
     <div style={S.container}>
       <div style={{textAlign:"center",marginBottom:20,paddingTop:4}}>
-        <div style={{fontSize:11,letterSpacing:6,color:"#c46b98",opacity:0.7,marginBottom:6,fontWeight:700}}>旅の計画 · 互动行程规划</div>
+        <div style={{fontSize:"0.6875rem",letterSpacing:6,color:"#c46b98",opacity:0.7,marginBottom:6,fontWeight:700}}>旅の計画 · 互动行程规划</div>
         <h1 style={{fontSize:"clamp(22px, 5vw, 32px)",fontWeight:800,color:"#1a1a2e",margin:"0 0 6px",lineHeight:1.2}}>日本春季樱花自驾之旅</h1>
-        <div style={{fontSize:14,color:"#6b7280"}}>{dateRange} · {tA}个体验 · 🌸樱花 🍜美食 🎮二次元 📸摄影 🌊海边</div>
-        <div style={S.routeBadge}>{origin?origin.name:"🏠"} {cities.map((c,i)=>(<span key={c.name}><span style={{color:"#c46b98"}}>{i===0?" ✈ ":" 🚗 "}</span>{c.name}</span>))} <span style={{color:"#c46b98"}}> ✈ </span>{origin?origin.name:"🏠"}</div>
+        <div style={{fontSize:"0.875rem",color:"#6b7280"}}>{dateRange} · {tA}个体验 · 🌸樱花 🍜美食 🎮二次元 📸摄影 🌊海边</div>
+        {/* Layla-style route timeline from segments */}
+        {(()=>{
+          // Group consecutive segments by destination to create city stays
+          const stays=[];
+          const validSegments=segments.filter(s=>s.from&&s.to);
+          if(validSegments.length>1){
+            let lastTo=null;
+            validSegments.forEach((s,i)=>{
+              if(s.to!==lastTo)stays.push({name:s.to,date:s.date,transport:s.transport});
+              lastTo=s.to;
+            });
+          }else{
+            // Fallback: auto-generate from cities
+            cities.forEach((c,i)=>{
+              const sd=tripDays.find(d=>d.id===c.start)?.date||'';
+              const endDay=i<cities.length-1?cities[i+1].start-1:tripDays[tripDays.length-1]?.id||c.start;
+              const ed=tripDays.find(d=>d.id===endDay)?.date||sd;
+              stays.push({name:c.name,date:sd===ed?sd:`${sd} – ${ed}`,transport:i<cities.length-1?'drive':null});
+            });
+          }
+          const tIcons={flight:'✈',drive:'🚗',train:'🚃',bus:'🚌',ferry:'⛴',walk:'🚶'};
+          const originName=origin?.name||(segments.length>0?segments[0].from:'');
+          const line=<span style={{width:20,height:1,background:"#d4cce6",display:"block",flexShrink:0}}/>;
+          return <div style={{position:"relative",padding:"0.625rem 0",marginTop:6}}>
+            <div style={{display:"flex",flexWrap:"wrap",alignItems:"center",justifyContent:"center",gap:"0.25rem 0.15rem"}}>
+                {originName&&<><span style={{fontSize:"0.6875rem",color:"#8b7aa8",padding:"0 0.25rem"}}>◎ {originName}</span>{line}<span style={{fontSize:"0.75rem",color:"#8b7aa8"}}>✈</span>{line}</>}
+                {stays.map((s,i)=>(<React.Fragment key={i}>
+                  <div style={{background:"#fff",border:"1px solid #e8e4de",borderRadius:10,padding:"0.3rem 0.6rem",boxShadow:"0 1px 4px rgba(0,0,0,0.04)",textAlign:"center"}}>
+                    <div style={{fontWeight:700,fontSize:"clamp(0.7rem,2.5vw,0.875rem)",color:"#1a1a2e"}}>{s.name}</div>
+                    <div style={{fontSize:"clamp(0.55rem,2vw,0.6875rem)",color:"#8b7aa8"}}>{s.date}</div>
+                  </div>
+                  {i<stays.length-1&&<>{line}<span style={{fontSize:"0.75rem",color:"#8b7aa8"}}>{tIcons[stays[i].transport]||'🚗'}</span>{line}</>}
+                </React.Fragment>))}
+                {originName&&<>{line}<span style={{fontSize:"0.75rem",color:"#8b7aa8"}}>✈</span>{line}<span style={{fontSize:"0.6875rem",color:"#8b7aa8",padding:"0 0.25rem"}}>◎ {originName}</span></>}
+            </div>
+            <div style={{textAlign:"center",marginTop:6}}><button onClick={()=>setShowTripOverview(true)} style={{background:"none",border:"none",fontSize:"0.6875rem",color:"#c46b98",cursor:"pointer",fontWeight:600,fontFamily:"inherit",textDecoration:"underline"}}>✏️ Edit Trip Overview</button></div>
+          </div>;
+        })()}
       </div>
       <InlineRouteMap days={days} onViewFull={()=>setFullMap(true)}/>
-      <div style={{display:"flex",alignItems:"center",justifyContent:"center",flexWrap:"wrap",padding:"8px 0",marginBottom:8}}>
-        {cities.map((c,i)=>(<div key={c.name} style={{display:"flex",alignItems:"center"}}><div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:3}}><div style={{width:12,height:12,borderRadius:"50%",background:"linear-gradient(135deg,#c46b98,#e8a0bf)",border:"3px solid #faf8f4",boxShadow:"0 0 0 2px #c46b98"}}/><span style={{fontSize:12,fontWeight:700,color:"#1a1a2e"}}>{c.name}</span><span style={{fontSize:10,color:"#9ca3af"}}>Day {c.start}</span></div>{i<cities.length-1&&<div style={{width:40,height:2,background:"linear-gradient(90deg,#c46b98,#e8a0bf)",margin:"0 6px",marginBottom:26,opacity:0.35}}/>}</div>))}
-      </div>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(4, 1fr)",gap:8,margin:"12px 0 16px"}}>
+      {/* City dates already visible in each day header */}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(4, 1fr)",gap:"0.5rem",margin:"12px 0 16px"}}>
         {[["天数",tripDays.length+"天"],["体验",tA],["城市",cities.length],["住宿",days.reduce((s,d)=>s+(d.hotel?1:0),0)+"处"]].map(([l,v])=>(<div key={l} style={S.sumItem}><span style={S.sumLabel}>{l}</span><span style={S.sumValue}>{v}</span></div>))}
       </div>
-      {days.some(d=>d.isPreTrip)?days.filter(d=>d.isPreTrip).map(day=>(<DaySection key={day.id} day={day} expanded={!!exp[day.id]} onToggle={()=>setExp(p=>({...p,[day.id]:!p[day.id]}))} onClickAct={(a)=>hClick(a,day.id)} onOpenDay={id=>setDayM(id)} onAdd={did=>{setEditA({id:"new_"+Date.now(),type:"note",name:"",category:"sightseeing",time:"Daytime",cost:"",currency:"MYR",notes:""});setEditD(did);}} onRemove={id=>setDays(p=>p.filter(d=>d.id!==id))}/>)):<button onClick={()=>{setDays(p=>[{id:0,date:"Pre-Trip",dow:"",location:"准备",theme:"出发前准备",weather:"",isPreTrip:true,activities:[]},...p]);setExp(prev=>({...prev,[0]:true}));}} style={{...S.pillBtn,background:"#ecf5ec",color:"#2d7a3a",border:"2px dashed #2d7a3a",fontSize:13,padding:"8px 20px",margin:"0 auto 8px",display:"block"}}>+ 添加出发前准备</button>}
+      {days.some(d=>d.isPreTrip)?days.filter(d=>d.isPreTrip).map(day=>(<DaySection key={day.id} day={day} expanded={!!exp[day.id]} onToggle={()=>setExp(p=>({...p,[day.id]:!p[day.id]}))} onClickAct={(a)=>hClick(a,day.id)} onOpenDay={id=>setDayM(id)} onAdd={did=>{setEditA({id:"new_"+Date.now(),type:"note",name:"",category:"sightseeing",time:"Daytime",cost:"",currency:"MYR",notes:""});setEditD(did);}} onRemove={id=>setDays(p=>p.filter(d=>d.id!==id))}/>)):<button onClick={()=>{setDays(p=>[{id:0,date:"Pre-Trip",dow:"",location:"准备",theme:"出发前准备",weather:"",isPreTrip:true,activities:[]},...p]);setExp(prev=>({...prev,[0]:true}));}} style={{...S.pillBtn,background:"#ecf5ec",color:"#2d7a3a",border:"2px dashed #2d7a3a",fontSize:"0.8125rem",padding:"0.5rem 1.25rem",margin:"0 auto 8px",display:"block"}}>+ 添加出发前准备</button>}
       {tripDays.map(day=>(<DaySection key={day.id} day={day} expanded={!!exp[day.id]} onToggle={()=>setExp(p=>({...p,[day.id]:!p[day.id]}))} onClickAct={(a)=>hClick(a,day.id)} onOpenDay={id=>setDayM(id)} onAdd={did=>{setEditA({id:"new_"+Date.now(),type:"poi",name:"",category:"sightseeing",time:"Morning",cost:"",currency:"¥",notes:""});setEditD(did);}} onRemove={id=>setDays(p=>p.filter(d=>d.id!==id))} onReorder={(data,toDayId,toIdx)=>{setDays(p=>{const nd=JSON.parse(JSON.stringify(p));const fromDay=nd.find(d=>d.id===data.dayId);const toDay=nd.find(d=>d.id===toDayId);if(!fromDay||!toDay)return p;const[item]=fromDay.activities.splice(data.index,1);if(!item)return p;toDay.activities.splice(toIdx,0,item);return nd;});}}/>))}
-      <button onClick={()=>{const DOWS=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];const MONS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];const MDAYS=[31,28,31,30,31,30,31,31,30,31,30,31];const last=tripDays[tripDays.length-1];let nid=(last?.id||0)+1;let ndate="",ndow="";if(last?.date){const[m,d]=last.date.split(" ");const mi=MONS.indexOf(m);const di=parseInt(d)+1;if(di>MDAYS[mi]){ndate=MONS[(mi+1)%12]+" 1";}else{ndate=m+" "+di;}const base=new Date(2026,mi,parseInt(d)+1);ndow=DOWS[base.getDay()];}else{ndate="";ndow="";}const nd={id:nid,date:ndate,dow:ndow,location:"",theme:"",weather:"",activities:[]};setDays(p=>[...p,nd]);setExp(prev=>({...prev,[nid]:true}));}} style={{...S.pillBtn,background:"linear-gradient(135deg,#c46b98,#e8a0bf)",color:"#fff",border:"none",fontSize:14,padding:"10px 24px",margin:"8px auto",display:"block"}}>+ 添加新天</button>
-      <div style={{display:"flex",gap:8,justifyContent:"center",margin:"12px 0 20px"}}><button style={S.pillBtn} onClick={()=>{const a={};days.forEach(d=>a[d.id]=true);setExp(a);}}>全部展开</button><button style={S.pillBtn} onClick={()=>setExp({})}>全部折叠</button></div>
+      <button onClick={()=>{const DOWS=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];const MONS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];const MDAYS=[31,28,31,30,31,30,31,31,30,31,30,31];const last=tripDays[tripDays.length-1];let nid=(last?.id||0)+1;let ndate="",ndow="";if(last?.date){const[m,d]=last.date.split(" ");const mi=MONS.indexOf(m);const di=parseInt(d)+1;if(di>MDAYS[mi]){ndate=MONS[(mi+1)%12]+" 1";}else{ndate=m+" "+di;}const base=new Date(2026,mi,parseInt(d)+1);ndow=DOWS[base.getDay()];}else{ndate="";ndow="";}const nd={id:nid,date:ndate,dow:ndow,location:"",theme:"",weather:"",activities:[]};setDays(p=>[...p,nd]);setExp(prev=>({...prev,[nid]:true}));}} style={{...S.pillBtn,background:"linear-gradient(135deg,#c46b98,#e8a0bf)",color:"#fff",border:"none",fontSize:"0.875rem",padding:"0.625rem 1.5rem",margin:"8px auto",display:"block"}}>+ 添加新天</button>
+      <div style={{display:"flex",gap:"0.5rem",justifyContent:"center",margin:"12px 0 20px"}}><button style={S.pillBtn} onClick={()=>{const a={};days.forEach(d=>a[d.id]=true);setExp(a);}}>全部展开</button><button style={S.pillBtn} onClick={()=>setExp({})}>全部折叠</button></div>
       {/* Save/Load Toolbar */}
-      <div style={{display:"flex",flexWrap:"wrap",gap:8,justifyContent:"center",padding:"14px 0",margin:"0 0 16px",borderTop:"1px solid #e8e4de",borderBottom:"1px solid #e8e4de"}}>
+      <div style={{display:"flex",flexWrap:"wrap",gap:"0.5rem",justifyContent:"center",padding:"0.875rem 0",margin:"0 0 16px",borderTop:"1px solid #e8e4de",borderBottom:"1px solid #e8e4de"}}>
         <button onClick={handleExport} style={S.toolBtn}>📥 导出JSON</button>
         <button onClick={()=>fileRef.current?.click()} style={S.toolBtn}>📤 导入JSON</button>
         <button onClick={handleCopy} style={{...S.toolBtn,background:copied?"#ecf5ec":"#fff"}}>{copied?"✅ 已复制!":"📋 复制JSON"}</button>
@@ -1811,18 +1910,18 @@ function App(){
         {GITHUB_PAT&&<button onClick={()=>setShowVersions(true)} style={S.toolBtn}>📜 版本历史</button>}
         {GITHUB_PAT&&<button onClick={async()=>{setGhSaveStatus("saving");const r=await githubSave(days,origin,knowledgeBase);setGhSaveStatus(r.ok?"saved":"error");if(r.ok)setTimeout(()=>setGhSaveStatus(""),5000);}} style={{...S.toolBtn,background:ghSaveStatus==="saved"?"#ecf5ec":ghSaveStatus==="error"?"#fef2f2":"#fff"}}>{ghSaveStatus==="saving"?"☁️ 保存中...":ghSaveStatus==="saved"?"☁️ 已保存到GitHub":ghSaveStatus==="error"?"⚠️ 保存失败":"☁️ 保存到GitHub"}</button>}
         <button onClick={()=>setShowKB(true)} style={{...S.toolBtn,background:'#f0ecf8',color:'#6b48a8',borderColor:'#d8d0f0'}}>📚 知识库</button>
-        {geocoding&&<span style={{fontSize:12,color:"#c46b98",alignSelf:"center",fontWeight:600}}>{geocodeProgress}</span>}
-        {!geocoding&&saveStatus==="saved"&&<span style={{fontSize:12,color:"#2d7a3a",alignSelf:"center"}}>💾 已自动保存</span>}
+        {geocoding&&<span style={{fontSize:"0.75rem",color:"#c46b98",alignSelf:"center",fontWeight:600}}>{geocodeProgress}</span>}
+        {!geocoding&&saveStatus==="saved"&&<span style={{fontSize:"0.75rem",color:"#2d7a3a",alignSelf:"center"}}>💾 已自动保存</span>}
         <input ref={fileRef} type="file" accept=".json" style={{display:"none"}} onChange={handleImport}/>
       </div>
       <BudgetSummary days={days} rateInfo={rateInfo}/>
       <div style={{...S.notesBox,marginTop:14}}>
         <div style={{display:"flex",justifyContent:"space-between",cursor:"pointer"}} onClick={()=>setShowMobile(!showMobile)}>
-          <span style={{fontSize:16,fontWeight:700}}>📖 使用指南</span>
+          <span style={{fontSize:"1rem",fontWeight:700}}>📖 使用指南</span>
           <span style={{transform:showMobile?"rotate(180deg)":"",transition:"0.2s"}}>▾</span>
         </div>
         {showMobile&&(
-          <div style={{marginTop:14,fontSize:14,color:"#4a4a5a",lineHeight:1.9}}>
+          <div style={{marginTop:14,fontSize:"0.875rem",color:"#4a4a5a",lineHeight:1.9}}>
             <div><strong>📱 多设备同步</strong></div>
             <div>◆ 数据自动保存到 GitHub（每30秒）</div>
             <div>◆ 新设备打开即自动加载最新行程</div>
@@ -1844,16 +1943,16 @@ function App(){
           </div>
         )}
       </div>
-      <div style={{textAlign:"center",fontSize:12,color:"#b0b0b0",margin:"24px 0 16px"}}>点击体验查看详情 · 点击 <strong>🗺️</strong> 打开日视图+地图 · 点击 <strong>+</strong> 添加</div>
+      <div style={{textAlign:"center",fontSize:"0.75rem",color:"#b0b0b0",margin:"24px 0 16px"}}>点击体验查看详情 · 点击 <strong>🗺️</strong> 打开日视图+地图 · 点击 <strong>+</strong> 添加</div>
     </div>
     {showPasteModal&&(
       <div style={S.overlay} onClick={()=>setShowPasteModal(false)}>
         <div style={S.modal} onClick={e=>e.stopPropagation()}>
-          <div style={{padding:"20px 24px"}}>
-            <h3 style={{fontSize:18,fontWeight:700,marginBottom:12}}>📋 粘贴JSON导入</h3>
-            <p style={{fontSize:13,color:"#6b7280",marginBottom:12}}>将之前导出的JSON内容粘贴到下方：</p>
-            <textarea value={pasteText} onChange={e=>setPasteText(e.target.value)} placeholder='{"version":1,"days":[...]}' style={{...S.inp,minHeight:200,resize:"vertical",fontFamily:"monospace",fontSize:12}}/>
-            <div style={{display:"flex",gap:8,marginTop:12}}>
+          <div style={{padding:"1.25rem 1.5rem"}}>
+            <h3 style={{fontSize:"1.125rem",fontWeight:700,marginBottom:12}}>📋 粘贴JSON导入</h3>
+            <p style={{fontSize:"0.8125rem",color:"#6b7280",marginBottom:12}}>将之前导出的JSON内容粘贴到下方：</p>
+            <textarea value={pasteText} onChange={e=>setPasteText(e.target.value)} placeholder='{"version":1,"days":[...]}' style={{...S.inp,minHeight:200,resize:"vertical",fontFamily:"monospace",fontSize:"0.75rem"}}/>
+            <div style={{display:"flex",gap:"0.5rem",marginTop:12}}>
               <button onClick={()=>setShowPasteModal(false)} style={S.canBtn}>取消</button>
               <button onClick={handlePasteImport} style={{...S.savBtn,flex:1}}>导入</button>
             </div>
@@ -1865,7 +1964,8 @@ function App(){
     {viewE&&<ExperienceDetail act={viewE} onClose={()=>setViewE(null)} onEdit={hEditExp}/>}
     {dayM&&<DayDetailModal days={days} initialDayId={dayM} onClose={()=>setDayM(null)} onViewExp={act=>{setDayM(null);setViewE(act);}}/>}
     {editA&&<EditModal activity={editA} onSave={hSave} onDelete={hDel} onClose={()=>{setEditA(null);setEditD(null);}}/>}
-    {showVersions&&<VersionHistoryModal onClose={()=>setShowVersions(false)} onRestore={(data)=>{setDays(data.days);if(data.origin)setOrigin(data.origin);if(data.knowledgeBase&&Array.isArray(data.knowledgeBase))setKnowledgeBase(data.knowledgeBase);}}/>}
+    {showVersions&&<VersionHistoryModal onClose={()=>setShowVersions(false)} onRestore={(data)=>{setDays(data.days);if(data.origin)setOrigin(data.origin);if(data.knowledgeBase&&Array.isArray(data.knowledgeBase))setKnowledgeBase(data.knowledgeBase);if(data.segments)setSegments(data.segments);}}/>}
+    {showTripOverview&&<TripOverviewModal segments={segments} setSegments={setSegments} origin={origin} days={days} onClose={()=>setShowTripOverview(false)}/>}
     {showKB&&<KnowledgeBaseModal knowledgeBase={knowledgeBase} setKnowledgeBase={setKnowledgeBase} onClose={()=>setShowKB(false)}/>}
     </div>{/* end scrollable content */}
   </div>);
@@ -1873,32 +1973,32 @@ function App(){
 
 const S={
   root:{fontFamily:"'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",background:"#faf8f4",minHeight:"100vh",color:"#1a1a2e"},
-  container:{maxWidth:700,margin:"0 auto",padding:"20px 16px",position:"relative",zIndex:1},
-  routeBadge:{display:"inline-flex",alignItems:"center",gap:7,marginTop:10,padding:"8px 18px",background:"#fff",border:"1px solid #e8e4de",borderRadius:100,fontSize:13,fontWeight:600,boxShadow:"0 2px 8px rgba(26,26,46,0.06)"},
-  daySection:{marginBottom:12,borderRadius:14,overflow:"hidden",background:"#fff",border:"1px solid #e8e4de",boxShadow:"0 2px 8px rgba(0,0,0,0.03)"},
-  dayHeader:{display:"flex",alignItems:"center",gap:12,padding:"14px 16px",background:"linear-gradient(135deg,#1a1a2e,#2d2d4a)",cursor:"pointer",userSelect:"none"},
-  dayNum:{width:36,height:36,borderRadius:"50%",border:"2px solid #e8a0bf",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:13,color:"#f5dce8",flexShrink:0},
-  locBadge:{background:"rgba(255,255,255,0.12)",padding:"3px 10px",borderRadius:100,fontSize:10,fontWeight:700,letterSpacing:0.8,color:"rgba(255,255,255,0.75)",textTransform:"uppercase"},
-  mapBtn:{background:"rgba(255,255,255,0.08)",border:"none",borderRadius:8,padding:"5px 8px",cursor:"pointer",fontSize:14},
-  actCard:{padding:"14px 16px",marginBottom:8,borderRadius:12,border:"1px solid #f0ede8",cursor:"pointer",transition:"all 0.15s",boxShadow:"0 1px 4px rgba(0,0,0,0.04)",background:"#fff"},
-  addBtn:{display:"flex",alignItems:"center",justifyContent:"center",gap:6,width:"100%",padding:"10px",borderRadius:10,border:"2px dashed #e8e4de",background:"transparent",cursor:"pointer",fontSize:13,fontWeight:600,color:"#9ca3af",fontFamily:"inherit"},
-  pillBtn:{padding:"7px 18px",borderRadius:100,border:"1px solid #e8e4de",background:"#fff",cursor:"pointer",fontSize:12,fontWeight:600,color:"#6b7280",fontFamily:"inherit"},
-  sumItem:{background:"#fff",border:"1px solid #e8e4de",borderRadius:12,padding:"12px 8px",textAlign:"center",boxShadow:"0 1px 3px rgba(0,0,0,0.03)"},
-  sumLabel:{display:"block",fontSize:10,textTransform:"uppercase",letterSpacing:1.2,color:"#9ca3af",fontWeight:700,marginBottom:3},
-  sumValue:{fontSize:16,fontWeight:800,color:"#1a1a2e"},
-  budgetBox:{padding:"22px",background:"#fff",border:"1px solid #e8e4de",borderRadius:16,boxShadow:"0 2px 12px rgba(0,0,0,0.04)"},
-  grandTotal:{background:"linear-gradient(135deg,#1a1a2e,#2d2d4a)",borderRadius:12,padding:"16px 18px",marginTop:4},
-  notesBox:{padding:"18px 22px",background:"#fff",border:"1px solid #e8e4de",borderRadius:14,boxShadow:"0 2px 10px rgba(0,0,0,0.04)"},
-  overlay:{position:"fixed",inset:0,background:"rgba(0,0,0,0.5)",backdropFilter:"blur(4px)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000,padding:16},
-  modal:{background:"#fff",borderRadius:20,maxWidth:500,width:"100%",maxHeight:"90vh",overflow:"auto",boxShadow:"0 24px 80px rgba(0,0,0,0.2)"},
-  panel:{background:"#fff",borderRadius:20,width:"100%",maxHeight:"90vh",overflow:"auto",boxShadow:"0 24px 80px rgba(0,0,0,0.25)"},
-  dayModal:{background:"#fff",borderRadius:20,maxWidth:520,width:"100%",maxHeight:"90vh",overflow:"hidden",boxShadow:"0 24px 80px rgba(0,0,0,0.25)",display:"flex",flexDirection:"column"},
-  fl:{display:"block",fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:0.8,color:"#6b7280",marginTop:12,marginBottom:5},
-  inp:{width:"100%",padding:"10px 14px",borderRadius:10,border:"1.5px solid #e8e4de",fontSize:14,fontFamily:"inherit",outline:"none",color:"#1a1a2e",background:"#faf8f4"},
-  savBtn:{padding:"10px 22px",borderRadius:10,border:"none",background:"linear-gradient(135deg,#c46b98,#e8a0bf)",color:"#fff",fontWeight:700,fontSize:14,cursor:"pointer",fontFamily:"inherit"},
-  canBtn:{padding:"10px 16px",borderRadius:10,border:"1px solid #e8e4de",background:"#fff",color:"#6b7280",fontWeight:600,fontSize:14,cursor:"pointer",fontFamily:"inherit"},
-  delBtn:{padding:"10px 16px",borderRadius:10,border:"1px solid #fecaca",background:"#fef2f2",color:"#dc2626",fontWeight:600,fontSize:14,cursor:"pointer",fontFamily:"inherit"},
-  toolBtn:{padding:"8px 16px",borderRadius:10,border:"1px solid #e8e4de",background:"#fff",cursor:"pointer",fontSize:13,fontWeight:600,color:"#4a4a5a",fontFamily:"inherit",boxShadow:"0 1px 3px rgba(0,0,0,0.03)",transition:"all 0.15s"},
+  container:{maxWidth:700,margin:"0 auto",padding:"1.25rem 1.0rem",position:"relative",zIndex:1,width:"100%"},
+  routeBadge:{display:"inline-flex",alignItems:"center",gap:"0.3rem",marginTop:"0.6rem",padding:"0.5rem 1rem",background:"#fff",border:"1px solid #e8e4de",borderRadius:100,fontSize:"clamp(0.65rem, 2.5vw, 0.8rem)",fontWeight:600,boxShadow:"0 2px 8px rgba(26,26,46,0.06)",flexWrap:"wrap",justifyContent:"center",lineHeight:1.6},
+  daySection:{marginBottom:"0.75rem",borderRadius:"0.875rem",overflow:"hidden",background:"#fff",border:"1px solid #e8e4de",boxShadow:"0 2px 8px rgba(0,0,0,0.03)"},
+  dayHeader:{display:"flex",alignItems:"center",gap:"clamp(0.4rem,2vw,0.75rem)",padding:"0.75rem clamp(0.5rem,3vw,1rem)",background:"linear-gradient(135deg,#1a1a2e,#2d2d4a)",cursor:"pointer",userSelect:"none"},
+  dayNum:{width:"2.25rem",height:"2.25rem",borderRadius:"50%",border:"2px solid #e8a0bf",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:"0.8rem",color:"#f5dce8",flexShrink:0},
+  locBadge:{background:"rgba(255,255,255,0.12)",padding:"0.2rem 0.6rem",borderRadius:100,fontSize:"clamp(0.55rem,2vw,0.625rem)",fontWeight:700,letterSpacing:0.8,color:"rgba(255,255,255,0.75)",textTransform:"uppercase"},
+  mapBtn:{background:"rgba(255,255,255,0.08)",border:"none",borderRadius:"0.5rem",padding:"0.3rem 0.5rem",cursor:"pointer",fontSize:"0.875rem"},
+  actCard:{padding:"clamp(0.6rem,2.5vw,0.875rem) clamp(0.5rem,3vw,1rem)",marginBottom:"0.5rem",borderRadius:"0.75rem",border:"1px solid #f0ede8",cursor:"pointer",transition:"all 0.15s",boxShadow:"0 1px 4px rgba(0,0,0,0.04)",background:"#fff"},
+  addBtn:{display:"flex",alignItems:"center",justifyContent:"center",gap:"0.375rem",width:"100%",padding:"0.625rem",borderRadius:"0.625rem",border:"2px dashed #e8e4de",background:"transparent",cursor:"pointer",fontSize:"0.8rem",fontWeight:600,color:"#9ca3af",fontFamily:"inherit"},
+  pillBtn:{padding:"0.4rem 1.1rem",borderRadius:100,border:"1px solid #e8e4de",background:"#fff",cursor:"pointer",fontSize:"0.75rem",fontWeight:600,color:"#6b7280",fontFamily:"inherit"},
+  sumItem:{background:"#fff",border:"1px solid #e8e4de",borderRadius:"0.75rem",padding:"0.75rem 0.5rem",textAlign:"center",boxShadow:"0 1px 3px rgba(0,0,0,0.03)"},
+  sumLabel:{display:"block",fontSize:"0.625rem",textTransform:"uppercase",letterSpacing:1.2,color:"#9ca3af",fontWeight:700,marginBottom:"0.2rem"},
+  sumValue:{fontSize:"1rem",fontWeight:800,color:"#1a1a2e"},
+  budgetBox:{padding:"1.375rem",background:"#fff",border:"1px solid #e8e4de",borderRadius:"1rem",boxShadow:"0 2px 12px rgba(0,0,0,0.04)"},
+  grandTotal:{background:"linear-gradient(135deg,#1a1a2e,#2d2d4a)",borderRadius:"0.75rem",padding:"1rem 1.1rem",marginTop:"0.25rem"},
+  notesBox:{padding:"1.1rem 1.375rem",background:"#fff",border:"1px solid #e8e4de",borderRadius:"0.875rem",boxShadow:"0 2px 10px rgba(0,0,0,0.04)"},
+  overlay:{position:"fixed",inset:0,background:"rgba(0,0,0,0.5)",backdropFilter:"blur(4px)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000,padding:"1rem"},
+  modal:{background:"#fff",borderRadius:"1.25rem",maxWidth:"31rem",width:"100%",maxHeight:"90vh",overflow:"auto",boxShadow:"0 24px 80px rgba(0,0,0,0.2)"},
+  panel:{background:"#fff",borderRadius:"1.25rem",width:"100%",maxHeight:"90vh",overflow:"auto",boxShadow:"0 24px 80px rgba(0,0,0,0.25)"},
+  dayModal:{background:"#fff",borderRadius:"1.25rem",maxWidth:"32.5rem",width:"100%",maxHeight:"90vh",overflow:"hidden",boxShadow:"0 24px 80px rgba(0,0,0,0.25)",display:"flex",flexDirection:"column"},
+  fl:{display:"block",fontSize:"0.7rem",fontWeight:700,textTransform:"uppercase",letterSpacing:0.8,color:"#6b7280",marginTop:"0.75rem",marginBottom:"0.3rem"},
+  inp:{width:"100%",padding:"0.625rem 0.875rem",borderRadius:"0.625rem",border:"1.5px solid #e8e4de",fontSize:"0.875rem",fontFamily:"inherit",outline:"none",color:"#1a1a2e",background:"#faf8f4"},
+  savBtn:{padding:"0.625rem 1.375rem",borderRadius:"0.625rem",border:"none",background:"linear-gradient(135deg,#c46b98,#e8a0bf)",color:"#fff",fontWeight:700,fontSize:"0.875rem",cursor:"pointer",fontFamily:"inherit"},
+  canBtn:{padding:"0.625rem 1rem",borderRadius:"0.625rem",border:"1px solid #e8e4de",background:"#fff",color:"#6b7280",fontWeight:600,fontSize:"0.875rem",cursor:"pointer",fontFamily:"inherit"},
+  delBtn:{padding:"0.625rem 1rem",borderRadius:"0.625rem",border:"1px solid #fecaca",background:"#fef2f2",color:"#dc2626",fontWeight:600,fontSize:"0.875rem",cursor:"pointer",fontFamily:"inherit"},
+  toolBtn:{padding:"0.5rem 1rem",borderRadius:"0.625rem",border:"1px solid #e8e4de",background:"#fff",cursor:"pointer",fontSize:"0.8rem",fontWeight:600,color:"#4a4a5a",fontFamily:"inherit",boxShadow:"0 1px 3px rgba(0,0,0,0.03)",transition:"all 0.15s"},
 };
 
 ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
