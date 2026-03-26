@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exportDate": "2026-03-26T14:55:50.912Z",
+  "exportDate": "2026-03-26T14:58:22.204Z",
   "days": [
     {
       "id": 0,
@@ -549,18 +549,18 @@
           "type": "poi"
         },
         {
-          "id": "4_1774356462187",
+          "notes": "富士山与河口湖景观度假屋。入住时间: 15:00-18:00。电话: +81-555-76-8188。\n💡 记得在18:00前办理入住，享受河口湖的宁静夜晚。",
+          "currency": "¥",
+          "time": "Afternoon",
+          "name": "15:00 Dream Lake Kawaguchi Cottage Tozawa Center 入住 (夢見る河口湖 コテージ戸沢センター)",
           "type": "poi",
-          "name": "Ueno",
+          "addr": "2578 Ōishi, Fujikawaguchiko, Minamitsuru District, Yamanashi 401-0305, Japan",
           "category": "hotel",
-          "time": "Morning",
-          "cost": "1200",
-          "currency": "MYR",
-          "notes": "",
-          "la": 35.70978,
-          "lo": 139.773385,
-          "img": "https://places.googleapis.com/v1/places/ChIJs-soi56OGGARvvSyPcqIups/photos/ATCDNfVyjaXillznw0hXiEpQDfMPUeHcj8aUHyfigEeYbcRg120ofmv2AsVLozgP-Fa9xELQ4pWPvAzXh2-4qUQRG8WSfbgMO27b-ZaH3AlNQgWejbh7Kf_Ul-3k8mlCM3aoYj79BHZr_FOLFfWSK9mxMUvNkD3Xgi4EHDTNna3QIuUQeHIpMFEqGZz0KqaYjGoSE8UdfTvQzg0yQvNPiCrAuxv_Px90JxvKd0zet1DanJ67y2clh49FP-Wvps96ue3XxvQ_JQb-_ztw4keioYFPXa3_mMClKF8dMKecV9PYT1uZLusnw-AAoNSyHwTjjgo-wZ-L3E0TQJL67Nrq5SFkRYPkZu1vKt39W0JiuHt6xPVznutg31z1uGOCgZB6B80odSOCrwRpfXvxYi0LmoTVDuoEQHmCfUPjbYtSC8w9m-bjfA0/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
-          "addr": "日本〒110-0005 东京都台东区上野"
+          "cost": "14400",
+          "la": 35.522705099999996,
+          "lo": 138.7538461,
+          "img": "https://places.googleapis.com/v1/places/ChIJqZpfhq5fGWARsb8S9WZjdiw/photos/AU_ZVEGxIh_vbFVDOEsVcWe86lGyoPy1SxDTDg8AdBRAvleki2B2MTgf6Ecn0tW3tPJa1INcRoIoT9jXWkVHvO_N8bmeOP8kELthRJYiQw3AackMNnz3azhGDDrh1Xy3_NaXZi79bh8qhxU98IdTRMxL_DpCU73e0KvSBH-V3oDlrd-Zzae9uSxysdSe8zdv-Ft8NCvJLgRpcOgObyu8xvZToWtjD4I_UBrFo-5kr_ii6prGVQ4uLCnRFKcxbG8sWahRMDyhm4s7XcPiZ9-wV098Izcn_33h8k9B6lz7a6z3xxAQMbCvRo8DKdmB6KEiCQ1UpMP7b3amp82CeOORXxtm2KelScKRRc3_KaWYK6VmQD0qHA7oIaD3XN0pGVdEnNLM9cRBacXucjm_o8SeUhZ0a6CaDdOgWrsK-3Q7NJJcpu8DxG-gtFAtuANO6vDZE2sW/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
+          "id": "4_1774537065623"
         },
         {
           "la": 35.523596,
@@ -705,6 +705,20 @@
           "img": "https://lh3.googleusercontent.com/gps-cs-s/AHVAweqm1kH7FXs3eYbeoTLlboOQX0ECgxWOO8tEPiMKl7ZQXvS9ze9eoxQdLzH1EGtgAYC7xVABb3m9MPDQbppw_wO15H9uC1rp1Ug3N6HSwN7IPeu8cg4q-z3ZpLpHzB2pzU3lqgrIc686WVQ=w426-h240-k-no",
           "la": 35.70025,
           "lo": 139.75730009999998
+        },
+        {
+          "id": "4_1774356462187",
+          "type": "poi",
+          "name": "Ueno",
+          "category": "hotel",
+          "time": "Morning",
+          "cost": "1200",
+          "currency": "MYR",
+          "notes": "",
+          "la": 35.70978,
+          "lo": 139.773385,
+          "img": "https://places.googleapis.com/v1/places/ChIJs-soi56OGGARvvSyPcqIups/photos/ATCDNfVyjaXillznw0hXiEpQDfMPUeHcj8aUHyfigEeYbcRg120ofmv2AsVLozgP-Fa9xELQ4pWPvAzXh2-4qUQRG8WSfbgMO27b-ZaH3AlNQgWejbh7Kf_Ul-3k8mlCM3aoYj79BHZr_FOLFfWSK9mxMUvNkD3Xgi4EHDTNna3QIuUQeHIpMFEqGZz0KqaYjGoSE8UdfTvQzg0yQvNPiCrAuxv_Px90JxvKd0zet1DanJ67y2clh49FP-Wvps96ue3XxvQ_JQb-_ztw4keioYFPXa3_mMClKF8dMKecV9PYT1uZLusnw-AAoNSyHwTjjgo-wZ-L3E0TQJL67Nrq5SFkRYPkZu1vKt39W0JiuHt6xPVznutg31z1uGOCgZB6B80odSOCrwRpfXvxYi0LmoTVDuoEQHmCfUPjbYtSC8w9m-bjfA0/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
+          "addr": "日本〒110-0005 东京都台东区上野"
         }
       ]
     },
