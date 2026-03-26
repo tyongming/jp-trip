@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exportDate": "2026-03-26T15:02:04.238Z",
+  "exportDate": "2026-03-26T15:04:33.612Z",
   "days": [
     {
       "id": 0,
@@ -474,8 +474,8 @@
       "id": 3,
       "date": "Apr 13",
       "dow": "Mon",
-      "location": "Mt. Fuji",
-      "theme": "单日公路片 · 富士山自驾与镰仓巡礼",
+      "location": "Shibuya",
+      "theme": "咒术回战朝圣 · 涩谷事变与都市丛林",
       "weather": "15°C 🌤️",
       "hotelIdx": 0,
       "activities": []
@@ -484,8 +484,8 @@
       "id": 4,
       "date": "Apr 14",
       "dow": "Tue",
-      "location": "Shibuya",
-      "theme": "咒术回战朝圣 · 涩谷事变与都市丛林",
+      "location": "Mt. Fuji",
+      "theme": "单日公路片 · 富士山自驾与镰仓巡礼",
       "weather": "18°C ☀️",
       "hotelIdx": 0,
       "activities": [
