@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exportDate": "2026-03-26T15:00:46.774Z",
+  "exportDate": "2026-03-26T15:02:04.238Z",
   "days": [
     {
       "id": 0,
@@ -616,15 +616,15 @@
       "activities": [
         {
           "cost": "3000",
-          "time": "Morning",
+          "time": "Early Morning",
           "currency": "¥",
           "addr": "Chuo Expwy, Japan",
-          "name": "07:30 沿着中央道开回新宿还车 (Chuo Expressway)",
+          "name": "05:30 沿着中央道开回新宿还车 (Chuo Expressway)",
           "category": "transport",
           "la": 35.4701808,
           "lo": 137.6525,
-          "img": "https://places.googleapis.com/v1/places/ChIJa2LYUVl7HGARZKp4O32MPos/photos/AU_ZVEEKlLIPJFWr3i5PJc6z2Wr04umA1_wL4N4KRmYrmgvLO8B2eOoNV7E_lCA_8Dt54LwDuBw2P21NB1J1B-QJSBDOQWOWLDG8Ovn8-l_Lcop7nxWQeEhnf9Yk9rUfhjeY3DF6u6pgwofGdOY1Wg8CaeI-wGyYACFOAI3YR4QkQSemuXqGSo95X14nOc4Hdg_7036TejWHjVBhDg5oS6dMoSi2S8oVr1eIuaS5salzJ07n_eRike4SdDf8SD3dDPzWfOWskzdVz15bGTR5-HsVQ7Hnfce4qmNKt-EdmmIX4GT_j60reVWrtu-qVOo2MF-Hf32GR9nFFkn9gzvQQkuXQxnCInguMxNdnfyt5uNM4y2mrck_6g29YneH1MTo7tdiOrZi5-DEpwVPQBSEXUoiawDXKGlwE8vdR4MWQjpYacvMgO74/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
-          "notes": "清晨七点半的中央道，远处的富士山渐行渐远。预计车程约2小时，请务必在08:00前抵达新宿Nippon Rent-A-Car完成还车手续。",
+          "img": "https://places.googleapis.com/v1/places/ChIJa2LYUVl7HGARZKp4O32MPos/photos/AU_ZVEHaMiqr8px4-bg5X33CBMOsYrIaOHgXZiK5qZCGKo7jZNuUdGlIesE39Rc7-FdjXmQd3o_a7BfNVR0d7ctb45id6oDvuquyEcfVGPMOf_Ly4d3N0iVZ54YoAu89dz2YwpWaoLv-ve478h0pR8sLfJwxiAvR-cmlmgQs17PemlWLvmtAVx8rSktp1zGfyQiEfGoBk5HEr4kM30SgBjzvOEvOA3OpiRFYYNYv9_wLBBfWtNB1uIAERhHfzLLFnC_HVGtMUg8JpcKJaF4HAfIs04S5uqD3u2oSiJ4lcenhLo77xPNfL-OF92bi6vCoJxuTtafCjdULC8sEf54FiabC3C8NzGSABDx_9hOlJPSipYQP5EHVYMDXUo6wKZLJ_O4kNRsMLsLtOWJdeOMi7iP_kuvThOufxie9j8KTSza81JGmEXK7/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
+          "notes": "清晨出发，避开早高峰。预计车程约2.5小时，务必在08:00前抵达新宿Nippon Rent-A-Car完成还车手续。",
           "id": "2_1774286357224",
           "type": "note"
         },
