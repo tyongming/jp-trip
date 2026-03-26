@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exportDate": "2026-03-26T14:52:18.457Z",
+  "exportDate": "2026-03-26T14:54:01.176Z",
   "days": [
     {
       "id": 0,
@@ -792,6 +792,28 @@
           "rating": 4.6,
           "reviews": 16,
           "addr": "Aras 3 - 24, Pusat Penerangan Pelancongan Negeri Johor (JOTIC, 2, Jalan Ayer Molek, Bandar Johor Bahru, 80000 Johor Bahru, Johor, Malaysia"
+        }
+      ]
+    },
+    {
+      "date": "Apr 14",
+      "dow": "Tue",
+      "location": "Kawaguchiko",
+      "theme": "湖畔富士山景小屋入住",
+      "weather": "15°C ☀️",
+      "activities": [
+        {
+          "activity": {
+            "type": "poi",
+            "time": "Afternoon",
+            "name": "15:00 Dream Lake Kawaguchi Cottage Tozawa Center 入住",
+            "addr": "2585 Oishi, Fujikawaguchiko, Minamitsuru District, Yamanashi 401-0305, Japan",
+            "currency": "¥",
+            "cost": "14400",
+            "notes": "富士河口湖町大石区域，拥有无敌富士山景的湖畔小屋。建议在15:00-18:00之间办理入住。\n💡 这里的风景非常适合清晨拍摄富士山倒影，记得提前准备好相机。",
+            "category": "hotel"
+          },
+          "dayId": 4
         }
       ]
     }
