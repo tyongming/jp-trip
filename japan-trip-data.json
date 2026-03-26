@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exportDate": "2026-03-26T14:54:01.176Z",
+  "exportDate": "2026-03-26T14:55:50.912Z",
   "days": [
     {
       "id": 0,
@@ -478,6 +478,16 @@
       "theme": "单日公路片 · 富士山自驾与镰仓巡礼",
       "weather": "15°C 🌤️",
       "hotelIdx": 0,
+      "activities": []
+    },
+    {
+      "id": 4,
+      "date": "Apr 14",
+      "dow": "Tue",
+      "location": "Shibuya",
+      "theme": "咒术回战朝圣 · 涩谷事变与都市丛林",
+      "weather": "18°C ☀️",
+      "hotelIdx": 0,
       "activities": [
         {
           "category": "transport",
@@ -539,6 +549,20 @@
           "type": "poi"
         },
         {
+          "id": "4_1774356462187",
+          "type": "poi",
+          "name": "Ueno",
+          "category": "hotel",
+          "time": "Morning",
+          "cost": "1200",
+          "currency": "MYR",
+          "notes": "",
+          "la": 35.70978,
+          "lo": 139.773385,
+          "img": "https://places.googleapis.com/v1/places/ChIJs-soi56OGGARvvSyPcqIups/photos/ATCDNfVyjaXillznw0hXiEpQDfMPUeHcj8aUHyfigEeYbcRg120ofmv2AsVLozgP-Fa9xELQ4pWPvAzXh2-4qUQRG8WSfbgMO27b-ZaH3AlNQgWejbh7Kf_Ul-3k8mlCM3aoYj79BHZr_FOLFfWSK9mxMUvNkD3Xgi4EHDTNna3QIuUQeHIpMFEqGZz0KqaYjGoSE8UdfTvQzg0yQvNPiCrAuxv_Px90JxvKd0zet1DanJ67y2clh49FP-Wvps96ue3XxvQ_JQb-_ztw4keioYFPXa3_mMClKF8dMKecV9PYT1uZLusnw-AAoNSyHwTjjgo-wZ-L3E0TQJL67Nrq5SFkRYPkZu1vKt39W0JiuHt6xPVznutg31z1uGOCgZB6B80odSOCrwRpfXvxYi0LmoTVDuoEQHmCfUPjbYtSC8w9m-bjfA0/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
+          "addr": "日本〒110-0005 东京都台东区上野"
+        },
+        {
           "la": 35.523596,
           "lo": 138.745262,
           "name": "15:00 大石公园 (Oishi Park)",
@@ -592,31 +616,6 @@
           "notes": "霓虹灯影在挡风玻璃上流转",
           "id": "2_1774286357224",
           "type": "note"
-        }
-      ]
-    },
-    {
-      "id": 4,
-      "date": "Apr 14",
-      "dow": "Tue",
-      "location": "Shibuya",
-      "theme": "咒术回战朝圣 · 涩谷事变与都市丛林",
-      "weather": "18°C ☀️",
-      "hotelIdx": 0,
-      "activities": [
-        {
-          "id": "4_1774356462187",
-          "type": "poi",
-          "name": "Ueno",
-          "category": "hotel",
-          "time": "Morning",
-          "cost": "1200",
-          "currency": "MYR",
-          "notes": "",
-          "la": 35.70978,
-          "lo": 139.773385,
-          "img": "https://places.googleapis.com/v1/places/ChIJs-soi56OGGARvvSyPcqIups/photos/ATCDNfVyjaXillznw0hXiEpQDfMPUeHcj8aUHyfigEeYbcRg120ofmv2AsVLozgP-Fa9xELQ4pWPvAzXh2-4qUQRG8WSfbgMO27b-ZaH3AlNQgWejbh7Kf_Ul-3k8mlCM3aoYj79BHZr_FOLFfWSK9mxMUvNkD3Xgi4EHDTNna3QIuUQeHIpMFEqGZz0KqaYjGoSE8UdfTvQzg0yQvNPiCrAuxv_Px90JxvKd0zet1DanJ67y2clh49FP-Wvps96ue3XxvQ_JQb-_ztw4keioYFPXa3_mMClKF8dMKecV9PYT1uZLusnw-AAoNSyHwTjjgo-wZ-L3E0TQJL67Nrq5SFkRYPkZu1vKt39W0JiuHt6xPVznutg31z1uGOCgZB6B80odSOCrwRpfXvxYi0LmoTVDuoEQHmCfUPjbYtSC8w9m-bjfA0/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
-          "addr": "日本〒110-0005 东京都台东区上野"
         }
       ]
     },
@@ -792,28 +791,6 @@
           "rating": 4.6,
           "reviews": 16,
           "addr": "Aras 3 - 24, Pusat Penerangan Pelancongan Negeri Johor (JOTIC, 2, Jalan Ayer Molek, Bandar Johor Bahru, 80000 Johor Bahru, Johor, Malaysia"
-        }
-      ]
-    },
-    {
-      "date": "Apr 14",
-      "dow": "Tue",
-      "location": "Kawaguchiko",
-      "theme": "湖畔富士山景小屋入住",
-      "weather": "15°C ☀️",
-      "activities": [
-        {
-          "activity": {
-            "type": "poi",
-            "time": "Afternoon",
-            "name": "15:00 Dream Lake Kawaguchi Cottage Tozawa Center 入住",
-            "addr": "2585 Oishi, Fujikawaguchiko, Minamitsuru District, Yamanashi 401-0305, Japan",
-            "currency": "¥",
-            "cost": "14400",
-            "notes": "富士河口湖町大石区域，拥有无敌富士山景的湖畔小屋。建议在15:00-18:00之间办理入住。\n💡 这里的风景非常适合清晨拍摄富士山倒影，记得提前准备好相机。",
-            "category": "hotel"
-          },
-          "dayId": 4
         }
       ]
     }
