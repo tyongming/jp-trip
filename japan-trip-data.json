@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exportDate": "2026-04-09T17:21:05.536Z",
+  "exportDate": "2026-04-09T17:23:08.543Z",
   "days": [
     {
       "id": 0,
@@ -49,7 +49,9 @@
           "currency": "MYR",
           "notes": "酒店总价 MYR2,626 (2人), MYR1,313/人\n\n11夜 KAIKATSU CLUB (蒲田) — 未付\n11晚 LOUIS STAGES — MYR295 (已付 05 Apr)\n12晚 SUNLITE — MYR870 (已付 25 Mar)\n14晚 DREAM LAKE (河口湖) — MYR361 (已付 26 Mar)\n15晚 APA ASAKUSA SHIN — MYR850 (已付 8 Apr)\n17晚 TOYOKO INN (成田) — MYR250 (已付 8 Apr)",
           "la": 34.67333,
-          "lo": 133.74725
+          "lo": 133.74725,
+          "img": "https://places.googleapis.com/v1/places/ChIJIcMy5kGJGGARFBXpQzTMp_s/photos/AU_ZVEEbaKJcrUioMWJnLPr38EnD14QnntyoNZ2xPG8KT4ge-xdo-A7dH5HeB97YxnoD7Wt5VBo8pZugh_lEia0N_QU3Lg0Q7QMZOnQ3p3C5bEKkaYqtaVqx90AQX3qsxOe2ZGonhtinuouKvCB4aOjW_ViRydus8_PqbEHkQIcS_sZm0ujAgntw4Kxfg4TXR8AmstBogPwAR_wl9BZpa1z27ZnKPNKCmFTM2nvXPkxcRVKxfK-uZJbYJk5tBbx5FQORQFu13enN5kO4GUiKCpPQXzhcP4a49yBtw2AMuBA5nFi2xX8q2WAdZHaALr3uxeJTrgXBCVvrs7lZAZjhbQ0aqcj0gYfwu8qIxymCZbB4-vTN5DC2psl6ZerEQzu7IDN8-JLhXZrl2Zyw-HZ1pVX7zAy9ZHEZkPAzAZ43SKV5eDw8SqVSm1OVV4wFGL--UD12/media?maxHeightPx=400&maxWidthPx=800&key=AIzaSyDyXzKuzd5wT4s3AZ7WQw6lklToiU49fJc",
+          "addr": "1-chōme-1-9 Saga, Koto City, Tokyo 135-0031, Japan"
         },
         {
           "id": "0_car",
