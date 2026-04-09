@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exportDate": "2026-04-09T17:14:28.374Z",
+  "exportDate": "2026-04-09T17:18:11.319Z",
   "days": [
     {
       "id": 0,
@@ -45,9 +45,11 @@
           "name": "🏨 酒店预订汇总",
           "category": "hotel",
           "time": "Daytime",
-          "cost": "2626",
-          "currency": "¥",
-          "notes": "酒店总价 ¥2,626 (2人), ¥1,313/人\n\n11夜 KAIKATSU CLUB (蒲田) — 未付\n11晚 LOUIS STAGES — ¥295 (已付 05 Apr)\n12晚 SUNLITE — ¥870 (已付 25 Mar)\n14晚 DREAM LAKE (河口湖) — ¥361 (已付 26 Mar)\n15晚 APA ASAKUSA SHIN — ¥850 (已付 8 Apr)\n17晚 TOYOKO INN (成田) — ¥250 (已付 8 Apr)"
+          "cost": "1313",
+          "currency": "MYR",
+          "notes": "酒店总价 MYR2,626 (2人), MYR1,313/人\n\n11夜 KAIKATSU CLUB (蒲田) — 未付\n11晚 LOUIS STAGES — MYR295 (已付 05 Apr)\n12晚 SUNLITE — MYR870 (已付 25 Mar)\n14晚 DREAM LAKE (河口湖) — MYR361 (已付 26 Mar)\n15晚 APA ASAKUSA SHIN — MYR850 (已付 8 Apr)\n17晚 TOYOKO INN (成田) — MYR250 (已付 8 Apr)",
+          "la": 34.67333,
+          "lo": 133.74725
         },
         {
           "id": "0_car",
