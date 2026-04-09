@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exportDate": "2026-04-09T17:18:11.319Z",
+  "exportDate": "2026-04-09T17:19:44.372Z",
   "days": [
     {
       "id": 0,
@@ -57,9 +57,11 @@
           "name": "🚗 租车预订 (Apr 14-17)",
           "category": "transport",
           "time": "Daytime",
-          "cost": "444",
-          "currency": "¥",
-          "notes": "租车总价 ¥444 (2人), ¥222/人\n租车费: ¥140/天 x 3天 (Apr 14, 15, 16)\nETC/过路费: ¥8/天 x 3天\n燃油费另计\n⬜ 预订租车 (上野取车)\n⬜ 确认包含免责补偿险 (CDW)\n⬜ 准备好IDP + 护照 + 信用卡"
+          "cost": "222",
+          "currency": "MYR",
+          "notes": "租车总价 MYR444 (2人), MYR222/人\n租车费: MYR140/天 x 3天 (Apr 14, 15, 16)\nETC/过路费: MYR8/天 x 3天\n燃油费另计\n⬜ 预订租车 (上野取车)\n⬜ 确认包含免责补偿险 (CDW)\n⬜ 准备好IDP + 护照 + 信用卡",
+          "la": 36.15844,
+          "lo": 128.241528
         },
         {
           "id": "0_passport",
@@ -346,7 +348,7 @@
           "name": "LOUIS STAGES 入住",
           "category": "hotel",
           "time": "Evening",
-          "cost": "295",
+          "cost": "",
           "currency": "¥",
           "la": 35.659,
           "lo": 139.7,
